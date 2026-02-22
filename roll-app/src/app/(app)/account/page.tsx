@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserStore } from '@/stores/userStore';
@@ -9,13 +9,34 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
-import { EyeOff, Undo2 } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink } from 'lucide-react';
+import type { PrintOrder } from '@/types/print';
 
 export default function AccountPage() {
   const { user, loading: userLoading } = useUser();
   const { logout, loading: logoutLoading } = useAuth();
   const setUser = useUserStore((s) => s.setUser);
   const [showFiltered, setShowFiltered] = useState(false);
+  const [orders, setOrders] = useState<PrintOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  // Fetch print orders
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const res = await fetch('/api/orders');
+        if (res.ok) {
+          const json = await res.json();
+          setOrders(json.data ?? []);
+        }
+      } catch {
+        // Non-critical
+      } finally {
+        setOrdersLoading(false);
+      }
+    }
+    fetchOrders();
+  }, []);
 
   const handleTierToggle = () => {
     if (!user) return;
@@ -127,6 +148,74 @@ export default function AccountPage() {
         <p className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
           {user?.tier === 'plus' ? 'Unlimited storage' : 'Free tier: 100 photo limit'}
         </p>
+      </Card>
+
+      {/* Print History Section */}
+      <Card>
+        <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] mb-[var(--space-element)]">
+          Print History
+        </h2>
+        {ordersLoading && (
+          <div className="flex items-center justify-center py-[var(--space-component)]">
+            <Spinner size="sm" />
+          </div>
+        )}
+        {!ordersLoading && orders.length === 0 && (
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            No print orders yet. Develop a roll and order your first prints!
+          </p>
+        )}
+        {!ordersLoading && orders.length > 0 && (
+          <div className="flex flex-col gap-[var(--space-element)]">
+            {orders.map((order) => {
+              const statusVariant: Record<string, 'processing' | 'action' | 'developed'> = {
+                pending: 'processing',
+                submitted: 'processing',
+                in_production: 'processing',
+                shipped: 'action',
+                delivered: 'developed',
+                simulated: 'processing',
+              };
+              return (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between py-[var(--space-tight)] border-b border-[var(--color-border)] last:border-b-0"
+                >
+                  <div className="flex flex-col gap-[var(--space-micro)]">
+                    <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                      {new Date(order.created_at).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                      {order.photo_count} photos · {order.print_size}
+                      {order.is_free_first_roll ? ' · Free first roll' : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-[var(--space-element)]">
+                    <Badge variant={statusVariant[order.status] ?? 'processing'}>
+                      {order.status === 'in_production'
+                        ? 'Printing'
+                        : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </Badge>
+                    {order.tracking_url && (
+                      <a
+                        href={order.tracking_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--color-action)] hover:underline"
+                      >
+                        <ExternalLink size={16} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </Card>
 
       {/* Filtered Photos Section */}

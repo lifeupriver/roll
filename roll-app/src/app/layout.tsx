@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ToastContainer } from '@/components/ui/Toast';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({
       </head>
       <body className="film-grain min-h-screen bg-[var(--color-surface)] text-[var(--color-ink)] font-[family-name:var(--font-body)] font-light">
         {children}
+        <ToastContainer />
       </body>
     </html>
   );

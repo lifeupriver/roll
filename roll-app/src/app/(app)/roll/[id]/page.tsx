@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
-import { X, Film, Printer, Share, AlertCircle } from 'lucide-react';
+import { HeartButton } from '@/components/roll/HeartButton';
+import { X, Film, Printer, Share2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
 import { FILM_PROFILES as filmProfiles } from '@/types/roll';
@@ -40,6 +41,9 @@ export default function RollDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Favorites tracking
+  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
+
   // Inline name editing
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState('');
@@ -73,6 +77,26 @@ export default function RollDetailPage() {
   useEffect(() => {
     fetchRoll();
   }, [fetchRoll]);
+
+  // Load favorites for this roll's photos
+  useEffect(() => {
+    if (!roll || roll.status !== 'developed') return;
+    async function loadFavorites() {
+      try {
+        const res = await fetch('/api/favorites');
+        if (res.ok) {
+          const { data } = await res.json();
+          const ids = new Set<string>(
+            (data ?? []).map((f: { photo_id: string }) => f.photo_id)
+          );
+          setFavoritedIds(ids);
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    loadFavorites();
+  }, [roll?.status, roll?.id]);
 
   // ------------------------------------------------------------------
   // Poll processing status
@@ -207,6 +231,47 @@ export default function RollDetailPage() {
       toast('Failed to reset roll. Please try again.', 'error');
     }
   }, [rollId, toast]);
+
+  // ------------------------------------------------------------------
+  // Heart toggle (favorites)
+  // ------------------------------------------------------------------
+  const handleHeartToggle = useCallback(
+    async (photoId: string, hearted: boolean) => {
+      // Optimistic update
+      setFavoritedIds((prev) => {
+        const next = new Set(prev);
+        if (hearted) next.add(photoId);
+        else next.delete(photoId);
+        return next;
+      });
+
+      try {
+        if (hearted) {
+          const res = await fetch('/api/favorites', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId, rollId }),
+          });
+          if (!res.ok) throw new Error('Failed to favorite');
+        } else {
+          const res = await fetch(`/api/favorites/${photoId}`, {
+            method: 'DELETE',
+          });
+          if (!res.ok) throw new Error('Failed to unfavorite');
+        }
+      } catch {
+        // Revert optimistic update
+        setFavoritedIds((prev) => {
+          const next = new Set(prev);
+          if (hearted) next.delete(photoId);
+          else next.add(photoId);
+          return next;
+        });
+        toast('Failed to update favorite', 'error');
+      }
+    },
+    [rollId, toast]
+  );
 
   // ------------------------------------------------------------------
   // Helpers
@@ -398,10 +463,10 @@ export default function RollDetailPage() {
           )}
         </div>
 
-        {/* Developed photo grid with film profile filter */}
+        {/* Developed photo grid with film profile filter + hearts */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {photos.map((rp) => (
-            <div key={rp.id} className="relative overflow-hidden">
+            <div key={rp.id} className="relative overflow-hidden group">
               <img
                 src={rp.processed_storage_key || rp.photos.thumbnail_url}
                 alt=""
@@ -411,26 +476,31 @@ export default function RollDetailPage() {
                   filmProfile?.cssFilterClass ?? '',
                 ].join(' ')}
               />
+              {/* Heart overlay */}
+              <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
+                <HeartButton
+                  isHearted={favoritedIds.has(rp.photo_id)}
+                  onChange={(hearted) => handleHeartToggle(rp.photo_id, hearted)}
+                />
+              </div>
             </div>
           ))}
         </div>
 
         {/* CTAs */}
         <div className="flex flex-col gap-[var(--space-element)]">
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={() => toast('Coming in Phase 3', 'info')}
-          >
-            <Printer size={18} className="mr-2" />
-            Order Prints
-          </Button>
+          <Link href={`/roll/${rollId}/order`} className="block">
+            <Button variant="primary" size="lg">
+              <Printer size={18} className="mr-2" />
+              Order Prints
+            </Button>
+          </Link>
           <Button
             variant="secondary"
             size="lg"
-            onClick={() => toast('Coming in Phase 3', 'info')}
+            onClick={() => router.push('/circle')}
           >
-            <Share size={18} className="mr-2" />
+            <Share2 size={18} className="mr-2" />
             Share to Circle
           </Button>
         </div>
