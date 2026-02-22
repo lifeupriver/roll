@@ -9,9 +9,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard } from 'lucide-react';
+import { Input } from '@/components/ui/Input';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send } from 'lucide-react';
 import { track } from '@/lib/analytics';
+import { isValidEmail } from '@/types/auth';
 import type { PrintOrder } from '@/types/print';
+import type { ReferralStats } from '@/types/referral';
 
 export default function AccountPage() {
   const { user, loading: userLoading } = useUser();
@@ -21,6 +24,64 @@ export default function AccountPage() {
   const [orders, setOrders] = useState<PrintOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
+  const [referralEmail, setReferralEmail] = useState('');
+  const [referralSending, setReferralSending] = useState(false);
+
+  // Fetch referral stats
+  useEffect(() => {
+    async function fetchReferrals() {
+      try {
+        const res = await fetch('/api/referrals');
+        if (res.ok) {
+          const json = await res.json();
+          setReferralStats(json.data ?? null);
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    fetchReferrals();
+  }, []);
+
+  const handleReferralInvite = async () => {
+    if (!isValidEmail(referralEmail)) {
+      toast('Please enter a valid email address', 'error');
+      return;
+    }
+    setReferralSending(true);
+    try {
+      const res = await fetch('/api/referrals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: referralEmail }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        toast(`Invite sent to ${referralEmail}`, 'success');
+        setReferralEmail('');
+        // Refresh stats
+        setReferralStats((prev) => prev ? { ...prev, totalInvited: prev.totalInvited + 1 } : prev);
+      } else {
+        toast(json.error || 'Failed to send invite', 'error');
+      }
+    } catch {
+      toast('Failed to send invite', 'error');
+    } finally {
+      setReferralSending(false);
+    }
+  };
+
+  const handleCopyReferralLink = async () => {
+    if (!referralStats?.referralCode) return;
+    const link = `${window.location.origin}/auth/signup?ref=${referralStats.referralCode}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast('Referral link copied!', 'success');
+    } catch {
+      toast('Failed to copy link', 'error');
+    }
+  };
 
   // Fetch print orders
   useEffect(() => {
@@ -193,6 +254,78 @@ export default function AccountPage() {
         <p className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
           {user?.tier === 'plus' ? 'Unlimited storage' : 'Free tier: 100 photo limit'}
         </p>
+      </Card>
+
+      {/* Invite Friends / Referral Section */}
+      <Card>
+        <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)]">
+          <Gift size={18} className="text-[var(--color-action)]" />
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+            Invite Friends
+          </h2>
+        </div>
+        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-component)]">
+          Share Roll with friends. They get a free roll of prints, you get credit toward yours.
+        </p>
+
+        {/* Email invite */}
+        <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-component)]">
+          <Input
+            type="email"
+            placeholder="friend@example.com"
+            value={referralEmail}
+            onChange={(e) => setReferralEmail(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleReferralInvite();
+            }}
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleReferralInvite}
+            isLoading={referralSending}
+            disabled={!referralEmail}
+          >
+            <Send size={14} className="mr-1" /> Send
+          </Button>
+        </div>
+
+        {/* Copy link */}
+        {referralStats?.referralCode && (
+          <button
+            onClick={handleCopyReferralLink}
+            className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-action)] hover:underline"
+          >
+            <Copy size={12} />
+            Copy your invite link
+          </button>
+        )}
+
+        {/* Stats */}
+        {referralStats && referralStats.totalInvited > 0 && (
+          <div className="mt-[var(--space-component)] border-t border-[var(--color-border)] pt-[var(--space-component)]">
+            <div className="grid grid-cols-3 gap-[var(--space-element)] text-center">
+              <div>
+                <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                  {referralStats.totalInvited}
+                </p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Invited</p>
+              </div>
+              <div>
+                <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                  {referralStats.totalSignedUp}
+                </p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Joined</p>
+              </div>
+              <div>
+                <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-heading)] text-[var(--color-action)]">
+                  {referralStats.totalConverted}
+                </p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Converted</p>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Print History Section */}

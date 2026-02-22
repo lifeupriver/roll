@@ -63,25 +63,40 @@ export async function DELETE(
       return NextResponse.json({ error: 'userId is required' }, { status: 400 });
     }
 
-    // Must be the current user requesting to leave
-    if (userId !== user.id) {
-      return NextResponse.json({ error: 'You can only remove yourself from a circle' }, { status: 403 });
-    }
-
-    // Check the user's role - creators cannot leave
-    const { data: membership, error: membershipError } = await supabase
+    // Check the requesting user's role
+    const { data: myMembership, error: myMembershipError } = await supabase
       .from('circle_members')
       .select('role')
       .eq('circle_id', id)
       .eq('user_id', user.id)
       .single();
 
-    if (membershipError || !membership) {
+    if (myMembershipError || !myMembership) {
       return NextResponse.json({ error: 'You are not a member of this circle' }, { status: 404 });
     }
 
-    if (membership.role === 'creator') {
+    // Creators can remove other members; regular members can only remove themselves
+    if (userId !== user.id && myMembership.role !== 'creator') {
+      return NextResponse.json({ error: 'Only the creator can remove members' }, { status: 403 });
+    }
+
+    // Creators cannot be removed
+    if (userId === user.id && myMembership.role === 'creator') {
       return NextResponse.json({ error: 'The creator cannot leave the circle' }, { status: 400 });
+    }
+
+    // If removing another user, verify they're not the creator
+    if (userId !== user.id) {
+      const { data: targetMembership } = await supabase
+        .from('circle_members')
+        .select('role')
+        .eq('circle_id', id)
+        .eq('user_id', userId)
+        .single();
+
+      if (!targetMembership) {
+        return NextResponse.json({ error: 'User is not a member of this circle' }, { status: 404 });
+      }
     }
 
     // Remove from circle_members
@@ -89,7 +104,7 @@ export async function DELETE(
       .from('circle_members')
       .delete()
       .eq('circle_id', id)
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     if (deleteError) {
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
