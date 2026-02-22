@@ -133,6 +133,31 @@ export function printShippedEmail(
   };
 }
 
+export function referralInviteEmail(
+  inviterName: string,
+  signupUrl: string
+): { subject: string; html: string } {
+  const content = `
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: bold; color: #1A1612; margin: 0 0 16px;">
+      ${inviterName} thinks you&rsquo;ll love Roll
+    </h1>
+    <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
+      Roll rescues your photos from the digital graveyard. Upload your camera roll, we remove the junk, you pick your best 36 shots, choose a film stock, and get real prints delivered to your door.
+    </p>
+    <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
+      Your first roll of prints is <strong>completely free</strong> &mdash; no credit card required.
+    </p>
+    ${ctaButton('Try Roll free', signupUrl)}
+    <p style="font-size: 13px; line-height: 1.5; color: #9A9590; margin: 0;">
+      If you don&rsquo;t know ${inviterName}, you can safely ignore this email.
+    </p>`;
+
+  return {
+    subject: `${inviterName} invited you to try Roll — your first prints are free`,
+    html: emailWrapper(content),
+  };
+}
+
 export function circleInviteEmail(
   inviterName: string,
   circleName: string,

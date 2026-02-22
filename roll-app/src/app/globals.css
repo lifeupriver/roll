@@ -267,6 +267,19 @@
   text-transform: uppercase;
 }
 
+/* Safe area insets for native shells (notch, home indicator) */
+.safe-area-inset-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-area-inset-left { padding-left: env(safe-area-inset-left, 0px); }
+.safe-area-inset-right { padding-right: env(safe-area-inset-right, 0px); }
+
+/* Standalone PWA body adjustment */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
 /* Film profile preview filters */
 .preview-warmth { filter: saturate(1.1) sepia(0.15) brightness(1.05); }
 .preview-golden { filter: saturate(1.2) sepia(0.25) brightness(1.08) contrast(1.05); }

@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Copy, Link2 } from 'lucide-react';
+import { ArrowLeft, Share2, Copy, Link2, Mail, UserMinus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
@@ -11,6 +12,8 @@ import { CirclePostCard } from '@/components/circle/CirclePostCard';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
+import { track } from '@/lib/analytics';
+import { isValidEmail } from '@/types/auth';
 import type { Circle, CircleMember, CirclePost, ReactionType } from '@/types/circle';
 
 export default function CircleDetailPage() {
@@ -30,9 +33,14 @@ export default function CircleDetailPage() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
 
   // Share modal state
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Members modal state
+  const [membersModalOpen, setMembersModalOpen] = useState(false);
 
   const fetchCircleData = useCallback(async () => {
     try {
@@ -76,6 +84,7 @@ export default function CircleDetailPage() {
     setInviteModalOpen(true);
     setInviteLoading(true);
     setInviteLink('');
+    setInviteEmail('');
 
     try {
       const res = await fetch(`/api/circles/${circleId}/invite`, {
@@ -86,6 +95,7 @@ export default function CircleDetailPage() {
         const { data } = await res.json();
         const link = `${window.location.origin}/circle/join/${data.token}`;
         setInviteLink(link);
+        track({ event: 'circle_invite_sent', properties: { circleId } });
       } else {
         const { error } = await res.json();
         toast(error || 'Failed to create invite', 'error');
@@ -108,9 +118,55 @@ export default function CircleDetailPage() {
     }
   };
 
+  const handleEmailInvite = async () => {
+    if (!isValidEmail(inviteEmail)) {
+      toast('Please enter a valid email address', 'error');
+      return;
+    }
+    setEmailSending(true);
+    try {
+      const res = await fetch(`/api/circles/${circleId}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail }),
+      });
+
+      if (res.ok) {
+        toast(`Invite sent to ${inviteEmail}`, 'success');
+        setInviteEmail('');
+      } else {
+        const { error } = await res.json();
+        toast(error || 'Failed to send invite', 'error');
+      }
+    } catch {
+      toast('Failed to send invite', 'error');
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string, memberName: string) => {
+    try {
+      const res = await fetch(`/api/circles/${circleId}/members`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: memberId }),
+      });
+
+      if (res.ok) {
+        setMembers((prev) => prev.filter((m) => m.user_id !== memberId));
+        toast(`${memberName} removed from circle`, 'success');
+      } else {
+        const { error } = await res.json();
+        toast(error || 'Failed to remove member', 'error');
+      }
+    } catch {
+      toast('Failed to remove member', 'error');
+    }
+  };
+
   const handleReaction = useCallback(
     async (postId: string, reactionType: ReactionType) => {
-      // Optimistic update
       setPosts((prev) =>
         prev.map((p) => {
           if (p.id !== postId) return p;
@@ -138,7 +194,6 @@ export default function CircleDetailPage() {
         });
 
         if (!res.ok) {
-          // Revert optimistic update
           fetchPosts();
         }
       } catch {
@@ -150,7 +205,6 @@ export default function CircleDetailPage() {
 
   const handleRemoveReaction = useCallback(
     async (postId: string, reactionType: ReactionType) => {
-      // Optimistic update
       setPosts((prev) =>
         prev.map((p) => {
           if (p.id !== postId) return p;
@@ -191,7 +245,6 @@ export default function CircleDetailPage() {
 
   if (!circle) return null;
 
-  // Show max 5 member avatars
   const visibleMembers = members.slice(0, 5);
   const overflowCount = members.length - 5;
 
@@ -199,7 +252,6 @@ export default function CircleDetailPage() {
     <div className="flex flex-col gap-[var(--space-section)] pb-24">
       {/* Header */}
       <div className="flex flex-col gap-[var(--space-component)]">
-        {/* Back + title row */}
         <div className="flex items-center gap-[var(--space-element)]">
           <button
             onClick={() => router.push('/circle')}
@@ -213,10 +265,12 @@ export default function CircleDetailPage() {
           </h1>
         </div>
 
-        {/* Members row */}
+        {/* Members row — tappable to open members list */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-[var(--space-element)]">
-            {/* Member avatars */}
+          <button
+            onClick={() => setMembersModalOpen(true)}
+            className="flex items-center gap-[var(--space-element)] hover:opacity-80 transition-opacity"
+          >
             <div className="flex -space-x-2">
               {visibleMembers.map((member) => (
                 <div
@@ -225,17 +279,11 @@ export default function CircleDetailPage() {
                   title={member.profiles?.display_name || member.profiles?.email || 'Member'}
                 >
                   {member.profiles?.avatar_url ? (
-                    <img
-                      src={member.profiles.avatar_url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={member.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
                       <span className="text-[10px] font-medium text-[var(--color-action)]">
-                        {(member.profiles?.display_name || member.profiles?.email || '?')
-                          .charAt(0)
-                          .toUpperCase()}
+                        {(member.profiles?.display_name || member.profiles?.email || '?').charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}
@@ -243,18 +291,15 @@ export default function CircleDetailPage() {
               ))}
               {overflowCount > 0 && (
                 <div className="w-8 h-8 rounded-full border-2 border-[var(--color-surface)] bg-[var(--color-surface-sunken)] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-medium text-[var(--color-ink-secondary)]">
-                    +{overflowCount}
-                  </span>
+                  <span className="text-[10px] font-medium text-[var(--color-ink-secondary)]">+{overflowCount}</span>
                 </div>
               )}
             </div>
             <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
               {members.length} {members.length === 1 ? 'member' : 'members'}
             </span>
-          </div>
+          </button>
 
-          {/* Invite button (creator only) */}
           {isCreator && (
             <Button variant="secondary" size="sm" onClick={handleInvite}>
               <Link2 size={14} className="mr-1" /> Invite
@@ -297,7 +342,7 @@ export default function CircleDetailPage() {
         </div>
       )}
 
-      {/* Floating action button */}
+      {/* FAB */}
       <button
         onClick={() => setShareModalOpen(true)}
         className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 w-14 h-14 rounded-full bg-[var(--color-action)] text-white shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all duration-150 z-30"
@@ -306,7 +351,7 @@ export default function CircleDetailPage() {
         <Share2 size={22} />
       </button>
 
-      {/* Invite Modal */}
+      {/* Invite Modal — with email invite + link copy */}
       <Modal isOpen={inviteModalOpen} onClose={() => setInviteModalOpen(false)}>
         <div className="flex flex-col gap-[var(--space-component)]">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
@@ -319,21 +364,102 @@ export default function CircleDetailPage() {
             </div>
           ) : (
             <>
-              <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-                Share this link with someone to invite them to your circle. The link expires in 7 days.
-              </p>
-              <div className="flex items-center gap-[var(--space-element)]">
-                <div className="flex-1 bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] px-[var(--space-element)] py-[var(--space-element)] overflow-hidden">
-                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink)] font-[family-name:var(--font-mono)] truncate">
-                    {inviteLink}
-                  </p>
+              {/* Email invite */}
+              <div className="flex flex-col gap-[var(--space-tight)]">
+                <label className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)]">
+                  Send invite by email
+                </label>
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <Input
+                    type="email"
+                    placeholder="friend@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleEmailInvite();
+                    }}
+                  />
+                  <Button variant="primary" size="sm" onClick={handleEmailInvite} isLoading={emailSending} disabled={!inviteEmail}>
+                    <Mail size={14} className="mr-1" /> Send
+                  </Button>
                 </div>
-                <Button variant="primary" size="sm" onClick={handleCopyLink}>
-                  <Copy size={14} className="mr-1" /> Copy
-                </Button>
+              </div>
+
+              <div className="flex items-center gap-[var(--space-element)]">
+                <div className="flex-1 h-px bg-[var(--color-border)]" />
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">or</span>
+                <div className="flex-1 h-px bg-[var(--color-border)]" />
+              </div>
+
+              {/* Link invite */}
+              <div className="flex flex-col gap-[var(--space-tight)]">
+                <label className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)]">
+                  Share invite link
+                </label>
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <div className="flex-1 bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] px-[var(--space-element)] py-[var(--space-element)] overflow-hidden">
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink)] font-[family-name:var(--font-mono)] truncate">
+                      {inviteLink}
+                    </p>
+                  </div>
+                  <Button variant="secondary" size="sm" onClick={handleCopyLink}>
+                    <Copy size={14} className="mr-1" /> Copy
+                  </Button>
+                </div>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  Expires in 7 days.
+                </p>
               </div>
             </>
           )}
+        </div>
+      </Modal>
+
+      {/* Members Modal */}
+      <Modal isOpen={membersModalOpen} onClose={() => setMembersModalOpen(false)}>
+        <div className="flex flex-col gap-[var(--space-component)]">
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+            Members
+          </h2>
+          <div className="flex flex-col gap-[var(--space-tight)]">
+            {members.map((member) => {
+              const name = member.profiles?.display_name || member.profiles?.email || 'Member';
+              const initial = name.charAt(0).toUpperCase();
+              const isSelf = member.user_id === user?.id;
+              return (
+                <div key={member.id} className="flex items-center justify-between py-[var(--space-tight)]">
+                  <div className="flex items-center gap-[var(--space-element)]">
+                    <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                      {member.profiles?.avatar_url ? (
+                        <img src={member.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
+                          <span className="text-[12px] font-medium text-[var(--color-action)]">{initial}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">
+                        {name}{isSelf ? ' (you)' : ''}
+                      </span>
+                      {member.role === 'creator' && (
+                        <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Creator</span>
+                      )}
+                    </div>
+                  </div>
+                  {isCreator && !isSelf && member.role !== 'creator' && (
+                    <button
+                      onClick={() => handleRemoveMember(member.user_id, name)}
+                      className="p-[var(--space-tight)] rounded-[var(--radius-sharp)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                      aria-label={`Remove ${name}`}
+                    >
+                      <UserMinus size={16} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </Modal>
 
@@ -342,7 +468,6 @@ export default function CircleDetailPage() {
         isOpen={shareModalOpen}
         onClose={() => {
           setShareModalOpen(false);
-          // Refresh posts after sharing
           fetchPosts();
         }}
         circleId={circleId}
