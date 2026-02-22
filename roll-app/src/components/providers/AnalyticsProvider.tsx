@@ -5,11 +5,15 @@ import { usePathname } from 'next/navigation';
 import { initAnalytics, track, identify } from '@/lib/analytics';
 import { initSentry, setSentryUser } from '@/lib/sentry';
 import { useUser } from '@/hooks/useUser';
+import { useServiceWorker } from '@/hooks/useServiceWorker';
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useUser();
   const prevPathname = useRef<string | null>(null);
+
+  // Register service worker
+  useServiceWorker();
 
   // Initialize on mount
   useEffect(() => {

@@ -10,9 +10,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff } from 'lucide-react';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import type { PrintOrder } from '@/types/print';
 import type { ReferralStats } from '@/types/referral';
 
@@ -27,6 +28,7 @@ export default function AccountPage() {
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [referralEmail, setReferralEmail] = useState('');
   const [referralSending, setReferralSending] = useState(false);
+  const { permission: pushPermission, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   // Fetch referral stats
   useEffect(() => {
@@ -325,6 +327,52 @@ export default function AccountPage() {
               </div>
             </div>
           </div>
+        )}
+      </Card>
+
+      {/* Notifications Section */}
+      <Card>
+        <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)]">
+          <Bell size={18} className="text-[var(--color-action)]" />
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+            Notifications
+          </h2>
+        </div>
+
+        {pushPermission === 'unsupported' ? (
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            Push notifications are not supported on this device/browser.
+          </p>
+        ) : pushPermission === 'denied' ? (
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            Notifications are blocked. Enable them in your browser settings to get notified when your rolls are ready, prints ship, and friends share photos.
+          </p>
+        ) : (
+          <>
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-component)]">
+              Get notified when your rolls are developed, prints ship, or friends invite you to a circle.
+            </p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                {pushSubscribed ? (
+                  <Bell size={16} className="text-[var(--color-developed)]" />
+                ) : (
+                  <BellOff size={16} className="text-[var(--color-ink-tertiary)]" />
+                )}
+                <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                  {pushSubscribed ? 'Notifications enabled' : 'Notifications off'}
+                </span>
+              </div>
+              <Button
+                variant={pushSubscribed ? 'ghost' : 'primary'}
+                size="sm"
+                onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
+                isLoading={pushLoading}
+              >
+                {pushSubscribed ? 'Turn off' : 'Enable'}
+              </Button>
+            </div>
+          </>
         )}
       </Card>
 
