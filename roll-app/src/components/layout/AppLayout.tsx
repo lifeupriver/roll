@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Grid3X3, Image, Users, User } from 'lucide-react';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 const navItems = [
   { href: '/feed', label: 'Feed', icon: Grid3X3 },
@@ -20,6 +21,8 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
+      <OfflineBanner />
+
       {/* Desktop sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="flex flex-col gap-[var(--space-section)] p-[var(--space-section)]">
