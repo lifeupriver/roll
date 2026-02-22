@@ -1,0 +1,82 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { PhotoCard } from './PhotoCard';
+import type { Photo } from '@/types/photo';
+
+interface PhotoGridProps {
+  photos: Photo[];
+  mode: 'feed' | 'roll' | 'favorites' | 'circle';
+  checkedIds?: Set<string>;
+  onCheck?: (photoId: string) => void;
+  onHide?: (photoId: string) => void;
+  onPhotoTap?: (photoId: string) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  isLoading?: boolean;
+}
+
+export function PhotoGrid({
+  photos,
+  mode,
+  checkedIds,
+  onCheck,
+  onHide,
+  onPhotoTap,
+  onLoadMore,
+  hasMore = false,
+  isLoading = false,
+}: PhotoGridProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!onLoadMore || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onLoadMore();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    const sentinel = sentinelRef.current;
+    if (sentinel) observer.observe(sentinel);
+
+    return () => {
+      if (sentinel) observer.unobserve(sentinel);
+    };
+  }, [onLoadMore, hasMore]);
+
+  return (
+    <div className="w-full">
+      {/* Contact sheet grid: 4px gaps, no border-radius, 3 cols desktop / 2 cols mobile */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-[var(--space-micro)]">
+        {photos.map((photo) => (
+          <PhotoCard
+            key={photo.id}
+            photo={photo}
+            isChecked={checkedIds?.has(photo.id) ?? false}
+            mode={mode}
+            onCheck={onCheck ? () => onCheck(photo.id) : undefined}
+            onHide={onHide ? () => onHide(photo.id) : undefined}
+            onTap={onPhotoTap ? () => onPhotoTap(photo.id) : undefined}
+          />
+        ))}
+
+        {/* Loading skeletons */}
+        {isLoading &&
+          Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={`skeleton-${i}`}
+              className="aspect-[3/4] bg-[var(--color-surface-sunken)] skeleton-pulse"
+            />
+          ))}
+      </div>
+
+      {/* Infinite scroll sentinel */}
+      {hasMore && <div ref={sentinelRef} className="h-1" />}
+    </div>
+  );
+}
