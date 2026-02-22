@@ -47,6 +47,20 @@ export interface CirclePost {
     avatar_url: string | null;
   };
   reactions?: CircleReaction[];
+  comments?: CircleComment[];
+}
+
+export interface CircleComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  profiles?: {
+    display_name: string | null;
+    email: string;
+    avatar_url: string | null;
+  };
 }
 
 export interface CirclePostPhoto {

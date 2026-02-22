@@ -29,7 +29,7 @@ export async function GET(
     // Fetch posts with joined photos, profiles, and reactions
     const { data: posts, error: postsError } = await supabase
       .from('circle_posts')
-      .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*)')
+      .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))')
       .eq('circle_id', id)
       .order('created_at', { ascending: false });
 
@@ -108,7 +108,7 @@ export async function POST(
     // Re-fetch the post with joined data
     const { data: fullPost, error: fetchError } = await supabase
       .from('circle_posts')
-      .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*)')
+      .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))')
       .eq('id', post.id)
       .single();
 

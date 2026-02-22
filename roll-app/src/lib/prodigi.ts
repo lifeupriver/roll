@@ -64,6 +64,7 @@ function isFulfillmentEnabled(): boolean {
 const SKU_MAP: Record<PrintSize, string> = {
   '4x6': 'GLOBAL-PHO-4x6-GLOSSY',
   '5x7': 'GLOBAL-PHO-5x7-GLOSSY',
+  '8x8': 'GLOBAL-PHO-8x8-SOFTCOVER',
 };
 
 // ---------------------------------------------------------------------------

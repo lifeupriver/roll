@@ -14,7 +14,7 @@ import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
-import type { Circle, CircleMember, CirclePost, ReactionType } from '@/types/circle';
+import type { Circle, CircleMember, CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
 export default function CircleDetailPage() {
   const params = useParams();
@@ -235,6 +235,30 @@ export default function CircleDetailPage() {
     [circleId, user?.id, fetchPosts]
   );
 
+  const handleCommentAdded = useCallback(
+    (postId: string, comment: CircleComment) => {
+      setPosts((prev) =>
+        prev.map((p) => {
+          if (p.id !== postId) return p;
+          return { ...p, comments: [...(p.comments ?? []), comment] };
+        })
+      );
+    },
+    []
+  );
+
+  const handleCommentDeleted = useCallback(
+    (postId: string, commentId: string) => {
+      setPosts((prev) =>
+        prev.map((p) => {
+          if (p.id !== postId) return p;
+          return { ...p, comments: (p.comments ?? []).filter((c) => c.id !== commentId) };
+        })
+      );
+    },
+    []
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-[var(--space-hero)]">
@@ -335,8 +359,11 @@ export default function CircleDetailPage() {
               key={post.id}
               post={post}
               currentUserId={user?.id ?? ''}
+              circleId={circleId}
               onReaction={handleReaction}
               onRemoveReaction={handleRemoveReaction}
+              onCommentAdded={handleCommentAdded}
+              onCommentDeleted={handleCommentDeleted}
             />
           ))}
         </div>

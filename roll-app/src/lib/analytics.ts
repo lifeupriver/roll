@@ -41,6 +41,7 @@ export type AnalyticsEvent =
   | { event: 'roll_filled'; properties: { rollId: string } }
   | { event: 'roll_develop_started'; properties: { rollId: string; filmProfile: string; photoCount: number } }
   | { event: 'roll_develop_completed'; properties: { rollId: string; durationMs: number } }
+  | { event: 'roll_autofill'; properties: { rollId: string; count: number } }
   // Favorites
   | { event: 'photo_hearted'; properties: { photoId: string; rollId: string } }
   | { event: 'photo_unhearted'; properties: { photoId: string } }
