@@ -3,22 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/useUser';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserStore } from '@/stores/userStore';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
-import { EyeOff, Undo2, Package, ExternalLink } from 'lucide-react';
+import { useToast } from '@/stores/toastStore';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard } from 'lucide-react';
+import { track } from '@/lib/analytics';
 import type { PrintOrder } from '@/types/print';
 
 export default function AccountPage() {
   const { user, loading: userLoading } = useUser();
   const { logout, loading: logoutLoading } = useAuth();
-  const setUser = useUserStore((s) => s.setUser);
+  const { toast } = useToast();
   const [showFiltered, setShowFiltered] = useState(false);
   const [orders, setOrders] = useState<PrintOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   // Fetch print orders
   useEffect(() => {
@@ -38,10 +40,47 @@ export default function AccountPage() {
     fetchOrders();
   }, []);
 
-  const handleTierToggle = () => {
-    if (!user) return;
-    const newTier = user.tier === 'plus' ? 'free' : 'plus';
-    setUser({ ...user, tier: newTier });
+  const handleUpgrade = async () => {
+    setBillingLoading(true);
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (json.data?.url) {
+        track({ event: 'upgrade_started' });
+        window.location.href = json.data.url;
+      } else {
+        toast(json.error || 'Failed to start checkout', 'error');
+      }
+    } catch {
+      toast('Failed to start checkout', 'error');
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setBillingLoading(true);
+    try {
+      const res = await fetch('/api/billing/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const json = await res.json();
+      if (json.data?.url) {
+        track({ event: 'billing_portal_opened' });
+        window.location.href = json.data.url;
+      } else {
+        toast(json.error || 'Failed to open billing portal', 'error');
+      }
+    } catch {
+      toast('Failed to open billing portal', 'error');
+    } finally {
+      setBillingLoading(false);
+    }
   };
 
   if (userLoading) {
@@ -80,7 +119,7 @@ export default function AccountPage() {
         </div>
       </Card>
 
-      {/* Subscription Section with Tier Toggle */}
+      {/* Subscription Section */}
       <Card>
         <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] mb-[var(--space-element)]">
           Subscription
@@ -94,27 +133,33 @@ export default function AccountPage() {
               {user?.tier === 'plus' ? 'All film profiles unlocked' : '1 film profile (Warmth)'}
             </span>
           </div>
-          <button
-            onClick={handleTierToggle}
-            className="relative inline-flex h-6 w-11 items-center rounded-[var(--radius-pill)] transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-border-focus)]"
-            style={{
-              backgroundColor: user?.tier === 'plus' ? 'var(--color-action)' : 'var(--color-surface-sunken)',
-            }}
-            role="switch"
-            aria-checked={user?.tier === 'plus'}
-            aria-label="Simulate Roll+ subscription"
-          >
-            <span
-              className="inline-block h-4 w-4 rounded-[var(--radius-pill)] bg-white transition-transform duration-200"
-              style={{
-                transform: user?.tier === 'plus' ? 'translateX(22px)' : 'translateX(4px)',
-              }}
-            />
-          </button>
+          {user?.tier === 'plus' ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleManageBilling}
+              isLoading={billingLoading}
+            >
+              <CreditCard size={14} className="mr-1" />
+              Manage
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleUpgrade}
+              isLoading={billingLoading}
+            >
+              Upgrade
+            </Button>
+          )}
         </div>
-        <p className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-          Simulate Roll+ for prototype testing. No real payment.
-        </p>
+
+        {user?.tier !== 'plus' && (
+          <p className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            $4.99/month — all film profiles, unlimited processing, Circles, and more.
+          </p>
+        )}
 
         {/* Feature comparison */}
         <div className="mt-[var(--space-component)] border-t border-[var(--color-border)] pt-[var(--space-component)]">

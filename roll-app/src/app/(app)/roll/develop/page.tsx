@@ -9,6 +9,7 @@ import { FILM_PROFILES } from '@/types/roll';
 import { useUserStore } from '@/stores/userStore';
 import { useToast } from '@/stores/toastStore';
 import { ArrowLeft } from 'lucide-react';
+import { track } from '@/lib/analytics';
 import type { Roll, FilmProfileId } from '@/types/roll';
 import type { Photo } from '@/types/photo';
 
@@ -100,6 +101,7 @@ function DevelopPageContent() {
         throw new Error('Failed to start development');
       }
 
+      track({ event: 'roll_develop_started', properties: { rollId, filmProfile: selectedProfileId, photoCount: roll?.photo_count ?? 0 } });
       router.push(`/roll/${rollId}`);
     } catch (err) {
       toast(

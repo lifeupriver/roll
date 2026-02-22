@@ -171,6 +171,33 @@
   animation: skeleton-pulse 2000ms ease-in-out infinite;
 }
 
+/* Skeleton shimmer animation */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-sunken) 25%,
+    var(--color-surface-raised) 37%,
+    var(--color-surface-sunken) 63%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1500ms ease-in-out infinite;
+}
+
+/* Slide down for banners */
+@keyframes slide-down {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-down {
+  animation: slide-down 200ms ease-out;
+}
+
 /* Focus system */
 :focus-visible {
   outline: 2px solid var(--color-border-focus);

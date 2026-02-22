@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useUserStore } from '@/stores/userStore';
+import { track, resetAnalytics } from '@/lib/analytics';
+import { clearSentryUser } from '@/lib/sentry';
 
 export function useAuth() {
   const [loading, setLoading] = useState(false);
@@ -18,6 +20,7 @@ export function useAuth() {
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) throw authError;
+      track({ event: 'user_logged_in' });
       router.push('/feed');
       router.refresh();
     } catch (err) {
@@ -59,6 +62,7 @@ export function useAuth() {
         },
       });
       if (authError) throw authError;
+      track({ event: 'user_signed_up' });
       router.push('/feed');
       router.refresh();
     } catch (err) {
@@ -73,6 +77,9 @@ export function useAuth() {
       setLoading(true);
       const supabase = createClient();
       await supabase.auth.signOut();
+      track({ event: 'user_logged_out' });
+      resetAnalytics();
+      clearSentryUser();
       clearUser();
       router.push('/login');
       router.refresh();

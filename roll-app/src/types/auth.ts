@@ -7,6 +7,8 @@ export interface User {
   onboarding_complete: boolean;
   photo_count: number;
   storage_used_bytes: number;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
+import { track } from '@/lib/analytics';
 import Link from 'next/link';
 
 export default function FeedPage() {
@@ -79,6 +80,7 @@ export default function FeedPage() {
   const handleCheck = useCallback(async (photoId: string) => {
     if (isChecked(photoId)) {
       uncheckPhoto(photoId);
+      track({ event: 'photo_unchecked', properties: { rollId: currentRoll?.id || '', photoCount: rollCount - 1 } });
       // Remove from roll in backend
       if (currentRoll) {
         try {
@@ -106,6 +108,7 @@ export default function FeedPage() {
             const { data: newRoll } = await createRes.json();
             setRoll(newRoll);
             rollId = newRoll.id;
+            track({ event: 'roll_created', properties: { rollId: newRoll.id } });
           }
         } catch {
           return;
@@ -113,6 +116,7 @@ export default function FeedPage() {
       }
 
       checkPhoto(photoId);
+      track({ event: 'photo_checked', properties: { rollId: rollId || '', photoCount: rollCount + 1 } });
       // Add to roll in backend
       if (rollId) {
         try {
@@ -125,6 +129,7 @@ export default function FeedPage() {
             const { rollStatus } = await res.json();
             if (rollStatus === 'ready' && currentRoll) {
               setRoll({ ...currentRoll, status: 'ready', photo_count: 36 });
+              track({ event: 'roll_filled', properties: { rollId: currentRoll.id } });
             }
           }
         } catch {
@@ -179,7 +184,10 @@ export default function FeedPage() {
       <div className="mb-[var(--space-section)]">
         <ContentModePills
           activeMode={contentMode}
-          onChange={(mode) => setContentMode(mode as 'all' | 'people' | 'landscapes')}
+          onChange={(mode) => {
+            setContentMode(mode as 'all' | 'people' | 'landscapes');
+            track({ event: 'content_mode_changed', properties: { mode } });
+          }}
           options={contentModeOptions}
         />
       </div>
