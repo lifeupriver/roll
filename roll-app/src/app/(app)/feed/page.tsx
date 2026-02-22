@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Upload } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { FilmStripProgress } from '@/components/roll/FilmStripProgress';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { usePhotos } from '@/hooks/usePhotos';
@@ -11,6 +13,7 @@ import { useRollStore } from '@/stores/rollStore';
 import Link from 'next/link';
 
 export default function FeedPage() {
+  const router = useRouter();
   const {
     photos,
     contentMode,
@@ -21,12 +24,51 @@ export default function FeedPage() {
     hidePhoto,
   } = usePhotos();
 
-  const { checkedPhotoIds, checkPhoto, uncheckPhoto, isChecked } = useRollStore();
+  const {
+    currentRoll,
+    checkedPhotoIds,
+    rollCount,
+    checkPhoto,
+    uncheckPhoto,
+    isChecked,
+    setRoll,
+  } = useRollStore();
+
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    // Initial load
     setContentMode('all');
   }, []);
+
+  // Load active roll on mount
+  useEffect(() => {
+    async function loadActiveRoll() {
+      try {
+        const res = await fetch('/api/rolls');
+        if (res.ok) {
+          const { data } = await res.json();
+          const buildingRoll = data?.find((r: { status: string }) => r.status === 'building' || r.status === 'ready');
+          if (buildingRoll) {
+            setRoll(buildingRoll);
+            // Load checked photo IDs for this roll
+            const rollRes = await fetch(`/api/rolls/${buildingRoll.id}`);
+            if (rollRes.ok) {
+              const rollData = await rollRes.json();
+              if (rollData.data?.photos) {
+                const store = useRollStore.getState();
+                for (const rp of rollData.data.photos) {
+                  store.checkPhoto(rp.photo_id);
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        // Silently fail — no active roll is fine
+      }
+    }
+    loadActiveRoll();
+  }, [setRoll]);
 
   const contentModeOptions = [
     { value: 'all', label: 'All' },
@@ -34,13 +76,68 @@ export default function FeedPage() {
     { value: 'landscapes', label: 'Landscapes' },
   ];
 
-  function handleCheck(photoId: string) {
+  const handleCheck = useCallback(async (photoId: string) => {
     if (isChecked(photoId)) {
       uncheckPhoto(photoId);
+      // Remove from roll in backend
+      if (currentRoll) {
+        try {
+          await fetch(`/api/rolls/${currentRoll.id}/photos`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId }),
+          });
+        } catch {
+          // Revert on error
+          checkPhoto(photoId);
+        }
+      }
     } else {
+      // If no roll exists, create one
+      let rollId = currentRoll?.id;
+      if (!rollId) {
+        try {
+          const createRes = await fetch('/api/rolls', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+          });
+          if (createRes.ok) {
+            const { data: newRoll } = await createRes.json();
+            setRoll(newRoll);
+            rollId = newRoll.id;
+          }
+        } catch {
+          return;
+        }
+      }
+
       checkPhoto(photoId);
+      // Add to roll in backend
+      if (rollId) {
+        try {
+          const res = await fetch(`/api/rolls/${rollId}/photos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId }),
+          });
+          if (res.ok) {
+            const { rollStatus } = await res.json();
+            if (rollStatus === 'ready' && currentRoll) {
+              setRoll({ ...currentRoll, status: 'ready', photo_count: 36 });
+            }
+          }
+        } catch {
+          uncheckPhoto(photoId);
+        }
+      }
     }
-  }
+  }, [isChecked, currentRoll, checkPhoto, uncheckPhoto, setRoll]);
+
+  const handlePhotoTap = useCallback((photoId: string) => {
+    const index = photos.findIndex((p) => p.id === photoId);
+    if (index >= 0) setLightboxIndex(index);
+  }, [photos]);
 
   if (!loading && photos.length === 0) {
     return (
@@ -65,7 +162,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div>
+    <div className="pb-16">
       {/* Header */}
       <div className="flex items-center justify-between mb-[var(--space-component)]">
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
@@ -94,10 +191,27 @@ export default function FeedPage() {
         checkedIds={checkedPhotoIds}
         onCheck={handleCheck}
         onHide={hidePhoto}
+        onPhotoTap={handlePhotoTap}
         hasMore={hasMore}
         onLoadMore={loadMore}
         isLoading={loading}
       />
+
+      {/* Film strip progress bar — fixed above tab bar */}
+      {rollCount > 0 && (
+        <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 lg:left-60 z-30">
+          <FilmStripProgress
+            rollName={currentRoll?.name || `Roll ${(currentRoll?.id || '').slice(0, 4)}`}
+            currentCount={rollCount}
+            maxCount={36}
+            onTap={() => {
+              if (currentRoll?.id) {
+                router.push(`/roll/${currentRoll.id}`);
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
