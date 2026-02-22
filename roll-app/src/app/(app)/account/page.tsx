@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { EyeOff, Undo2, Package, ExternalLink, CreditCard } from 'lucide-react';
+import { track } from '@/lib/analytics';
 import type { PrintOrder } from '@/types/print';
 
 export default function AccountPage() {
@@ -49,6 +50,7 @@ export default function AccountPage() {
       });
       const json = await res.json();
       if (json.data?.url) {
+        track({ event: 'upgrade_started' });
         window.location.href = json.data.url;
       } else {
         toast(json.error || 'Failed to start checkout', 'error');
@@ -69,6 +71,7 @@ export default function AccountPage() {
       });
       const json = await res.json();
       if (json.data?.url) {
+        track({ event: 'billing_portal_opened' });
         window.location.href = json.data.url;
       } else {
         toast(json.error || 'Failed to open billing portal', 'error');
