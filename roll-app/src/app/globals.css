@@ -1,0 +1,249 @@
+@import "tailwindcss";
+
+@theme {
+  /* === PRIMITIVE TOKENS === */
+  --color-paper: oklch(0.97 0.01 80);
+  --color-paper-warm: oklch(0.94 0.02 75);
+  --color-paper-kraft: oklch(0.91 0.03 70);
+
+  --color-darkroom: oklch(0.15 0.02 55);
+  --color-darkroom-wall: oklch(0.22 0.02 50);
+  --color-darkroom-bench: oklch(0.30 0.02 45);
+
+  --color-safelight: oklch(0.62 0.15 45);
+  --color-safelight-dim: oklch(0.52 0.13 42);
+  --color-safelight-glow: oklch(0.90 0.06 50);
+  --color-fixer: oklch(0.58 0.02 60);
+  --color-developer: oklch(0.44 0.02 55);
+
+  --color-stock-warmth: oklch(0.75 0.10 60);
+  --color-stock-golden: oklch(0.73 0.12 85);
+  --color-stock-vivid: oklch(0.60 0.12 135);
+  --color-stock-classic: oklch(0.35 0.00 0);
+  --color-stock-gentle: oklch(0.58 0.02 60);
+  --color-stock-modern: oklch(0.22 0.02 50);
+
+  --color-heart: oklch(0.55 0.20 25);
+  --color-heart-hover: oklch(0.48 0.18 25);
+  --color-developed: oklch(0.55 0.10 145);
+  --color-processing: oklch(0.73 0.12 85);
+  --color-error: oklch(0.62 0.15 45);
+
+  --color-filmstrip: oklch(0.15 0.02 55);
+  --color-sprocket: oklch(0.22 0.02 50);
+  --color-framecounter: oklch(0.73 0.12 85);
+
+  /* === SEMANTIC TOKENS === */
+  --color-surface: var(--color-paper);
+  --color-surface-raised: var(--color-paper-warm);
+  --color-surface-sunken: var(--color-paper-kraft);
+  --color-surface-overlay: var(--color-darkroom);
+
+  --color-ink: var(--color-darkroom);
+  --color-ink-secondary: var(--color-developer);
+  --color-ink-tertiary: var(--color-fixer);
+  --color-ink-inverse: var(--color-paper);
+
+  --color-action: var(--color-safelight);
+  --color-action-hover: var(--color-safelight-dim);
+  --color-action-subtle: var(--color-safelight-glow);
+
+  --color-border: oklch(0.91 0.02 70 / 0.6);
+  --color-border-strong: oklch(0.80 0.02 65 / 0.8);
+  --color-border-focus: var(--color-safelight);
+
+  /* === TYPOGRAPHY === */
+  --font-display: 'Cormorant Garamond', 'Garamond', 'Georgia', serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Mono', 'SF Mono', monospace;
+
+  --text-caption: 0.75rem;
+  --text-label: 0.875rem;
+  --text-body: 1rem;
+  --text-lead: 1.125rem;
+  --text-heading: 1.25rem;
+  --text-title: 1.5rem;
+  --text-display: 1.875rem;
+  --text-logotype: 3rem;
+
+  /* === SPACING === */
+  --space-micro: 0.25rem;
+  --space-tight: 0.5rem;
+  --space-element: 0.75rem;
+  --space-component: 1rem;
+  --space-section: 1.5rem;
+  --space-region: 2rem;
+  --space-page: 3rem;
+  --space-hero: 4rem;
+
+  /* === RADII === */
+  --radius-sharp: 4px;
+  --radius-card: 8px;
+  --radius-modal: 12px;
+  --radius-pill: 9999px;
+
+  /* === SHADOWS === */
+  --shadow-raised: 0 1px 3px oklch(0.15 0.02 55 / 0.06), 0 1px 2px oklch(0.15 0.02 55 / 0.04);
+  --shadow-floating: 0 4px 12px oklch(0.15 0.02 55 / 0.08), 0 2px 4px oklch(0.15 0.02 55 / 0.04);
+  --shadow-overlay: 0 12px 32px oklch(0.15 0.02 55 / 0.12), 0 4px 8px oklch(0.15 0.02 55 / 0.06);
+
+  /* === BREAKPOINTS === */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* Dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  .dark {
+    --color-surface: var(--color-darkroom);
+    --color-surface-raised: var(--color-darkroom-wall);
+    --color-surface-sunken: oklch(0.12 0.02 55);
+    --color-surface-overlay: oklch(0.10 0.02 55);
+
+    --color-ink: var(--color-paper);
+    --color-ink-secondary: oklch(0.78 0.02 70);
+    --color-ink-tertiary: var(--color-fixer);
+    --color-ink-inverse: var(--color-darkroom);
+
+    --color-action: var(--color-safelight);
+    --color-action-hover: oklch(0.68 0.16 48);
+    --color-action-subtle: oklch(0.25 0.06 45);
+
+    --color-border: oklch(0.30 0.02 50 / 0.5);
+    --color-border-strong: oklch(0.40 0.02 50 / 0.6);
+
+    --shadow-raised: 0 0 0 1px oklch(0.30 0.02 50 / 0.3);
+    --shadow-floating: 0 0 0 1px oklch(0.30 0.02 50 / 0.4), 0 4px 12px oklch(0 0 0 / 0.3);
+    --shadow-overlay: 0 0 0 1px oklch(0.30 0.02 50 / 0.5), 0 12px 32px oklch(0 0 0 / 0.5);
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-weight: 300;
+    letter-spacing: 0.005em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Film grain texture */
+.film-grain {
+  position: relative;
+}
+
+.film-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/textures/grain-light.webp');
+  background-size: 200px;
+  animation: grain-shift 0.5s steps(4) infinite;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dark .film-grain::after {
+  opacity: 0.08;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-5%, -5%); }
+  50% { transform: translate(5%, 0); }
+  75% { transform: translate(0, 5%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Skeleton pulse animation */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 2000ms ease-in-out infinite;
+}
+
+/* Focus system */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Touch targets */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-ink: #000000;
+    --color-ink-secondary: #333333;
+    --color-surface: #FFFFFF;
+    --color-action: #B34426;
+    --color-border: #333333;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .film-grain::after { animation: none; }
+}
+
+/* Typography utilities */
+.type-display {
+  font-size: clamp(1.5rem, 3vw + 0.5rem, 1.875rem);
+  line-height: 1.15;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.type-tagline {
+  font-size: clamp(1.125rem, 2vw + 0.5rem, 1.5rem);
+  line-height: 1.35;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.type-body {
+  font-size: var(--text-body);
+  line-height: 1.65;
+  max-width: 60ch;
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: 0.005em;
+}
+
+.type-label {
+  font-size: var(--text-label);
+  line-height: 1;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Film profile preview filters */
+.preview-warmth { filter: saturate(1.1) sepia(0.15) brightness(1.05); }
+.preview-golden { filter: saturate(1.2) sepia(0.25) brightness(1.08) contrast(1.05); }
+.preview-vivid { filter: saturate(1.4) contrast(1.1) brightness(1.02); }
+.preview-classic { filter: grayscale(1) contrast(1.3) brightness(0.95); }
+.preview-gentle { filter: grayscale(1) contrast(0.9) brightness(1.1); }
+.preview-modern { filter: grayscale(1) contrast(1.1) brightness(1.0); }
