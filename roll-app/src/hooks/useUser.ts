@@ -34,6 +34,8 @@ export function useUser(): UseUserReturn {
               onboarding_complete: profile.onboarding_complete,
               photo_count: profile.photo_count,
               storage_used_bytes: profile.storage_used_bytes,
+              stripe_customer_id: profile.stripe_customer_id ?? null,
+              stripe_subscription_id: profile.stripe_subscription_id ?? null,
               created_at: profile.created_at,
               updated_at: profile.updated_at,
             });
