@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roll — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   ROLL DESIGN TOKENS
+   ============================================ */
+:root {
+  /* Papers */
+  --color-paper: #FAF7F2;
+  --color-paper-warm: #F3EDE4;
+  --color-paper-kraft: #EBE3D7;
+
+  /* Darkroom */
+  --color-darkroom: #1A1612;
+  --color-darkroom-wall: #2C2520;
+  --color-darkroom-bench: #3D342C;
+
+  /* Chemistry */
+  --color-safelight: #C45D3E;
+  --color-safelight-dim: #A84D32;
+  --color-safelight-glow: #F2DDD5;
+  --color-fixer: #8C8074;
+  --color-developer: #5C5147;
+
+  /* Film stocks */
+  --color-stock-warmth: #E8A87C;
+  --color-stock-golden: #D4A843;
+  --color-stock-vivid: #6B8F4E;
+  --color-stock-classic: #4A4A4A;
+  --color-stock-gentle: #8C8074;
+  --color-stock-modern: #2C2520;
+
+  /* Semantic */
+  --color-heart: #D64545;
+  --color-developed: #5B8C5A;
+  --color-processing: #D4A843;
+  --color-error: #C45D3E;
+
+  /* Film strip */
+  --color-filmstrip: #1A1612;
+  --color-sprocket: #2C2520;
+  --color-framecounter: #D4A843;
+
+  /* Semantic mapping */
+  --color-surface: var(--color-paper);
+  --color-surface-raised: var(--color-paper-warm);
+  --color-surface-sunken: var(--color-paper-kraft);
+  --color-surface-overlay: var(--color-darkroom);
+  --color-ink: var(--color-darkroom);
+  --color-ink-secondary: var(--color-developer);
+  --color-ink-tertiary: var(--color-fixer);
+  --color-ink-inverse: var(--color-paper);
+  --color-action: var(--color-safelight);
+  --color-action-hover: var(--color-safelight-dim);
+  --color-action-subtle: var(--color-safelight-glow);
+  --color-border: rgba(235, 227, 215, 0.6);
+  --color-border-strong: rgba(200, 190, 175, 0.8);
+
+  /* Typography */
+  --font-display: 'Cormorant Garamond', 'Garamond', 'Georgia', serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Mono', 'SF Mono', monospace;
+
+  /* Type scale */
+  --text-caption: 0.75rem;
+  --text-label: 0.875rem;
+  --text-body: 1rem;
+  --text-lead: 1.125rem;
+  --text-heading: 1.25rem;
+  --text-title: 1.5rem;
+  --text-display: 1.875rem;
+  --text-logotype: 3rem;
+
+  /* Spacing */
+  --space-micro: 0.25rem;
+  --space-tight: 0.5rem;
+  --space-element: 0.75rem;
+  --space-component: 1rem;
+  --space-section: 1.5rem;
+  --space-region: 2rem;
+  --space-page: 3rem;
+  --space-hero: 4rem;
+
+  /* Radii */
+  --radius-sharp: 4px;
+  --radius-card: 8px;
+  --radius-modal: 12px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-raised: 0 1px 3px rgba(26, 22, 18, 0.06), 0 1px 2px rgba(26, 22, 18, 0.04);
+  --shadow-floating: 0 4px 12px rgba(26, 22, 18, 0.08), 0 2px 4px rgba(26, 22, 18, 0.04);
+  --shadow-overlay: 0 12px 32px rgba(26, 22, 18, 0.12), 0 4px 8px rgba(26, 22, 18, 0.06);
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  font-weight: 300;
+  letter-spacing: 0.005em;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Film grain overlay */
+.film-grain { position: relative; }
+.film-grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
+  background-size: 200px;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 9999;
+  animation: grain-shift 0.5s steps(4) infinite;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-5%, -5%); }
+  50% { transform: translate(5%, 0); }
+  75% { transform: translate(0, 5%); }
+}
+
+/* ============================================
+   SCREEN NAVIGATION
+   ============================================ */
+.screen {
+  display: none;
+  min-height: 100vh;
+  animation: screenIn 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.screen.active { display: block; }
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   NAV BAR — Screen Switcher (prototype only)
+   ============================================ */
+.proto-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--color-darkroom);
+  display: flex;
+  align-items: center;
+  gap: var(--space-tight);
+  padding: var(--space-tight) var(--space-component);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-fixer);
+}
+.proto-nav span {
+  color: var(--color-framecounter);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.proto-nav button {
+  background: transparent;
+  border: 1px solid var(--color-darkroom-bench);
+  color: var(--color-paper-kraft);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-caption);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: var(--radius-sharp);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+.proto-nav button:hover,
+.proto-nav button.active {
+  background: var(--color-safelight);
+  border-color: var(--color-safelight);
+  color: var(--color-paper);
+}
+
+/* ============================================
+   LOGIN SCREEN
+   ============================================ */
+.login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-page) var(--space-component);
+  padding-top: calc(var(--space-page) + 36px);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-section);
+}
+
+.logotype {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-logotype);
+  letter-spacing: 0.15em;
+  color: var(--color-ink);
+  line-height: 1;
+  animation: logotypeFade 800ms ease-out forwards;
+}
+
+@keyframes logotypeFade {
+  from { opacity: 0; transform: translateY(-6px); letter-spacing: 0.25em; }
+  to { opacity: 1; transform: translateY(0); letter-spacing: 0.15em; }
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: var(--text-lead);
+  color: var(--color-ink-secondary);
+  letter-spacing: 0.01em;
+  animation: taglineFade 600ms 200ms ease-out both;
+}
+
+@keyframes taglineFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-element);
+  animation: formSlide 500ms 400ms ease-out both;
+}
+
+@keyframes formSlide {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.input-field {
+  width: 100%;
+  height: 48px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sharp);
+  padding: 0 var(--space-element);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: var(--text-body);
+  color: var(--color-ink);
+  outline: none;
+  transition: border-color 150ms ease-out;
+}
+.input-field::placeholder { color: var(--color-ink-tertiary); }
+.input-field:focus { border-color: var(--color-action); }
+
+.btn-primary {
+  width: 100%;
+  height: 48px;
+  background: var(--color-action);
+  color: var(--color-ink-inverse);
+  border: none;
+  border-radius: var(--radius-sharp);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-label);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 150ms ease-out, transform 80ms ease-out;
+}
+.btn-primary:hover { background: var(--color-action-hover); }
+.btn-primary:active { transform: scale(0.98); }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-component);
+  width: 100%;
+  color: var(--color-ink-tertiary);
+  font-size: var(--text-caption);
+}
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-strong);
+}
+
+.ghost-link {
+  background: none;
+  border: none;
+  color: var(--color-ink-secondary);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: var(--text-label);
+  cursor: pointer;
+  transition: color 150ms;
+}
+.ghost-link:hover { color: var(--color-ink); text-decoration: underline; }
+
+.login-footer {
+  font-size: var(--text-caption);
+  color: var(--color-ink-tertiary);
+}
+
+/* ============================================
+   APP SHELL
+   ============================================ */
+.app-screen {
+  padding-top: 36px; /* proto nav */
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar (desktop) */
+.sidebar {
+  width: 240px;
+  padding: var(--space-section);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-region);
+  position: fixed;
+  top: 36px;
+  left: 0;
+  bottom: 0;
+  background: var(--color-surface);
+  z-index: 100;
+}
+
+.sidebar-logo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-heading);
+  letter-spacing: 0.15em;
+  color: var(--color-ink);
+}
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-element);
+  padding: var(--space-tight) var(--space-element);
+  border-radius: var(--radius-sharp);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-tertiary);
+  transition: all 150ms ease-out;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { color: var(--color-ink-secondary); background: var(--color-surface-raised); }
+.nav-item.active {
+  color: var(--color-action);
+  background: var(--color-action-subtle);
+}
+.nav-item svg { width: 20px; height: 20px; stroke-width: 1.5; }
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-tight);
+  padding: var(--space-tight) var(--space-component);
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sharp);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 150ms;
+  width: 100%;
+}
+.btn-secondary:hover { background: var(--color-surface-raised); }
+.btn-secondary svg { width: 16px; height: 16px; stroke-width: 1.5; }
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  padding: var(--space-section);
+  padding-bottom: 80px;
+}
+
+/* ============================================
+   FEED PAGE
+   ============================================ */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-component);
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-title);
+  letter-spacing: 0.04em;
+  color: var(--color-ink);
+}
+
+/* Content mode pills */
+.pills {
+  display: flex;
+  gap: var(--space-tight);
+  margin-bottom: var(--space-section);
+}
+
+.pill {
+  padding: var(--space-tight) var(--space-component);
+  background: var(--color-surface-raised);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: var(--text-label);
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+.pill:hover { background: var(--color-paper-kraft); }
+.pill.active {
+  background: var(--color-ink);
+  color: var(--color-ink-inverse);
+  font-weight: 600;
+}
+
+/* Contact sheet grid */
+.contact-sheet {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-micro);
+}
+
+.photo-cell {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: var(--color-surface-sunken);
+  cursor: pointer;
+}
+
+.photo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease-out;
+}
+.photo-cell:hover img { transform: scale(1.02); }
+
+/* Checkmark button */
+.checkmark {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 10;
+}
+.checkmark svg {
+  width: 14px;
+  height: 14px;
+  stroke: white;
+  stroke-width: 2.5;
+  opacity: 0;
+  transition: opacity 100ms;
+}
+.checkmark.checked {
+  background: var(--color-action);
+  border-color: var(--color-action);
+  animation: checkBounce 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.checkmark.checked svg { opacity: 1; }
+
+@keyframes checkBounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.85); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Photo hover metadata */
+.photo-meta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 8px 8px;
+  background: linear-gradient(transparent, rgba(26,22,18,0.7));
+  opacity: 0;
+  transition: opacity 200ms;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-paper);
+  letter-spacing: 0.02em;
+}
+.photo-cell:hover .photo-meta { opacity: 1; }
+
+/* ============================================
+   FILM STRIP PROGRESS BAR — The Signature
+   ============================================ */
+.film-strip {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  height: 56px;
+  background: var(--color-filmstrip);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-section);
+  z-index: 200;
+}
+
+/* Sprocket holes */
+.film-strip::before,
+.film-strip::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background-image: radial-gradient(circle, var(--color-sprocket) 2px, transparent 2px);
+  background-size: 16px 6px;
+  background-repeat: repeat-x;
+}
+.film-strip::before { top: 3px; }
+.film-strip::after { bottom: 3px; }
+
+.film-strip-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-label);
+  color: var(--color-ink-inverse);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.film-strip-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--color-darkroom-bench);
+  border-radius: 4px;
+  margin: 0 var(--space-section);
+  overflow: hidden;
+  position: relative;
+}
+
+.film-strip-fill {
+  height: 100%;
+  background: var(--color-action);
+  border-radius: 4px;
+  transition: width 400ms ease-out;
+  position: relative;
+}
+.film-strip-fill.complete {
+  animation: shimmer 600ms ease-in-out;
+}
+
+@keyframes shimmer {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
+  100% { filter: brightness(1); }
+}
+
+.film-strip-counter {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-lead);
+  color: var(--color-framecounter);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  min-width: 90px;
+  text-align: right;
+}
+
+/* ============================================
+   ROLL DETAIL PAGE
+   ============================================ */
+.roll-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-component);
+  margin-bottom: var(--space-section);
+}
+
+.roll-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-display);
+  letter-spacing: 0.02em;
+}
+
+.roll-counter {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-lead);
+  letter-spacing: 0.05em;
+  color: var(--color-ink-secondary);
+}
+
+.roll-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-tight);
+  margin-bottom: var(--space-section);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot.developed { background: var(--color-developed); }
+.status-dot.processing { background: var(--color-processing); animation: pulse 2s ease-in-out infinite; }
+.status-dot.building { background: var(--color-processing); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.status-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-caption);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-secondary);
+}
+
+.film-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-tight);
+  padding: var(--space-tight) var(--space-element);
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--text-label);
+  letter-spacing: 0.02em;
+  color: var(--color-ink-secondary);
+  margin-bottom: var(--space-section);
+}
+.film-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Heart button */
+.heart-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  padding: 4px;
+}
+.heart-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: var(--color-fixer);
+  stroke-width: 1.5;
+  fill: none;
+  transition: all 200ms;
+}
+.heart-btn:hover svg { stroke: var(--color-heart); transform: scale(1.05); }
+.heart-btn.hearted svg {
+  fill: var(--color-heart);
+  stroke: var(--color-heart);
+  animation: heartBurst 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes heartBurst {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.7); }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Roll actions */
+.roll-actions {
+  display: flex;
+  gap: var(--space-element);
+  margin-top: var(--space-section);
+}
+
+.roll-actions .btn-primary {
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-tight);
+  padding: 0 var(--space-section);
+}
+.roll-actions .btn-primary svg { width: 18px; height: 18px; stroke-width: 1.5; }
+
+.roll-actions .btn-secondary {
+  width: auto;
+  display: inline-flex;
+}
+
+/* ============================================
+   FILM SELECTION PAGE
+   ============================================ */
+.film-select-header {
+  text-align: center;
+  margin-bottom: var(--space-region);
+}
+
+.film-select-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-title);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-tight);
+}
+
+.film-select-sub {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-ink-tertiary);
+  letter-spacing: 0.02em;
+}
+
+/* Large preview */
+.film-preview {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto var(--space-region);
+  aspect-ratio: 3/2;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-floating);
+  position: relative;
+}
+.film-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 300ms ease-out;
+}
+
+/* Film profile cards */
+.film-profiles {
+  display: flex;
+  gap: var(--space-component);
+  overflow-x: auto;
+  padding: var(--space-tight) 0;
+  margin-bottom: var(--space-region);
+  scrollbar-width: none;
+  justify-content: center;
+}
+.film-profiles::-webkit-scrollbar { display: none; }
+
+.film-card {
+  flex-shrink: 0;
+  width: 140px;
+  cursor: pointer;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 200ms ease-out;
+  background: var(--color-surface-raised);
+}
+.film-card:hover { box-shadow: var(--shadow-raised); }
+.film-card.selected {
+  border-color: var(--color-action);
+  box-shadow: var(--shadow-raised);
+}
+
+.film-card-preview {
+  width: 100%;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+}
+.film-card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.film-card-label {
+  padding: var(--space-tight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.film-card-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: var(--text-label);
+  letter-spacing: 0.02em;
+  color: var(--color-ink-secondary);
+}
+.film-card-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.develop-cta {
+  text-align: center;
+}
+.develop-cta .btn-primary {
+  width: auto;
+  display: inline-flex;
+  padding: 0 var(--space-page);
+  height: 52px;
+  font-size: var(--text-body);
+}
+.develop-cta .time-estimate {
+  display: block;
+  margin-top: var(--space-element);
+  font-size: var(--text-caption);
+  color: var(--color-ink-tertiary);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================
+   LANDING PAGE
+   ============================================ */
+.landing-screen {
+  padding-top: 36px;
+}
+
+.landing-hero {
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-hero) var(--space-component);
+}
+
+.landing-logotype {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(3rem, 8vw, 5rem);
+  letter-spacing: 0.15em;
+  color: var(--color-ink);
+  line-height: 1;
+  margin-bottom: var(--space-section);
+  animation: logotypeFade 800ms ease-out forwards;
+}
+
+.landing-tagline {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(1.25rem, 3vw + 0.5rem, 1.875rem);
+  color: var(--color-ink);
+  line-height: 1.3;
+  max-width: 28ch;
+  margin-bottom: var(--space-region);
+  animation: taglineFade 600ms 200ms ease-out both;
+}
+
+.landing-form {
+  display: flex;
+  gap: var(--space-tight);
+  max-width: 420px;
+  width: 100%;
+  animation: formSlide 500ms 400ms ease-out both;
+}
+.landing-form .input-field { flex: 1; }
+.landing-form .btn-primary { width: auto; padding: 0 var(--space-section); white-space: nowrap; }
+
+.landing-note {
+  margin-top: var(--space-component);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-ink-tertiary);
+  letter-spacing: 0.02em;
+  animation: taglineFade 600ms 600ms ease-out both;
+}
+
+/* Landing sections */
+.landing-section {
+  padding: var(--space-hero) var(--space-component);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.section-heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-title);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-section);
+  text-align: center;
+}
+
+.section-body {
+  font-weight: 300;
+  font-size: var(--text-body);
+  color: var(--color-ink-secondary);
+  line-height: 1.65;
+  max-width: 60ch;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Steps */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-section);
+  margin-top: var(--space-region);
+}
+
+.step {
+  text-align: center;
+  padding: var(--space-section);
+}
+
+.step-number {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-display);
+  color: var(--color-action);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-element);
+}
+
+.step-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-heading);
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-tight);
+}
+
+.step-desc {
+  font-weight: 300;
+  font-size: var(--text-label);
+  color: var(--color-ink-secondary);
+  line-height: 1.5;
+}
+
+/* Landing footer */
+.landing-footer {
+  text-align: center;
+  padding: var(--space-region) var(--space-component);
+  border-top: 1px solid var(--color-border);
+}
+.landing-footer p {
+  font-size: var(--text-caption);
+  color: var(--color-ink-tertiary);
+}
+.landing-footer a {
+  color: var(--color-ink-tertiary);
+  text-decoration: none;
+}
+.landing-footer a:hover { text-decoration: underline; }
+
+/* ============================================
+   FILM FILTER CSS APPROXIMATIONS
+   ============================================ */
+.filter-warmth   { filter: saturate(1.1) sepia(0.15) brightness(1.05); }
+.filter-golden   { filter: saturate(1.2) sepia(0.25) brightness(1.08) contrast(1.05); }
+.filter-vivid    { filter: saturate(1.4) contrast(1.1) brightness(1.02); }
+.filter-classic  { filter: grayscale(1) contrast(1.3) brightness(0.95); }
+.filter-gentle   { filter: grayscale(1) contrast(0.9) brightness(1.1); }
+.filter-modern   { filter: grayscale(1) contrast(1.1) brightness(1.0); }
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; }
+  .film-strip { left: 0; }
+  .contact-sheet { grid-template-columns: repeat(2, 1fr); }
+  .steps { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body class="film-grain">
+
+<!-- Prototype navigation -->
+<nav class="proto-nav">
+  <span>ROLL</span>
+  <button class="active" onclick="showScreen('landing')">Landing</button>
+  <button onclick="showScreen('login')">Login</button>
+  <button onclick="showScreen('feed')">Feed</button>
+  <button onclick="showScreen('roll-detail')">Roll Detail</button>
+  <button onclick="showScreen('film-select')">Film Select</button>
+</nav>
+
+<!-- ==========================================
+     SCREEN 1: LANDING PAGE
+     ========================================== -->
+<div id="screen-landing" class="screen landing-screen active">
+  <section class="landing-hero">
+    <h1 class="landing-logotype">ROLL</h1>
+    <p class="landing-tagline">Your phone captures everything.<br>Roll turns it into something worth keeping.</p>
+    <form class="landing-form" onsubmit="return false">
+      <input type="email" class="input-field" placeholder="your@email.com">
+      <button class="btn-primary">Get Started</button>
+    </form>
+    <p class="landing-note">No ads. No algorithm. Just your best photos.</p>
+  </section>
+
+  <section class="landing-section">
+    <h2 class="section-heading">How Roll Works</h2>
+    <p class="section-body">Upload your camera roll. We filter out the noise — screenshots, duplicates, blurry shots. Pick your 36 best photos, choose a film stock, and develop your roll. Like actual film photography, but starting from your phone.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">01</div>
+        <h3 class="step-title">Upload</h3>
+        <p class="step-desc">Drop your camera roll. We clean up the noise automatically — screenshots, duplicates, blurry shots gone.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">02</div>
+        <h3 class="step-title">Curate</h3>
+        <p class="step-desc">Browse your filtered photos and checkmark your favorites. Fill a roll of 36 — just like a real roll of film.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">03</div>
+        <h3 class="step-title">Develop</h3>
+        <p class="step-desc">Choose a film stock. We apply the look, the grain, the warmth. Order real prints delivered to your door.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <p>&copy; 2026 Roll &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Terms</a></p>
+  </footer>
+</div>
+
+<!-- ==========================================
+     SCREEN 2: LOGIN
+     ========================================== -->
+<div id="screen-login" class="screen">
+  <div class="login-screen">
+    <div class="login-card">
+      <h1 class="logotype">ROLL</h1>
+      <p class="tagline">Develop your roll.</p>
+      <form class="login-form" onsubmit="return false">
+        <input type="email" class="input-field" placeholder="your@email.com">
+        <button class="btn-primary" onclick="handleLogin(this)">Send Magic Link</button>
+      </form>
+      <div class="divider">or</div>
+      <button class="ghost-link">Sign in with password</button>
+      <p class="login-footer">New here? We'll create your account automatically.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     SCREEN 3: FEED
+     ========================================== -->
+<div id="screen-feed" class="screen app-screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">ROLL</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Feed
+        </button>
+        <button class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Library
+        </button>
+        <button class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Circle
+        </button>
+        <button class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Account
+        </button>
+      </nav>
+      <button class="btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Your Photos</h1>
+      </div>
+
+      <div class="pills">
+        <button class="pill active">All</button>
+        <button class="pill" onclick="this.parentElement.querySelector('.active').classList.remove('active'); this.classList.add('active')">People</button>
+        <button class="pill" onclick="this.parentElement.querySelector('.active').classList.remove('active'); this.classList.add('active')">Landscapes</button>
+      </div>
+
+      <div class="contact-sheet" id="photoGrid"></div>
+    </main>
+  </div>
+
+  <!-- Film strip progress -->
+  <div class="film-strip">
+    <span class="film-strip-label">Roll 1</span>
+    <div class="film-strip-bar">
+      <div class="film-strip-fill" id="filmStripFill" style="width: 0%"></div>
+    </div>
+    <span class="film-strip-counter" id="filmStripCounter">0 / 36</span>
+  </div>
+</div>
+
+<!-- ==========================================
+     SCREEN 4: ROLL DETAIL (Post-development)
+     ========================================== -->
+<div id="screen-roll-detail" class="screen app-screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">ROLL</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Feed
+        </button>
+        <button class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Library
+        </button>
+        <button class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Circle
+        </button>
+        <button class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Account
+        </button>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="roll-header">
+        <h1 class="roll-name">Weekend in Joshua Tree</h1>
+        <span class="roll-counter">36 / 36</span>
+      </div>
+
+      <div class="roll-status">
+        <span class="status-dot developed"></span>
+        <span class="status-label">Developed</span>
+      </div>
+
+      <div class="film-badge">
+        <span class="film-badge-dot" style="background: var(--color-stock-warmth)"></span>
+        Warmth
+      </div>
+
+      <div class="contact-sheet" id="rollGrid"></div>
+
+      <div class="roll-actions">
+        <button class="btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Order Prints
+        </button>
+        <button class="btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share to Circle
+        </button>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ==========================================
+     SCREEN 5: FILM SELECTION
+     ========================================== -->
+<div id="screen-film-select" class="screen app-screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">ROLL</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Feed
+        </button>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="film-select-header">
+        <h1 class="film-select-title">Choose Your Film</h1>
+        <p class="film-select-sub">36 photos · Weekend in Joshua Tree</p>
+      </div>
+
+      <div class="film-preview" id="filmPreview">
+        <img src="https://images.unsplash.com/photo-1518173946687-a243ed2cae84?w=800&q=80" alt="Preview" id="previewImg">
+      </div>
+
+      <div class="film-profiles" id="filmProfiles"></div>
+
+      <div class="develop-cta">
+        <button class="btn-primary">Develop This Roll</button>
+        <span class="time-estimate">~2 minutes for 36 photos</span>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// ============================================
+// PHOTO DATA — Using Unsplash for realistic photos
+// ============================================
+const photoSources = [
+  'photo-1518173946687-a243ed2cae84', 'photo-1469474968028-56623f02e42e',
+  'photo-1501785888041-af3ef285b470', 'photo-1470071459604-3b5ec3a7fe05',
+  'photo-1441974231531-c6227db76b6e', 'photo-1507003211169-0a1dd7228f2d',
+  'photo-1494790108755-2616b14e5dae', 'photo-1506905925346-21bda4d32df4',
+  'photo-1504198453319-5ce911bafcde', 'photo-1472214103451-9374bd1c798e',
+  'photo-1465146344425-f00d5f5c8f07', 'photo-1490750967868-88aa4f44baee',
+  'photo-1476231682828-37e571bc172f', 'photo-1500530855697-b586d89ba3ee',
+  'photo-1532274402911-5a369e4c4bb5', 'photo-1504567961542-e24d9439a724',
+  'photo-1523712999610-f77fbcfc3843', 'photo-1505765050516-f72dcac9c60e',
+  'photo-1475924156734-496f6cac6ec1', 'photo-1488161628813-04466f0cc7d4',
+  'photo-1519681393784-d120267933ba', 'photo-1464822759023-fed622ff2c3b',
+  'photo-1433086966358-54859d0ed716', 'photo-1497436072909-60f360e1d4b1',
+  'photo-1418065460487-3e41a6c84dc5', 'photo-1517483000871-1dbf64a6e1c6',
+  'photo-1502239608882-93b729c6af43', 'photo-1516589178581-6cd7833ae3b2',
+  'photo-1470252649378-9c29740c9fa8', 'photo-1509316975850-ff9c5deb0cd9'
+];
+
+const filmProfiles = [
+  { name: 'Warmth', filter: 'filter-warmth', color: 'var(--color-stock-warmth)' },
+  { name: 'Golden', filter: 'filter-golden', color: 'var(--color-stock-golden)' },
+  { name: 'Vivid', filter: 'filter-vivid', color: 'var(--color-stock-vivid)' },
+  { name: 'Classic', filter: 'filter-classic', color: 'var(--color-stock-classic)' },
+  { name: 'Gentle', filter: 'filter-gentle', color: 'var(--color-stock-gentle)' },
+  { name: 'Modern', filter: 'filter-modern', color: 'var(--color-stock-modern)' },
+];
+
+const exifData = [
+  'f/2.8 · 1/250s · ISO 400',
+  'f/1.8 · 1/500s · ISO 200',
+  'f/4.0 · 1/125s · ISO 800',
+  'f/5.6 · 1/60s · ISO 1600',
+  'f/2.0 · 1/1000s · ISO 100',
+  'f/3.5 · 1/320s · ISO 400',
+];
+
+// ============================================
+// SCREEN NAVIGATION
+// ============================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.proto-nav button').forEach(b => b.classList.remove('active'));
+  const screen = document.getElementById('screen-' + name);
+  if (screen) {
+    screen.classList.add('active');
+    screen.style.animation = 'none';
+    screen.offsetHeight; // reflow
+    screen.style.animation = '';
+  }
+  event.target.classList.add('active');
+}
+
+// ============================================
+// FEED — Build contact sheet grid
+// ============================================
+let checkedCount = 0;
+
+function buildFeedGrid() {
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+  photoSources.forEach((src, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'photo-cell';
+    cell.innerHTML = `
+      <img src="https://images.unsplash.com/${src}?w=400&q=75" alt="Photo ${i+1}" loading="lazy">
+      <div class="checkmark" onclick="toggleCheck(event, this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="photo-meta">${exifData[i % exifData.length]}</div>
+    `;
+    grid.appendChild(cell);
+  });
+}
+
+function toggleCheck(e, el) {
+  e.stopPropagation();
+  if (el.classList.contains('checked')) {
+    el.classList.remove('checked');
+    checkedCount = Math.max(0, checkedCount - 1);
+  } else {
+    if (checkedCount >= 36) return;
+    el.classList.add('checked');
+    checkedCount++;
+  }
+  updateFilmStrip();
+}
+
+function updateFilmStrip() {
+  const pct = (checkedCount / 36) * 100;
+  const fill = document.getElementById('filmStripFill');
+  const counter = document.getElementById('filmStripCounter');
+  fill.style.width = pct + '%';
+  counter.textContent = checkedCount + ' / 36';
+  if (checkedCount === 36) {
+    fill.classList.add('complete');
+  } else {
+    fill.classList.remove('complete');
+  }
+}
+
+// ============================================
+// ROLL DETAIL — Build developed grid
+// ============================================
+function buildRollGrid() {
+  const grid = document.getElementById('rollGrid');
+  grid.innerHTML = '';
+  photoSources.slice(0, 18).forEach((src, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'photo-cell';
+    cell.innerHTML = `
+      <img src="https://images.unsplash.com/${src}?w=400&q=75" alt="Photo ${i+1}" class="filter-warmth" loading="lazy">
+      <button class="heart-btn" onclick="toggleHeart(event, this)">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    `;
+    grid.appendChild(cell);
+  });
+}
+
+function toggleHeart(e, el) {
+  e.stopPropagation();
+  el.classList.toggle('hearted');
+}
+
+// ============================================
+// FILM SELECTION — Build profile cards
+// ============================================
+function buildFilmProfiles() {
+  const container = document.getElementById('filmProfiles');
+  container.innerHTML = '';
+  filmProfiles.forEach((profile, i) => {
+    const card = document.createElement('div');
+    card.className = 'film-card' + (i === 0 ? ' selected' : '');
+    card.innerHTML = `
+      <div class="film-card-preview">
+        <img src="https://images.unsplash.com/photo-1518173946687-a243ed2cae84?w=300&q=70" alt="${profile.name}" class="${profile.filter}">
+      </div>
+      <div class="film-card-label">
+        <span class="film-card-dot" style="background: ${profile.color}"></span>
+        <span class="film-card-name">${profile.name}</span>
+      </div>
+    `;
+    card.onclick = () => selectFilmProfile(card, profile);
+    container.appendChild(card);
+  });
+}
+
+function selectFilmProfile(card, profile) {
+  document.querySelectorAll('.film-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  const img = document.getElementById('previewImg');
+  img.className = profile.filter;
+}
+
+// ============================================
+// LOGIN — Simulate magic link
+// ============================================
+function handleLogin(btn) {
+  const originalText = btn.textContent;
+  btn.textContent = 'Sending…';
+  btn.style.opacity = '0.7';
+  setTimeout(() => {
+    btn.textContent = '✓ Check your email';
+    btn.style.background = 'var(--color-developed)';
+    btn.style.opacity = '1';
+  }, 1500);
+}
+
+// ============================================
+// PILL CLICK (generic)
+// ============================================
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('pill')) {
+    const pills = e.target.parentElement;
+    pills.querySelector('.active')?.classList.remove('active');
+    e.target.classList.add('active');
+  }
+});
+
+// ============================================
+// INIT
+// ============================================
+buildFeedGrid();
+buildRollGrid();
+buildFilmProfiles();
+</script>
+</body>
+</html>
