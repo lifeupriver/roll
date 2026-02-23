@@ -1,27 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createThumbnail, generateLqip } from '@/lib/processing/sharp';
 import { uploadObject, getObject, getThumbnailUrl, getThumbnailKey } from '@/lib/storage/r2';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-            } catch { /* Server Component */ }
-          },
-        },
-      }
-    );
+    const supabase = await createServerSupabaseClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -51,6 +36,17 @@ export async function POST(request: NextRequest) {
 
     if (!photos || !Array.isArray(photos)) {
       return NextResponse.json({ error: 'Invalid request: photos array required' }, { status: 400 });
+    }
+
+    // Validate all storage keys belong to the authenticated user
+    const expectedPrefix = `originals/${user.id}/`;
+    for (const photo of photos) {
+      if (!photo.storageKey || !photo.storageKey.startsWith(expectedPrefix)) {
+        return NextResponse.json(
+          { error: 'Invalid storage key: does not match authenticated user' },
+          { status: 403 }
+        );
+      }
     }
 
     let duplicatesSkipped = 0;

@@ -27,11 +27,10 @@ export async function sendPushNotification(
   }
 
   try {
-    // Dynamic require to avoid bundler/TS static resolution
-    const dynamicRequire = new Function('mod', 'return require(mod)');
+    // Dynamic import to avoid bundler static resolution
     let webpush: any;
     try {
-      webpush = dynamicRequire('web-push');
+      webpush = await import('web-push');
     } catch {
       console.warn('[push] web-push package not installed — skipping push notification');
       return false;

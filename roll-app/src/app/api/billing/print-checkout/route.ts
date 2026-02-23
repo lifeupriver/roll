@@ -20,15 +20,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    const { orderId, photoCount, printSize, isFreeFirstRoll } = await request.json();
+    const { orderId } = await request.json();
 
-    if (isFreeFirstRoll) {
+    if (!orderId) {
+      return NextResponse.json({ error: 'orderId is required' }, { status: 400 });
+    }
+
+    // Look up order from database to get authoritative pricing — never trust client input
+    const { data: order, error: orderError } = await supabase
+      .from('print_orders')
+      .select('id, photo_count, print_size, is_free_first_roll, user_id')
+      .eq('id', orderId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (orderError || !order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    if (order.is_free_first_roll) {
       return NextResponse.json({ error: 'Free orders do not require payment' }, { status: 400 });
     }
 
-    // Calculate price in cents
-    const pricePerPrint = printSize === '5x7' ? 75 : 30; // $0.75 or $0.30
-    const subtotal = photoCount * pricePerPrint;
+    // Calculate price from server-side order data
+    const pricePerPrint = order.print_size === '5x7' ? 75 : 30; // $0.75 or $0.30
+    const subtotal = order.photo_count * pricePerPrint;
     const shipping = 499; // $4.99
     const total = subtotal + shipping;
 
@@ -53,8 +69,8 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `Roll Prints - ${photoCount} photos (${printSize})`,
-              description: `${photoCount} ${printSize} glossy prints`,
+              name: `Roll Prints - ${order.photo_count} photos (${order.print_size})`,
+              description: `${order.photo_count} ${order.print_size} glossy prints`,
             },
             unit_amount: total,
           },

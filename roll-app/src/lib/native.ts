@@ -32,9 +32,8 @@ export function getPlatform(): 'ios' | 'android' | 'web' {
  */
 async function importCapacitorPlugin(name: string): Promise<any> {
   try {
-    // Use Function constructor to avoid static module resolution by bundler/TS
-    const dynamicImport = new Function('specifier', 'return import(specifier)');
-    return await dynamicImport(name);
+    // Dynamic import for Capacitor plugins — only resolves in native shell
+    return await import(/* webpackIgnore: true */ name);
   } catch {
     return null;
   }
