@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Heart, Smile, Star, MessageCircle, Send, Trash2 } from 'lucide-react';
+import { useMemo, useState, useRef, useCallback } from 'react';
+import { Heart, Smile, Star, MessageCircle, Send, Trash2, Play, Pause, Film } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import type { CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
 interface CirclePostCardProps {
@@ -62,6 +63,22 @@ export function CirclePostCard({
   const [commentText, setCommentText] = useState('');
   const [commentSending, setCommentSending] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [reelPlaying, setReelPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const isReelPost = post.post_type === 'reel';
+
+  const toggleReelPlayback = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+      setReelPlaying(true);
+    } else {
+      video.pause();
+      setReelPlaying(false);
+    }
+  }, []);
 
   const photos = useMemo(
     () => (post.photos ?? []).sort((a, b) => a.position - b.position),
@@ -165,8 +182,46 @@ export function CirclePostCard({
         </div>
       </div>
 
+      {/* Reel video */}
+      {isReelPost && post.reel_storage_key && (
+        <div className="relative w-full bg-[var(--color-surface-sunken)]">
+          <video
+            ref={videoRef}
+            src={getPhotoUrl(post.reel_storage_key)}
+            poster={post.reel_poster_key ? getPhotoUrl(post.reel_poster_key) : undefined}
+            className="w-full max-h-[500px] object-contain"
+            playsInline
+            preload="metadata"
+            onEnded={() => setReelPlaying(false)}
+          />
+          {/* Play/pause overlay */}
+          <button
+            type="button"
+            onClick={toggleReelPlayback}
+            className="absolute inset-0 flex items-center justify-center group"
+            aria-label={reelPlaying ? 'Pause reel' : 'Play reel'}
+          >
+            {!reelPlaying && (
+              <div className="w-14 h-14 rounded-full bg-[oklch(0_0_0/0.5)] flex items-center justify-center backdrop-blur-sm">
+                <Play size={28} className="text-white ml-1" fill="white" fillOpacity={0.9} />
+              </div>
+            )}
+          </button>
+          {/* Duration badge */}
+          {post.reel_duration_ms && (
+            <span className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-[oklch(0_0_0/0.6)] rounded-[4px] font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-white tabular-nums">
+              {formatDuration(post.reel_duration_ms)}
+            </span>
+          )}
+          {/* Reel badge */}
+          <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-[oklch(0_0_0/0.6)] rounded-[4px] text-[length:var(--text-caption)] text-white">
+            <Film size={12} /> Reel
+          </span>
+        </div>
+      )}
+
       {/* Photo grid */}
-      {photos.length > 0 && (
+      {!isReelPost && photos.length > 0 && (
         <div
           className={`w-full ${
             photos.length === 1

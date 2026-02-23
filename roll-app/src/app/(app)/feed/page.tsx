@@ -6,11 +6,14 @@ import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { FilmStripProgress } from '@/components/roll/FilmStripProgress';
+import { ReelStripProgress } from '@/components/reel/ReelStripProgress';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
+import { useReelStore } from '@/stores/reelStore';
 import { track } from '@/lib/analytics';
+import type { ContentMode } from '@/types/photo';
 import Link from 'next/link';
 
 export default function FeedPage() {
@@ -35,8 +38,22 @@ export default function FeedPage() {
     setRoll,
   } = useRollStore();
 
+  const {
+    currentReel,
+    clipIds,
+    reelCount,
+    currentDurationMs,
+    isClipAdded,
+    addClip,
+    removeClip,
+    setReel: setReelState,
+  } = useReelStore();
+
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+
+  // Determine if we're in clip mode (building a reel)
+  const isClipMode = contentMode === 'clips';
 
   useEffect(() => {
     setContentMode('all');
@@ -72,10 +89,38 @@ export default function FeedPage() {
     loadActiveRoll();
   }, [setRoll]);
 
+  // Load active reel on mount
+  useEffect(() => {
+    async function loadActiveReel() {
+      try {
+        const res = await fetch('/api/reels');
+        if (res.ok) {
+          const { data } = await res.json();
+          const buildingReel = data?.find((r: { status: string }) => r.status === 'building' || r.status === 'ready');
+          if (buildingReel) {
+            setReelState(buildingReel);
+            const reelRes = await fetch(`/api/reels/${buildingReel.id}`);
+            if (reelRes.ok) {
+              const reelData = await reelRes.json();
+              if (reelData.data?.clips) {
+                const store = useReelStore.getState();
+                store.setReelClips(reelData.data.clips);
+              }
+            }
+          }
+        }
+      } catch {
+        // No active reel is fine
+      }
+    }
+    loadActiveReel();
+  }, [setReelState]);
+
   const contentModeOptions = [
     { value: 'all', label: 'All' },
     { value: 'people', label: 'People' },
     { value: 'landscapes', label: 'Landscapes' },
+    { value: 'clips', label: 'Clips' },
   ];
 
   const handleCheck = useCallback(async (photoId: string) => {
@@ -139,6 +184,69 @@ export default function FeedPage() {
       }
     }
   }, [isChecked, currentRoll, checkPhoto, uncheckPhoto, setRoll]);
+
+  // Handle video clip check (add to reel)
+  const handleClipCheck = useCallback(async (photoId: string) => {
+    const photo = photos.find((p) => p.id === photoId);
+    if (!photo || photo.media_type !== 'video') return;
+
+    if (isClipAdded(photoId)) {
+      removeClip(photoId);
+      track({ event: 'clip_removed', properties: { reelId: currentReel?.id || '' } });
+      if (currentReel) {
+        try {
+          await fetch(`/api/reels/${currentReel.id}/clips`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId }),
+          });
+        } catch {
+          addClip(photoId, photo.duration_ms ?? 0);
+        }
+      }
+    } else {
+      let reelId = currentReel?.id;
+      if (!reelId) {
+        try {
+          const createRes = await fetch('/api/reels', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+          });
+          if (createRes.ok) {
+            const { data: newReel } = await createRes.json();
+            setReelState(newReel);
+            reelId = newReel.id;
+            track({ event: 'reel_created', properties: { reelId: newReel.id } });
+          }
+        } catch {
+          return;
+        }
+      }
+
+      addClip(photoId, photo.duration_ms ?? 0);
+      track({ event: 'clip_added', properties: { reelId: reelId || '', clipCount: reelCount + 1 } });
+
+      if (reelId) {
+        try {
+          const res = await fetch(`/api/reels/${reelId}/clips`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId }),
+          });
+          if (res.ok) {
+            const { reelStatus } = await res.json();
+            if (reelStatus === 'ready' && currentReel) {
+              setReelState({ ...currentReel, status: 'ready' });
+              track({ event: 'reel_filled', properties: { reelId: currentReel.id } });
+            }
+          }
+        } catch {
+          removeClip(photoId);
+        }
+      }
+    }
+  }, [photos, isClipAdded, currentReel, addClip, removeClip, setReelState, reelCount]);
 
   const handlePhotoTap = useCallback((photoId: string) => {
     const index = photos.findIndex((p) => p.id === photoId);
@@ -249,19 +357,19 @@ export default function FeedPage() {
         <ContentModePills
           activeMode={contentMode}
           onChange={(mode) => {
-            setContentMode(mode as 'all' | 'people' | 'landscapes');
+            setContentMode(mode as ContentMode);
             track({ event: 'content_mode_changed', properties: { mode } });
           }}
           options={contentModeOptions}
         />
       </div>
 
-      {/* Photo grid — the contact sheet */}
+      {/* Photo/clip grid — the contact sheet */}
       <PhotoGrid
         photos={photos}
         mode="feed"
-        checkedIds={checkedPhotoIds}
-        onCheck={handleCheck}
+        checkedIds={isClipMode ? clipIds : checkedPhotoIds}
+        onCheck={isClipMode ? handleClipCheck : handleCheck}
         onHide={hidePhoto}
         onPhotoTap={handlePhotoTap}
         hasMore={hasMore}
@@ -269,8 +377,8 @@ export default function FeedPage() {
         isLoading={loading}
       />
 
-      {/* Film strip progress bar — fixed above tab bar */}
-      {rollCount > 0 && (
+      {/* Film strip progress bar — for photo rolls */}
+      {!isClipMode && rollCount > 0 && (
         <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 lg:left-60 z-30">
           <FilmStripProgress
             rollName={currentRoll?.name || `Roll ${(currentRoll?.id || '').slice(0, 4)}`}
@@ -280,6 +388,20 @@ export default function FeedPage() {
               if (currentRoll?.id) {
                 router.push(`/roll/${currentRoll.id}`);
               }
+            }}
+          />
+        </div>
+      )}
+
+      {/* Reel strip progress bar — for video reels */}
+      {isClipMode && reelCount > 0 && currentReel && (
+        <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 lg:left-60 z-30">
+          <ReelStripProgress
+            reelName={currentReel.name || `Reel ${currentReel.id.slice(0, 4)}`}
+            currentDurationMs={currentDurationMs}
+            targetDurationMs={currentReel.target_duration_ms}
+            onTap={() => {
+              router.push(`/library/reels/${currentReel.id}`);
             }}
           />
         </div>

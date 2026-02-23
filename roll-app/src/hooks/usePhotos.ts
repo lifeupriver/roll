@@ -43,7 +43,9 @@ export function usePhotos(): UsePhotosReturn {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (activeMode === 'people') {
+      if (activeMode === 'clips') {
+        query = query.eq('media_type', 'video');
+      } else if (activeMode === 'people') {
         query = query.gt('face_count', 0);
       } else if (activeMode === 'landscapes') {
         query = query.eq('face_count', 0).contains('scene_classification', ['landscape']);

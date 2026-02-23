@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Check, EyeOff, Maximize2, Copy } from 'lucide-react';
+import { ClipDurationBadge } from '@/components/reel/ClipDurationBadge';
 
 interface PhotoCardProps {
   photo: {
@@ -13,6 +14,8 @@ interface PhotoCardProps {
     face_count: number;
     latitude: number | null;
     longitude: number | null;
+    media_type?: 'photo' | 'video';
+    duration_ms?: number | null;
   };
   isChecked: boolean;
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
@@ -84,13 +87,22 @@ export function PhotoCard({
         <div className="absolute inset-0 bg-[var(--color-surface-sunken)] skeleton-pulse" />
       )}
 
+      {/* Video duration badge */}
+      {photo.media_type === 'video' && photo.duration_ms && (
+        <ClipDurationBadge durationMs={photo.duration_ms} />
+      )}
+
       {/* Checkmark button (feed mode) */}
       {mode === 'feed' && onCheck && (
         <button
           onClick={(e) => { e.stopPropagation(); onCheck(); }}
           role="checkbox"
           aria-checked={isChecked}
-          aria-label={isChecked ? 'Remove photo from roll' : 'Select photo for roll'}
+          aria-label={
+            photo.media_type === 'video'
+              ? (isChecked ? 'Remove clip from reel' : 'Add clip to reel')
+              : (isChecked ? 'Remove photo from roll' : 'Select photo for roll')
+          }
           className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 z-10 ${
             isChecked
               ? 'bg-[var(--color-action)] scale-100'

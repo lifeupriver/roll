@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
-import { parseBody, createCirclePostSchema } from '@/lib/validation';
+import { parseBody, createCirclePostSchema, createCircleReelPostSchema } from '@/lib/validation';
 import type { CirclePost } from '@/types/circle';
 
 export async function GET(
@@ -71,8 +71,76 @@ export async function POST(
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 
-    const parsed = await parseBody(request, createCirclePostSchema);
-    if (parsed.error) return parsed.error;
+    // Determine post type from request body
+    let raw: unknown;
+    try {
+      raw = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const isReelPost = raw && typeof raw === 'object' && 'reelId' in raw;
+
+    if (isReelPost) {
+      // ---- Reel post flow ----
+      const result = createCircleReelPostSchema.safeParse(raw);
+      if (!result.success) {
+        const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+        return NextResponse.json({ error: 'Validation error', details: issues }, { status: 400 });
+      }
+      const { caption, reelId } = result.data;
+
+      // Verify the reel belongs to the user and is developed
+      const { data: reel, error: reelError } = await supabase
+        .from('reels')
+        .select('id, assembled_storage_key, poster_storage_key, assembled_duration_ms')
+        .eq('id', reelId)
+        .eq('user_id', user.id)
+        .eq('status', 'developed')
+        .single();
+
+      if (reelError || !reel) {
+        return NextResponse.json({ error: 'Reel not found or not developed' }, { status: 404 });
+      }
+
+      const { data: post, error: postError } = await supabase
+        .from('circle_posts')
+        .insert({
+          circle_id: id,
+          user_id: user.id,
+          caption: caption ?? null,
+          post_type: 'reel',
+          reel_storage_key: reel.assembled_storage_key,
+          reel_poster_key: reel.poster_storage_key,
+          reel_duration_ms: reel.assembled_duration_ms,
+        })
+        .select()
+        .single();
+
+      if (postError) {
+        return NextResponse.json({ error: postError.message }, { status: 500 });
+      }
+
+      // Re-fetch with joined data
+      const { data: fullPost, error: fetchError } = await supabase
+        .from('circle_posts')
+        .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))')
+        .eq('id', post.id)
+        .single();
+
+      if (fetchError) {
+        return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ data: fullPost as CirclePost }, { status: 201 });
+    }
+
+    // ---- Photo post flow (original) ----
+    const parsed = createCirclePostSchema.safeParse(raw);
+    if (!parsed.success) {
+      const issues = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`);
+      return NextResponse.json({ error: 'Validation error', details: issues }, { status: 400 });
+    }
     const { caption, photoStorageKeys } = parsed.data;
 
     // Create the post
@@ -82,6 +150,7 @@ export async function POST(
         circle_id: id,
         user_id: user.id,
         caption: caption ?? null,
+        post_type: 'photos',
       })
       .select()
       .single();

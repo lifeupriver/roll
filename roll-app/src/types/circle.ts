@@ -33,11 +33,18 @@ export interface CircleInvite {
   created_at: string;
 }
 
+export type CirclePostType = 'photos' | 'reel';
+
 export interface CirclePost {
   id: string;
   circle_id: string;
   user_id: string;
+  post_type: CirclePostType;
   caption: string | null;
+  // Reel-specific fields (present when post_type === 'reel')
+  reel_storage_key: string | null;
+  reel_poster_key: string | null;
+  reel_duration_ms: number | null;
   created_at: string;
   // Joined data
   photos?: CirclePostPhoto[];

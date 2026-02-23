@@ -5,6 +5,8 @@ import {
   MAX_FILES_PER_UPLOAD,
   MAX_FILE_SIZE_BYTES,
   ALLOWED_CONTENT_TYPES,
+  ALL_ALLOWED_CONTENT_TYPES,
+  MAX_VIDEO_FILE_SIZE_BYTES,
 } from '@/lib/utils/constants';
 
 // ---------------------------------------------------------------------------
@@ -47,6 +49,11 @@ export const createCirclePostSchema = z.object({
   photoStorageKeys: z.array(z.string().min(1)).min(1).max(100),
 });
 
+export const createCircleReelPostSchema = z.object({
+  caption: z.string().max(500).optional(),
+  reelId: z.string().uuid(),
+});
+
 export const circleInviteSchema = z.object({
   email: z.string().email().optional(),
 });
@@ -58,8 +65,8 @@ export const circleInviteSchema = z.object({
 export const presignUploadSchema = z.object({
   files: z.array(z.object({
     filename: z.string().min(1).max(255),
-    contentType: z.enum(ALLOWED_CONTENT_TYPES),
-    sizeBytes: z.number().int().positive().max(MAX_FILE_SIZE_BYTES),
+    contentType: z.enum(ALL_ALLOWED_CONTENT_TYPES),
+    sizeBytes: z.number().int().positive().max(MAX_VIDEO_FILE_SIZE_BYTES),
   })).min(1).max(MAX_FILES_PER_UPLOAD),
 });
 
@@ -118,6 +125,70 @@ export const filterProcessSchema = z.object({
 export const developProcessSchema = z.object({
   rollId: z.string().uuid(),
   filmProfileId: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']),
+});
+
+// ---------------------------------------------------------------------------
+// Reel schemas
+// ---------------------------------------------------------------------------
+
+export const createReelSchema = z.object({
+  name: z.string().trim().max(100).optional(),
+  reelSize: z.enum(['short', 'standard', 'feature']).default('short'),
+});
+
+export const updateReelSchema = z.object({
+  name: z.string().trim().min(1).max(100).optional(),
+  status: z.enum(['building', 'ready', 'processing', 'developed', 'error']).optional(),
+  film_profile: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']).optional(),
+  audio_mood: z.enum(['original', 'quiet_film', 'silent_film', 'ambient']).optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'At least one field is required',
+});
+
+export const addReelClipSchema = z.object({
+  photoId: z.string().uuid(),
+  trimStartMs: z.number().int().min(0).default(0),
+  trimEndMs: z.number().int().positive().optional(),
+});
+
+export const updateReelClipSchema = z.object({
+  trimStartMs: z.number().int().min(0).optional(),
+  trimEndMs: z.number().int().positive().nullable().optional(),
+  position: z.number().int().positive().optional(),
+  transitionType: z.enum(['crossfade', 'cut', 'dip_to_black']).optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'At least one field is required',
+});
+
+export const reorderReelSchema = z.object({
+  clipIds: z.array(z.string().uuid()).min(1),
+});
+
+export const developReelSchema = z.object({
+  reelId: z.string().uuid(),
+  filmProfileId: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']),
+  audioMood: z.enum(['original', 'quiet_film', 'silent_film', 'ambient']).default('original'),
+});
+
+export const completeVideoUploadSchema = z.object({
+  videos: z.array(z.object({
+    storageKey: z.string().min(1),
+    contentHash: z.string().min(1),
+    filename: z.string().min(1),
+    contentType: z.string().min(1),
+    sizeBytes: z.number().int().positive(),
+    width: z.number().int().positive(),
+    height: z.number().int().positive(),
+    durationMs: z.number().int().positive(),
+    exifData: z.object({
+      dateTaken: z.string().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+      cameraMake: z.string().optional(),
+      cameraModel: z.string().optional(),
+    }).default({}),
+    thumbnailBase64: z.string().optional(),
+  })).min(1),
 });
 
 // ---------------------------------------------------------------------------

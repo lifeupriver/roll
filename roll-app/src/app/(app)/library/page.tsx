@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Heart } from 'lucide-react';
+import { Image, Heart, Film } from 'lucide-react';
 import { RollCard } from '@/components/roll/RollCard';
+import { ReelCard } from '@/components/reel/ReelCard';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
@@ -12,12 +13,14 @@ import Link from 'next/link';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { useToast } from '@/stores/toastStore';
 import type { Roll } from '@/types/roll';
+import type { Reel } from '@/types/reel';
 import type { Photo } from '@/types/photo';
 
-type LibrarySection = 'rolls' | 'favorites';
+type LibrarySection = 'rolls' | 'reels' | 'favorites';
 
 const SECTION_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'rolls', label: 'Rolls' },
+  { value: 'reels', label: 'Reels' },
   { value: 'favorites', label: 'Favorites' },
 ];
 
@@ -35,8 +38,10 @@ export default function LibraryPage() {
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState<LibrarySection>('rolls');
   const [rolls, setRolls] = useState<Roll[]>([]);
+  const [reels, setReels] = useState<Reel[]>([]);
   const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [reelsLoading, setReelsLoading] = useState(false);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +63,25 @@ export default function LibraryPage() {
     }
     fetchRolls();
   }, []);
+
+  // Fetch reels when switching to reels tab
+  useEffect(() => {
+    if (activeSection !== 'reels') return;
+    async function fetchReels() {
+      setReelsLoading(true);
+      try {
+        const res = await fetch('/api/reels');
+        if (!res.ok) throw new Error('Failed to load reels');
+        const json = await res.json();
+        setReels(json.data ?? []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load reels');
+      } finally {
+        setReelsLoading(false);
+      }
+    }
+    fetchReels();
+  }, [activeSection]);
 
   // Fetch favorites when switching to favorites tab
   useEffect(() => {
@@ -167,6 +191,70 @@ export default function LibraryPage() {
                     created_at: roll.created_at,
                   }}
                   onClick={() => router.push(`/roll/${roll.id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Reels section */}
+      {activeSection === 'reels' && (
+        <section className="flex flex-col gap-[var(--space-element)]">
+          {reelsLoading && (
+            <div className="flex items-center justify-center py-[var(--space-hero)]">
+              <Spinner size="md" />
+            </div>
+          )}
+
+          {!reelsLoading && error && (
+            <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)] text-center">
+              <p className="text-[length:var(--text-body)] text-[var(--color-error)]">
+                {error}
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </Button>
+            </div>
+          )}
+
+          {!reelsLoading && !error && reels.length === 0 && (
+            <Empty
+              icon={Film}
+              title="No reels yet"
+              description="Build your first reel by selecting clips from your feed."
+              action={
+                <Link href="/feed">
+                  <Button variant="primary" size="md">
+                    Go to Feed
+                  </Button>
+                </Link>
+              }
+            />
+          )}
+
+          {!reelsLoading && !error && reels.length > 0 && (
+            <div className="flex flex-col gap-[var(--space-element)]">
+              {reels.map((reel) => (
+                <ReelCard
+                  key={reel.id}
+                  reel={{
+                    id: reel.id,
+                    name: reel.name,
+                    status: reel.status,
+                    film_profile: reel.film_profile,
+                    audio_mood: reel.audio_mood,
+                    clip_count: reel.clip_count,
+                    current_duration_ms: reel.current_duration_ms,
+                    target_duration_ms: reel.target_duration_ms,
+                    assembled_duration_ms: reel.assembled_duration_ms,
+                    created_at: reel.created_at,
+                  }}
+                  onClick={() => router.push(`/library/reels/${reel.id}`)}
                 />
               ))}
             </div>
