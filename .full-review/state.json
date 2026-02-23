@@ -1,0 +1,16 @@
+{
+  "target": "roll-app (Next.js 16 + Supabase + Stripe photo roll application)",
+  "status": "in_progress",
+  "flags": {
+    "security_focus": false,
+    "performance_critical": false,
+    "strict_mode": false,
+    "framework": "Next.js 16"
+  },
+  "current_step": 1,
+  "current_phase": 1,
+  "completed_steps": ["0-scope"],
+  "files_created": ["00-scope.md"],
+  "started_at": "2026-02-23T02:00:00.000Z",
+  "last_updated": "2026-02-23T02:00:30.000Z"
+}
