@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getStripe, getOrCreateCustomer } from '@/lib/stripe';
 import { parseBody, printCheckoutSchema } from '@/lib/validation';
 import { billingLimiter } from '@/lib/rate-limit';
+import { captureError } from '@/lib/sentry';
 
 export async function POST(request: NextRequest) {
   try {
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: { url: session.url } });
   } catch (err) {
+    captureError(err, { context: 'print-checkout' });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error' },
       { status: 500 }

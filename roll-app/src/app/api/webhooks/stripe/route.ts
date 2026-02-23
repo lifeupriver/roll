@@ -92,7 +92,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error('Stripe webhook error:', err);
     captureError(err, { context: 'stripe-webhook', eventType: event.type });
     return NextResponse.json(
       { error: 'Webhook processing failed' },

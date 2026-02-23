@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 import type { FilmProfileId } from '@/types/roll';
 import { MIN_ROLL_PHOTOS, MAX_ROLL_PHOTOS } from '@/lib/utils/constants';
+import { captureError } from '@/lib/sentry';
 
 interface DevelopRequest {
   rollId: string;
@@ -174,6 +175,7 @@ export async function POST(request: NextRequest) {
       data: { rollId, status: 'developed' },
     });
   } catch (err) {
+    captureError(err, { context: 'process-develop', rollId });
     const message = err instanceof Error ? err.message : 'Internal server error';
 
     // Set roll status to 'error' if we have a rollId and supabase client

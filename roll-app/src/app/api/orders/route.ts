@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createProdigiOrder } from '@/lib/prodigi';
 import { parseBody, createOrderSchema } from '@/lib/validation';
 import { orderLimiter } from '@/lib/rate-limit';
+import { captureError } from '@/lib/sentry';
 import type { PrintOrder, PrintOrderItem } from '@/types/print';
 
 // ---------------------------------------------------------------------------
@@ -29,6 +30,7 @@ export async function GET() {
 
     return NextResponse.json({ data: orders as PrintOrder[] });
   } catch (err) {
+    captureError(err, { context: 'orders-list' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -173,6 +175,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (err) {
+    captureError(err, { context: 'orders-create' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

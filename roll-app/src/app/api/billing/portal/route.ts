@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe';
+import { captureError } from '@/lib/sentry';
 
 export async function POST(_request: NextRequest) {
   try {
@@ -27,6 +28,7 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ data: { url: session.url } });
   } catch (err) {
+    captureError(err, { context: 'billing-portal' });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error' },
       { status: 500 }

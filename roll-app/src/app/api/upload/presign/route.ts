@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { getPresignedUploadUrl } from '@/lib/storage/r2';
 import { parseBody, presignUploadSchema } from '@/lib/validation';
 import { uploadLimiter } from '@/lib/rate-limit';
+import { captureError } from '@/lib/sentry';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ uploads });
   } catch (err) {
+    captureError(err, { context: 'upload-presign' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,4 +1,5 @@
 import type { PushPayload } from '@/types/push';
+import { captureError } from '@/lib/sentry';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -55,7 +56,7 @@ export async function sendPushNotification(
 
     return true;
   } catch (err) {
-    console.error('[push] Failed to send notification:', err);
+    captureError(err, { context: 'push-notification' });
     return false;
   }
 }

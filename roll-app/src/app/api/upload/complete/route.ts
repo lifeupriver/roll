@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createThumbnail, generateLqip } from '@/lib/processing/sharp';
 import { uploadObject, getObject, getThumbnailUrl, getThumbnailKey } from '@/lib/storage/r2';
 import { parseBody, completeUploadSchema } from '@/lib/validation';
+import { captureError } from '@/lib/sentry';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
       filterJobId,
     });
   } catch (err) {
+    captureError(err, { context: 'upload-complete' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
