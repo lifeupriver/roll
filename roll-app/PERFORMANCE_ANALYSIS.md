@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This analysis identified **38 performance findings** across the Roll application, including **6 Critical**, **10 High**, **11 Medium**, and **7 Low** severity issues, plus a dedicated **Database Index Gaps** section (findings PERF-19 through PERF-21). The most impactful problems cluster around three areas: (1) the synchronous image processing pipeline that blocks HTTP requests and will hit Vercel's 300-second serverless timeout for large batches, (2) N+1 query patterns in photo reordering and upload completion that produce O(n) sequential database round-trips, and (3) full-table-scan API routes (`/api/memories`, `/api/collections`, `/api/search`) that fetch entire photo libraries into server memory for client-side filtering. Addressing the Critical and High items would yield an estimated 5-15x throughput improvement on core user flows.
+This analysis identified **38 performance findings** across the Roll application, including **6 Critical**, **10 High**, **13 Medium**, and **9 Low** severity issues. The most impactful problems cluster around three areas: (1) the synchronous image processing pipeline that blocks HTTP requests and will hit Vercel's 300-second serverless timeout for large batches, (2) N+1 query patterns in photo reordering and upload completion that produce O(n) sequential database round-trips, and (3) full-table-scan API routes (`/api/memories`, `/api/collections`, `/api/search`) that fetch entire photo libraries into server memory for client-side filtering. Addressing the Critical and High items would yield an estimated 5-15x throughput improvement on core user flows.
 
 ---
 
@@ -131,9 +131,9 @@ await runFilterPipeline(photos, async (photoId: string, result: FilterResult) =>
 });
 ```
 
-**File:** `/home/user/roll/roll-app/src/lib/processing/pipeline.ts`, lines 177-222
+**File:** `/home/user/roll/roll-app/src/lib/processing/pipeline.ts`, lines 177-222 (`runFilterPipeline`)
 
-The `runFilterPipeline` function processes photos in batches of 5, but all batches run sequentially within the same request. Each photo requires:
+The `runFilterPipeline` function processes photos in batches of 5 (with `Promise.allSettled`), but all batches run sequentially within the same request. Each photo requires:
 - 1 R2 download (~100-500ms)
 - 1 Sharp stats computation (~50ms)
 - 5 Sharp detection operations (blur, text, faces, scene, phash) (~200-500ms each)
@@ -236,14 +236,16 @@ export function hammingDistance(hash1: string, hash2: string): number {
 
 ```typescript
 export async function filterPhoto(photo: PhotoInput): Promise<FilterResult> {
-  const imageBuffer = await getObject(photo.storage_key);  // 1. Full download
-  const stats = await sharp(imageBuffer).stats();           // 2. Decode + stats
-  // ...
-  const blurScore = await detectBlur(imageBuffer);           // 3. Decode + grayscale + resize + raw
-  const textRatio = await detectTextRegions(imageBuffer);    // 4. Decode + grayscale + resize + raw
-  const phash = await computePerceptualHash(imageBuffer);    // 5. Decode + grayscale + resize + raw
-  const faceCount = await detectFaces(imageBuffer);          // 6. Decode + resize + raw
-  const sceneLabels = await classifyScene(imageBuffer);      // 7. Decode + resize + stats
+  const imageBuffer = await getObject(photo.storage_key);        // 1. Full R2 download
+  const stats = await sharp(imageBuffer).stats();                 // 2. Decode + compute stats
+  // detectScreenshot(...) — pure arithmetic, fast
+  const blurScore = await detectBlur(imageBuffer);                // 3. Decode + grayscale + resize + raw
+  // isBlurry, detectExposure — pure arithmetic on stats
+  const textRatio = await detectTextRegions(imageBuffer);         // 4. Decode + grayscale + resize + raw
+  const phash = await computePerceptualHash(imageBuffer);         // 5. Decode + grayscale + resize + raw
+  const faceCount = await detectFaces(imageBuffer);               // 6. Decode + resize + raw
+  const sceneLabels = await classifyScene(imageBuffer);           // 7. Decode + resize + stats
+  // All 6 Sharp decodes are independent and sequential
 }
 ```
 
@@ -272,22 +274,26 @@ async function filterPhoto(photo: PhotoInput): Promise<FilterResult> {
 **Severity:** Medium
 **Impact:** `uploadBatch.ts` sends `width: 0, height: 0` for every uploaded photo. In `screenshotDetection.ts`, `shortSide / longSide` produces `0/0 = NaN`, which passes `Math.abs(NaN - expectedRatio) < sr.tolerance` as `false` (NaN comparisons always return false). This means screenshot detection silently fails for all photos -- it never detects screenshots.
 
-**File:** `/home/user/roll/roll-app/src/lib/utils/uploadBatch.ts`, lines 108-110
+**File:** `/home/user/roll/roll-app/src/lib/utils/uploadBatch.ts`, lines 103-112
 
 ```typescript
 return {
   storageKey: r.storageKey,
+  contentHash,
+  filename: r.file.name,
+  contentType: r.file.type || 'image/jpeg',
+  sizeBytes: r.file.size,
   width: 0,   // Always zero -- dimensions never extracted client-side
   height: 0,  // Always zero
   exifData: {},
 };
 ```
 
-**File:** `/home/user/roll/roll-app/src/lib/processing/screenshotDetection.ts`, lines 18-22
+**File:** `/home/user/roll/roll-app/src/lib/processing/screenshotDetection.ts`, lines 17-21
 
 ```typescript
-const { width, height } = metadata;
-const portrait = width < height;  // 0 < 0 => false
+const { width, height } = metadata;        // Both 0
+const portrait = width < height;            // 0 < 0 => false
 const shortSide = portrait ? width : height;  // 0
 const longSide = portrait ? height : width;   // 0
 const ratio = shortSide / longSide;           // 0/0 = NaN
@@ -311,7 +317,7 @@ if (width === 0 || height === 0) {
 **Severity:** High
 **Impact:** Each uploaded file is read twice: once for the PUT upload to R2 (`body: info.file`), and once for SHA-256 hash computation (`r.file.arrayBuffer()`). For a 50MB file, this means 100MB of total I/O per file. With 500 files at ~10MB average, that is 5GB of redundant I/O.
 
-**File:** `/home/user/roll/roll-app/src/lib/utils/uploadBatch.ts`, lines 55-58, 96-101
+**File:** `/home/user/roll/roll-app/src/lib/utils/uploadBatch.ts`, lines 55-58 (first read), lines 96-101 (second read)
 
 ```typescript
 // First read: upload to R2
@@ -432,13 +438,15 @@ for (let i = 0; i < newPhotos.length; i += CONCURRENCY) {
 **Severity:** Medium
 **Impact:** The client-side upload flow sends `exifData: {}` for all photos (line 112 of `uploadBatch.ts`). This means `date_taken`, `latitude`, `longitude`, `camera_make`, and `camera_model` are all NULL for every uploaded photo. These fields are critical for memories, map, collections, search, and screenshot detection.
 
-**File:** `/home/user/roll/roll-app/src/lib/utils/uploadBatch.ts`, lines 108-113
+**File:** `/home/user/roll/roll-app/src/lib/utils/uploadBatch.ts`, lines 103-112
 
 ```typescript
 return {
   storageKey: r.storageKey,
   contentHash,
   filename: r.file.name,
+  contentType: r.file.type || 'image/jpeg',
+  sizeBytes: r.file.size,
   width: 0,
   height: 0,
   exifData: {},  // Always empty -- no EXIF extraction
@@ -459,17 +467,22 @@ return {
 **File:** `/home/user/roll/roll-app/src/app/api/process/develop/route.ts`, lines 127-157
 
 ```typescript
+// Step 3: Process each photo (lines 127-157)
 for (let i = 0; i < rollPhotos.length; i++) {
   const photo = rollPhotos[i];
+  const processedKey = `processed/${user.id}/${rollId}/${photo.position}_${filmProfileId}.jpg`;
 
-  // Update each photo individually
-  await supabase.from('roll_photos').update({
-    processed_storage_key: processedKey,
-    correction_applied: true,
-  }).eq('id', photo.id);
+  // DB update 1: update roll_photos one at a time
+  const { error: photoUpdateError } = await supabase
+    .from('roll_photos')
+    .update({ processed_storage_key: processedKey, correction_applied: true })
+    .eq('id', photo.id);
 
-  // Update the counter for EVERY single photo
-  await supabase.from('rolls').update({ photos_processed: i + 1 }).eq('id', rollId);
+  // DB update 2: update counter for EVERY single photo
+  const { error: counterError } = await supabase
+    .from('rolls')
+    .update({ photos_processed: i + 1 })
+    .eq('id', rollId);
 
   await delay(100);  // Artificial 100ms delay per photo
 }
@@ -737,14 +750,19 @@ ORDER BY trip_day;
 **Severity:** Medium
 **Impact:** The most common query in the app (feed page, used by `getVisiblePhotos` and `usePhotos`) filters by `user_id` + `filter_status` and orders by `date_taken DESC, created_at DESC`. While `idx_photos_user_visible` exists as a partial index on `user_id WHERE filter_status = 'visible'`, it does not include `date_taken` or `created_at` in the index, forcing a sort operation.
 
-**File:** `/home/user/roll/roll-app/supabase/migrations/001_create_all_tables.sql`, line 86
+**File:** `/home/user/roll/roll-app/supabase/migrations/001_create_all_tables.sql`, lines 86, 90
 
 ```sql
+-- Line 86:
 CREATE INDEX IF NOT EXISTS idx_photos_user_visible ON photos(user_id) WHERE filter_status = 'visible';
 -- Missing: date_taken and created_at columns in the index for sort elimination
+
+-- Line 90:
+CREATE INDEX IF NOT EXISTS idx_photos_date_taken ON photos(user_id, date_taken DESC);
+-- Missing: WHERE filter_status = 'visible' partial predicate, and no created_at column
 ```
 
-While `idx_photos_date_taken` on line 90 exists as `(user_id, date_taken DESC)`, it lacks the `WHERE filter_status = 'visible'` partial predicate and does not include `created_at` -- so the planner cannot use it for the primary feed query which also orders by `created_at`.
+The feed query (in `usePhotos`) filters by `user_id` + `filter_status = 'visible'` and orders by `date_taken DESC, created_at DESC`. The `idx_photos_user_visible` partial index on `user_id` matches the filter but cannot eliminate the sort because it does not include date columns. The `idx_photos_date_taken` index lacks the `WHERE filter_status = 'visible'` partial predicate and does not include `created_at` -- so the planner cannot use it for the primary feed query either.
 
 **Recommendation:** Replace with a covering index:
 
@@ -767,8 +785,8 @@ const { data: photos, error: photosError } = await supabase
   .select('id, thumbnail_url, latitude, longitude, date_taken')
   .eq('user_id', user.id)
   .eq('filter_status', 'visible')
-  .not('latitude', 'is', null)
-  .not('longitude', 'is', null)
+  .not('latitude', 'is', null)     // No index for this filter combo
+  .not('longitude', 'is', null)    // Sequential scan after user_id filter
   .order('date_taken', { ascending: false, nullsFirst: false })
   .limit(1000);
 ```
@@ -849,7 +867,7 @@ export function createClient() {
 - `/home/user/roll/roll-app/src/app/api/upload/presign/route.ts`, lines 10-24
 - `/home/user/roll/roll-app/src/app/api/upload/complete/route.ts`, lines 10-24
 - `/home/user/roll/roll-app/src/app/api/process/filter/route.ts`, lines 10-24
-- `/home/user/roll/roll-app/src/app/api/photos/[id]/route.ts`, lines 11-25
+- `/home/user/roll/roll-app/src/app/api/photos/[id]/route.ts`, lines 12-25
 
 **Recommendation:** Consistently use `createServerSupabaseClient()` from `@/lib/supabase/server`.
 
@@ -916,7 +934,7 @@ recoverPhoto: (photoId, photo) =>
 **Severity:** Medium
 **Impact:** The `usePhotos` hook calls `usePhotoStore()` without a selector, subscribing to every property in the store. Any change to `selectedPhotoIds`, `loading`, `error`, `cursor`, or `hasMore` will re-render all components using `usePhotos`, even if they only need `photos`.
 
-**File:** `/home/user/roll/roll-app/src/hooks/usePhotos.ts`, lines 9-26
+**File:** `/home/user/roll/roll-app/src/hooks/usePhotos.ts`, lines 9-25
 
 ```typescript
 export function usePhotos(): UsePhotosReturn {
@@ -969,7 +987,7 @@ The `handleCheck` callback duplicates nearly all of the `useRoll.checkPhoto` and
 **Severity:** High
 **Impact:** The `handleAutoFill` function in FeedPage adds each suggested photo one at a time in a `for` loop, each requiring a full API round-trip. For 36 photos, this is 36 sequential POST requests.
 
-**File:** `/home/user/roll/roll-app/src/app/(app)/feed/page.tsx`, lines 178-189
+**File:** `/home/user/roll/roll-app/src/app/(app)/feed/page.tsx`, lines 178-190
 
 ```typescript
 for (const photoId of suggestedIds) {
@@ -1003,7 +1021,7 @@ await fetch(`/api/rolls/${rollId}/photos/bulk`, {
 **Severity:** Medium
 **Impact:** Three Google Fonts families (Cormorant Garamond, Plus Jakarta Sans, Space Mono) are loaded via a render-blocking `<link>` tag in the root layout. This blocks first contentful paint until all font files are downloaded. The combined CSS + WOFF2 payload is significant (Cormorant Garamond alone has 5 weight variants including italic).
 
-**File:** `/home/user/roll/roll-app/src/app/layout.tsx`, lines 50-55
+**File:** `/home/user/roll/roll-app/src/app/layout.tsx`, lines 49-55
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1165,19 +1183,24 @@ async function ensureRoll(): Promise<string | null> {
 **Severity:** Low
 **Impact:** While `roll_photos` has `UNIQUE(roll_id, position)`, concurrent photo additions to the same roll can produce duplicate position values if two requests read the count simultaneously and both insert at position N+1.
 
-**File:** `/home/user/roll/roll-app/src/app/api/rolls/[id]/photos/route.ts`, lines 43-63
+**File:** `/home/user/roll/roll-app/src/app/api/rolls/[id]/photos/route.ts`, lines 44-74
 
 ```typescript
-const { count } = await supabase
+// Count current photos (line 44)
+const { count, error: countError } = await supabase
   .from('roll_photos')
   .select('*', { count: 'exact', head: true })
   .eq('roll_id', rollId);
 
-const nextPosition = count + 1;  // Race: two requests can get same count
+const currentCount = count ?? 0;
+// ...
+const nextPosition = currentCount + 1;  // Race: two requests can get same count
 
-const { data: rollPhoto } = await supabase
+// Insert (line 66)
+const { data: rollPhoto, error: insertError } = await supabase
   .from('roll_photos')
-  .insert({ roll_id: rollId, photo_id: photoId, position: nextPosition });
+  .insert({ roll_id: rollId, photo_id: photoId, position: nextPosition })
+  .select().single();
 ```
 
 **Recommendation:** Use a database sequence or `INSERT ... SELECT COALESCE(MAX(position), 0) + 1`:
@@ -1211,7 +1234,7 @@ VALUES ($1, $2, (SELECT COALESCE(MAX(position), 0) + 1 FROM roll_photos WHERE ro
 **Severity:** Low
 **Impact:** When `setContentMode` is called, it resets the store AND calls `loadPhotos`. But the `useEffect` in the feed page also calls `setContentMode('all')` on mount. This can trigger redundant loads.
 
-**File:** `/home/user/roll/roll-app/src/hooks/usePhotos.ts`, lines 78-81
+**File:** `/home/user/roll/roll-app/src/hooks/usePhotos.ts`, lines 78-81 (`setContentMode`)
 
 ```typescript
 const setContentMode = useCallback((mode: ContentMode) => {
