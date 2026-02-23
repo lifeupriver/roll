@@ -10,7 +10,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin } from 'lucide-react';
+import Link from 'next/link';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -257,6 +258,52 @@ export default function AccountPage() {
           {user?.tier === 'plus' ? 'Unlimited storage' : 'Free tier: 100 photo limit'}
         </p>
       </Card>
+
+      {/* Year in Review */}
+      <Link href="/year-in-review">
+        <Card className="flex items-center justify-between cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+          <div className="flex items-center gap-[var(--space-element)]">
+            <CalendarHeart size={20} className="text-[var(--color-action)]" />
+            <div>
+              <p className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                Year in Review
+              </p>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                See your {new Date().getFullYear()} photo stats and highlights
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-[var(--color-ink-tertiary)]" />
+        </Card>
+      </Link>
+
+      {/* Discover Section */}
+      <div className="grid grid-cols-2 gap-[var(--space-element)]">
+        <Link href="/collections">
+          <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+            <Layers size={18} className="text-[var(--color-action)] shrink-0" />
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Collections</span>
+          </Card>
+        </Link>
+        <Link href="/memories">
+          <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+            <Clock size={18} className="text-[var(--color-stock-warmth)] shrink-0" />
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Memories</span>
+          </Card>
+        </Link>
+        <Link href="/search">
+          <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+            <Search size={18} className="text-[var(--color-ink-secondary)] shrink-0" />
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Search</span>
+          </Card>
+        </Link>
+        <Link href="/map">
+          <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+            <MapPin size={18} className="text-[var(--color-stock-golden)] shrink-0" />
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Photo Map</span>
+          </Card>
+        </Link>
+      </div>
 
       {/* Invite Friends / Referral Section */}
       <Card>

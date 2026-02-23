@@ -1,5 +1,5 @@
-export type PrintProduct = 'roll_prints' | 'album_prints' | 'individual';
-export type PrintSize = '4x6' | '5x7';
+export type PrintProduct = 'roll_prints' | 'album_prints' | 'individual' | 'photo_book';
+export type PrintSize = '4x6' | '5x7' | '8x8';
 export type PrintOrderStatus = 'pending' | 'submitted' | 'in_production' | 'shipped' | 'delivered' | 'cancelled' | 'simulated';
 
 export interface PrintOrder {

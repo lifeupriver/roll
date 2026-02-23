@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { ContentModePills } from '@/components/photo/ContentModePills';
@@ -36,6 +36,7 @@ export default function FeedPage() {
   } = useRollStore();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
 
   useEffect(() => {
     setContentMode('all');
@@ -144,6 +145,56 @@ export default function FeedPage() {
     if (index >= 0) setLightboxIndex(index);
   }, [photos]);
 
+  const handleAutoFill = useCallback(async () => {
+    setSuggesting(true);
+    try {
+      const remaining = 36 - rollCount;
+      if (remaining <= 0) return;
+
+      const res = await fetch(`/api/rolls/suggest?limit=${remaining}`);
+      if (!res.ok) return;
+      const { data } = await res.json();
+      const suggestedIds: string[] = data?.photoIds ?? [];
+      if (suggestedIds.length === 0) return;
+
+      // Ensure a roll exists
+      let rollId = currentRoll?.id;
+      if (!rollId) {
+        const createRes = await fetch('/api/rolls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        if (createRes.ok) {
+          const { data: newRoll } = await createRes.json();
+          setRoll(newRoll);
+          rollId = newRoll.id;
+        } else {
+          return;
+        }
+      }
+
+      // Add each suggested photo
+      for (const photoId of suggestedIds) {
+        if (isChecked(photoId)) continue;
+        checkPhoto(photoId);
+        try {
+          await fetch(`/api/rolls/${rollId}/photos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoId }),
+          });
+        } catch {
+          uncheckPhoto(photoId);
+        }
+      }
+
+      track({ event: 'roll_autofill', properties: { rollId: rollId || '', count: suggestedIds.length } });
+    } finally {
+      setSuggesting(false);
+    }
+  }, [rollCount, currentRoll, setRoll, isChecked, checkPhoto, uncheckPhoto]);
+
   if (!loading && photos.length === 0) {
     return (
       <div>
@@ -173,11 +224,24 @@ export default function FeedPage() {
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
           Your Photos
         </h1>
-        <Link href="/upload">
-          <Button variant="secondary" size="sm">
-            <Upload size={16} className="mr-1" /> Upload
-          </Button>
-        </Link>
+        <div className="flex items-center gap-[var(--space-tight)]">
+          {rollCount < 36 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleAutoFill}
+              isLoading={suggesting}
+              disabled={suggesting}
+            >
+              <Sparkles size={16} className="mr-1" /> Auto-fill
+            </Button>
+          )}
+          <Link href="/upload">
+            <Button variant="secondary" size="sm">
+              <Upload size={16} className="mr-1" /> Upload
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Content mode pills */}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Lock, Printer, Check, Package, MapPin } from 'lucide-react';
+import { ArrowLeft, Lock, Printer, Check, Package, MapPin, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -18,6 +18,7 @@ import Link from 'next/link';
 // ---------------------------------------------------------------------------
 const PRICE_PER_PHOTO_4x6 = 30; // cents
 const PRICE_PER_PHOTO_5x7 = 60; // cents
+const PRICE_PHOTO_BOOK = 2999; // cents — flat rate for bound book
 const SHIPPING_CENTS = 499;
 
 // ---------------------------------------------------------------------------
@@ -68,8 +69,9 @@ export default function OrderPrintsPage() {
   // ---- Derived state ------------------------------------------------------
   const isFirstRoll = true; // In a real app, derive from user's order history
   const isFreeOrder = selectedProduct === 'roll_prints' && isFirstRoll;
+  const isPhotoBook = selectedProduct === 'photo_book';
   const pricePerPhoto = selectedSize === '4x6' ? PRICE_PER_PHOTO_4x6 : PRICE_PER_PHOTO_5x7;
-  const subtotalCents = photoCount * pricePerPhoto;
+  const subtotalCents = isPhotoBook ? PRICE_PHOTO_BOOK : photoCount * pricePerPhoto;
   const totalCents = isFreeOrder ? 0 : subtotalCents + SHIPPING_CENTS;
 
   // ---- Fetch roll ---------------------------------------------------------
@@ -98,8 +100,8 @@ export default function OrderPrintsPage() {
   // ---- Handlers -----------------------------------------------------------
 
   const handleProductSelect = (product: PrintProduct, size: PrintSize) => {
-    // Block individual 5x7 for free-tier users
-    if (product === 'individual' && user?.tier !== 'plus') return;
+    // Block premium products for free-tier users
+    if ((product === 'individual' || product === 'photo_book') && user?.tier !== 'plus') return;
     setSelectedProduct(product);
     setSelectedSize(size);
   };
@@ -341,6 +343,51 @@ export default function OrderPrintsPage() {
             </div>
           </button>
 
+          {/* Photo Book card */}
+          <button
+            type="button"
+            onClick={() => handleProductSelect('photo_book', '8x8')}
+            className={[
+              'w-full text-left bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] border-2 transition-all duration-150',
+              user?.tier === 'plus' ? 'cursor-pointer' : 'cursor-not-allowed opacity-70',
+              selectedProduct === 'photo_book'
+                ? 'border-[var(--color-action)] shadow-[var(--shadow-floating)]'
+                : 'border-transparent shadow-[var(--shadow-raised)] hover:border-[var(--color-border)]',
+            ].join(' ')}
+          >
+            <div className="flex items-start gap-[var(--space-element)]">
+              <div className="flex items-center justify-center w-10 h-10 rounded-[var(--radius-sharp)] bg-[var(--color-action)]/10 shrink-0 relative">
+                <BookOpen size={20} className="text-[var(--color-action)]" />
+                {user?.tier !== 'plus' && (
+                  <div className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-[var(--color-surface-raised)] shadow-[var(--shadow-raised)]">
+                    <Lock size={10} className="text-[var(--color-ink-tertiary)]" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col gap-[var(--space-tight)]">
+                <div className="flex items-center justify-between">
+                  <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                    Photo Book
+                  </span>
+                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
+                    8x8
+                  </span>
+                </div>
+                <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
+                  A bound softcover book with all {photoCount} photos from this roll.
+                </p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  {formatCents(PRICE_PHOTO_BOOK)} + {formatCents(SHIPPING_CENTS)} shipping
+                </p>
+                {user?.tier !== 'plus' && (
+                  <p className="text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium text-[var(--color-ink-tertiary)]">
+                    Roll+ only
+                  </p>
+                )}
+              </div>
+            </div>
+          </button>
+
           <Button variant="primary" size="lg" onClick={handleContinueToShipping}>
             Continue
           </Button>
@@ -466,7 +513,7 @@ export default function OrderPrintsPage() {
               <div className="grid grid-cols-2 gap-[var(--space-tight)] text-[length:var(--text-body)]">
                 <span className="text-[var(--color-ink-secondary)]">Product</span>
                 <span className="text-[var(--color-ink)] text-right">
-                  {selectedProduct === 'roll_prints' ? 'Roll Prints' : 'Individual 5x7'}
+                  {selectedProduct === 'roll_prints' ? 'Roll Prints' : selectedProduct === 'photo_book' ? 'Photo Book' : 'Individual 5x7'}
                 </span>
 
                 <span className="text-[var(--color-ink-secondary)]">Print Size</span>
@@ -530,7 +577,7 @@ export default function OrderPrintsPage() {
                   <>
                     <div className="flex items-center justify-between text-[length:var(--text-body)]">
                       <span className="text-[var(--color-ink-secondary)]">
-                        {photoCount} photos x {formatCents(pricePerPhoto)}
+                        {isPhotoBook ? `Photo Book (${photoCount} photos)` : `${photoCount} photos x ${formatCents(pricePerPhoto)}`}
                       </span>
                       <span className="text-[var(--color-ink)] font-[family-name:var(--font-mono)]">
                         {formatCents(subtotalCents)}
