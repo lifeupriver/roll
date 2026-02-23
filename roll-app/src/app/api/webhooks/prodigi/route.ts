@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { verifyWebhookSignature } from '@/lib/prodigi';
+import { captureError } from '@/lib/sentry';
 import type { PrintOrderStatus } from '@/types/print';
+
+// Webhook handlers need service role client to bypass RLS (no user session available)
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error('Missing Supabase service role configuration for webhooks');
+  }
+  return createClient(url, key);
+}
 
 // ---------------------------------------------------------------------------
 // Stage -> PrintOrderStatus mapping
@@ -37,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing order ID in payload' }, { status: 400 });
     }
 
-    const supabase = await createServerSupabaseClient();
+    const supabase = getServiceSupabase();
 
     // Look up the order by its Prodigi ID
     const { data: order, error: lookupError } = await supabase
@@ -90,6 +101,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (err) {
+    captureError(err, { context: 'prodigi-webhook' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
