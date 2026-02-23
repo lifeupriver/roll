@@ -3,6 +3,8 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { runFilterPipeline } from '@/lib/processing/pipeline';
 import { processLimiter } from '@/lib/rate-limit';
+import { captureError } from '@/lib/sentry';
+import { parseBody, filterProcessSchema } from '@/lib/validation';
 import type { FilterResult } from '@/types/photo';
 
 export async function POST(request: NextRequest) {
@@ -40,12 +42,9 @@ export async function POST(request: NextRequest) {
     const rateLimited = processLimiter.check(user.id);
     if (rateLimited) return rateLimited;
 
-    const body = await request.json();
-    const { jobId, photoIds } = body as { jobId: string; photoIds: string[] };
-
-    if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0) {
-      return NextResponse.json({ error: 'Invalid request: photoIds required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, filterProcessSchema);
+    if (parsed.error) return parsed.error;
+    const { jobId, photoIds } = parsed.data;
 
     // Mark job as processing
     if (jobId) {
@@ -92,6 +91,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Filtering complete', processed: photos.length });
   } catch (err) {
+    captureError(err, { context: 'process-filter' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

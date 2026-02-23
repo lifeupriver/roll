@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 
 // Allowed hostnames for external URL redirects (mock data, CDN)
 const ALLOWED_REDIRECT_HOSTS = [

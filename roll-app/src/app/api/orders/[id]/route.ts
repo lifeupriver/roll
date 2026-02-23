@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 import type { PrintOrder, PrintOrderItem } from '@/types/print';
 
 // ---------------------------------------------------------------------------
@@ -48,6 +49,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    captureError(err, { context: 'order-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

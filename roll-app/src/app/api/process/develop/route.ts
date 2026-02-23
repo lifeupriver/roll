@@ -5,20 +5,7 @@ import type { FilmProfileId } from '@/types/roll';
 import { MIN_ROLL_PHOTOS, MAX_ROLL_PHOTOS } from '@/lib/utils/constants';
 import { captureError } from '@/lib/sentry';
 import { processLimiter } from '@/lib/rate-limit';
-
-interface DevelopRequest {
-  rollId: string;
-  filmProfileId: FilmProfileId;
-}
-
-const VALID_PROFILES: FilmProfileId[] = [
-  'warmth',
-  'golden',
-  'vivid',
-  'classic',
-  'gentle',
-  'modern',
-];
+import { parseBody, developProcessSchema } from '@/lib/validation';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -41,16 +28,13 @@ export async function POST(request: NextRequest) {
     const rateLimited = processLimiter.check(user.id);
     if (rateLimited) return rateLimited;
 
-    const body = await request.json();
-    const { rollId: requestRollId, filmProfileId } = body as DevelopRequest;
-    rollId = requestRollId;
+    const parsed = await parseBody(request, developProcessSchema);
+    if (parsed.error) return parsed.error;
+    const { filmProfileId } = parsed.data;
+    rollId = parsed.data.rollId;
 
-    if (!rollId || !filmProfileId) {
-      return NextResponse.json({ error: 'rollId and filmProfileId are required' }, { status: 400 });
-    }
-
-    // Validate film profile
-    if (!VALID_PROFILES.includes(filmProfileId) || !FILM_PROFILE_CONFIGS[filmProfileId]) {
+    // Validate film profile config exists
+    if (!FILM_PROFILE_CONFIGS[filmProfileId]) {
       return NextResponse.json(
         { error: `Invalid film profile: ${filmProfileId}` },
         { status: 400 }

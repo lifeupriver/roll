@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, reorderRollSchema } from '@/lib/validation';
 
 export async function PUT(
   request: NextRequest,
@@ -25,15 +27,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { photoIds } = body as { photoIds: string[] };
-
-    if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0) {
-      return NextResponse.json(
-        { error: 'photoIds array is required' },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseBody(request, reorderRollSchema);
+    if (parsed.error) return parsed.error;
+    const { photoIds } = parsed.data;
 
     // Verify all photo IDs belong to this roll
     const { data: existingPhotos, error: fetchError } = await supabase
@@ -73,6 +69,7 @@ export async function PUT(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'roll-reorder' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

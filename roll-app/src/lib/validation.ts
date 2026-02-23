@@ -107,6 +107,130 @@ export const printCheckoutSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Process schemas
+// ---------------------------------------------------------------------------
+
+export const filterProcessSchema = z.object({
+  jobId: z.string().optional(),
+  photoIds: z.array(z.string().uuid()).min(1),
+});
+
+export const developProcessSchema = z.object({
+  rollId: z.string().uuid(),
+  filmProfileId: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']),
+});
+
+// ---------------------------------------------------------------------------
+// Circle interaction schemas
+// ---------------------------------------------------------------------------
+
+export const circleCommentSchema = z.object({
+  postId: z.string().uuid(),
+  text: z.string().trim().min(1).max(500),
+});
+
+export const deleteCommentSchema = z.object({
+  commentId: z.string().uuid(),
+});
+
+export const circleReactionSchema = z.object({
+  postId: z.string().uuid(),
+  reactionType: z.enum(['heart', 'smile', 'wow']),
+});
+
+export const removeMemberSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export const updateCircleBodySchema = z.object({
+  name: z.string().trim().min(1).max(100).optional(),
+  coverPhotoUrl: z.string().url().optional(),
+}).refine((data) => Object.keys(data).length > 0, {
+  message: 'At least one field is required',
+});
+
+// ---------------------------------------------------------------------------
+// Photo / favorite / people schemas
+// ---------------------------------------------------------------------------
+
+export const addFavoriteSchema = z.object({
+  photoId: z.string().uuid(),
+  rollId: z.string().uuid(),
+});
+
+export const updatePhotoSchema = z.object({
+  filter_status: z.enum(['pending', 'visible', 'filtered_auto', 'hidden_manual']).optional(),
+  filter_reason: z.string().max(100).nullable().optional(),
+});
+
+export const photoTagCreateSchema = z.object({
+  personId: z.string().uuid(),
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  width: z.number().min(0).max(1),
+  height: z.number().min(0).max(1),
+});
+
+export const photoTagDeleteSchema = z.object({
+  tagId: z.string().uuid(),
+});
+
+export const createPersonSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+});
+
+// ---------------------------------------------------------------------------
+// Reorder / push / referral schemas
+// ---------------------------------------------------------------------------
+
+export const reorderRollSchema = z.object({
+  photoIds: z.array(z.string().uuid()).min(1),
+});
+
+export const pushSubscribeSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({
+    p256dh: z.string().min(1),
+    auth: z.string().min(1),
+  }),
+});
+
+export const pushUnsubscribeSchema = z.object({
+  endpoint: z.string().url(),
+});
+
+export const referralInviteBodySchema = z.object({
+  email: z.string().email(),
+});
+
+// ---------------------------------------------------------------------------
+// Print subscription schemas
+// ---------------------------------------------------------------------------
+
+const printShippingSchema = z.object({
+  name: trimmedString(200),
+  line1: trimmedString(200),
+  line2: z.string().max(200).optional(),
+  city: trimmedString(100),
+  state: trimmedString(100),
+  postalCode: trimmedString(20),
+  country: z.string().length(2).default('US'),
+});
+
+export const createPrintSubscriptionSchema = z.object({
+  printSize: z.enum(['4x6', '5x7']).default('4x6'),
+  frequency: z.enum(['monthly', 'quarterly']).default('monthly'),
+  maxPhotos: z.number().int().min(1).max(36).default(36),
+  shipping: printShippingSchema,
+});
+
+export const updatePrintSubscriptionSchema = z.object({
+  subscriptionId: z.string().uuid(),
+  isActive: z.boolean().optional(),
+  shipping: printShippingSchema.partial().optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Generic body parser
 // ---------------------------------------------------------------------------
 

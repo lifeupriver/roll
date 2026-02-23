@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, pushSubscribeSchema, pushUnsubscribeSchema } from '@/lib/validation';
 
 // POST — save push subscription for the authenticated user
 export async function POST(request: NextRequest) {
@@ -10,15 +12,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { endpoint, keys } = body as {
-      endpoint: string;
-      keys: { p256dh: string; auth: string };
-    };
-
-    if (!endpoint || !keys?.p256dh || !keys?.auth) {
-      return NextResponse.json({ error: 'Invalid subscription data' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, pushSubscribeSchema);
+    if (parsed.error) return parsed.error;
+    const { endpoint, keys } = parsed.data;
 
     // Upsert subscription (one subscription per endpoint per user)
     const { error: upsertError } = await supabase
@@ -40,6 +36,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'push-subscribe' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -54,12 +51,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { endpoint } = body as { endpoint: string };
-
-    if (!endpoint) {
-      return NextResponse.json({ error: 'endpoint is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, pushUnsubscribeSchema);
+    if (parsed.error) return parsed.error;
+    const { endpoint } = parsed.data;
 
     const { error: deleteError } = await supabase
       .from('push_subscriptions')
@@ -73,6 +67,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'push-subscribe' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

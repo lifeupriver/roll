@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, addFavoriteSchema } from '@/lib/validation';
 import type { Favorite } from '@/types/favorite';
 
 export async function GET() {
@@ -22,6 +24,7 @@ export async function GET() {
 
     return NextResponse.json({ data: data as Favorite[] });
   } catch (err) {
+    captureError(err, { context: 'favorites' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -35,16 +38,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { photoId, rollId } = body as { photoId?: string; rollId?: string };
-
-    if (!photoId) {
-      return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
-    }
-
-    if (!rollId) {
-      return NextResponse.json({ error: 'rollId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, addFavoriteSchema);
+    if (parsed.error) return parsed.error;
+    const { photoId, rollId } = parsed.data;
 
     // Verify photo exists and belongs to user
     const { data: photo, error: photoError } = await supabase
@@ -98,6 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: data as Favorite }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'favorites' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

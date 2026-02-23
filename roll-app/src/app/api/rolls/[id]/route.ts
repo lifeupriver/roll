@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 import { parseBody, updateRollSchema } from '@/lib/validation';
 import type { Roll, RollStatus, RollPhoto } from '@/types/roll';
 
@@ -53,6 +54,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    captureError(err, { context: 'roll-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -124,6 +126,7 @@ export async function PATCH(
 
     return NextResponse.json({ data: data as Roll });
   } catch (err) {
+    captureError(err, { context: 'roll-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

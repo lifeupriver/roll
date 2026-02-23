@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, referralInviteBodySchema } from '@/lib/validation';
 import { sendEmail } from '@/lib/email/resend';
 import { referralInviteEmail } from '@/lib/email/templates';
 import crypto from 'crypto';
@@ -45,6 +47,7 @@ export async function GET() {
 
     return NextResponse.json({ data: stats });
   } catch (err) {
+    captureError(err, { context: 'referrals' });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error' },
       { status: 500 }
@@ -61,10 +64,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { email } = await request.json();
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, referralInviteBodySchema);
+    if (parsed.error) return parsed.error;
+    const { email } = parsed.data;
 
     // Get user's referral code and display name
     const { data: profile } = await supabase
@@ -120,6 +122,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: { sent: true } });
   } catch (err) {
+    captureError(err, { context: 'referrals' });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error' },
       { status: 500 }

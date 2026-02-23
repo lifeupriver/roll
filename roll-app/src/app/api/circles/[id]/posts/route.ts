@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 import { parseBody, createCirclePostSchema } from '@/lib/validation';
 import type { CirclePost } from '@/types/circle';
 
@@ -40,6 +41,7 @@ export async function GET(
 
     return NextResponse.json({ data: (posts ?? []) as CirclePost[] });
   } catch (err) {
+    captureError(err, { context: 'circle-posts' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -116,6 +118,7 @@ export async function POST(
 
     return NextResponse.json({ data: fullPost as CirclePost }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'circle-posts' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

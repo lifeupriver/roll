@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, addRollPhotoSchema } from '@/lib/validation';
 import type { RollPhoto } from '@/types/roll';
 
 export async function POST(
@@ -33,12 +35,9 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const { photoId } = body as { photoId: string };
-
-    if (!photoId) {
-      return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, addRollPhotoSchema);
+    if (parsed.error) return parsed.error;
+    const { photoId } = parsed.data;
 
     // Count current photos in the roll
     const { count, error: countError } = await supabase
@@ -99,6 +98,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (err) {
+    captureError(err, { context: 'roll-photos' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -128,12 +128,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { photoId } = body as { photoId: string };
-
-    if (!photoId) {
-      return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, addRollPhotoSchema);
+    if (parsed.error) return parsed.error;
+    const { photoId } = parsed.data;
 
     // Get the photo being removed to know its position
     const { data: removedPhoto, error: findError } = await supabase
@@ -207,6 +204,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'roll-photos' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

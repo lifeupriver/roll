@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, removeMemberSchema } from '@/lib/validation';
 import type { CircleMember } from '@/types/circle';
 
 export async function GET(
@@ -39,6 +41,7 @@ export async function GET(
 
     return NextResponse.json({ data: (members ?? []) as CircleMember[] });
   } catch (err) {
+    captureError(err, { context: 'circle-members' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -56,12 +59,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { userId } = body as { userId: string };
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, removeMemberSchema);
+    if (parsed.error) return parsed.error;
+    const { userId } = parsed.data;
 
     // Check the requesting user's role
     const { data: myMembership, error: myMembershipError } = await supabase
@@ -132,6 +132,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'circle-members' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

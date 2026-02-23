@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, photoTagCreateSchema, photoTagDeleteSchema } from '@/lib/validation';
 import type { PhotoTag } from '@/types/people';
 
 // GET — list tags for a photo
@@ -38,6 +40,7 @@ export async function GET(
 
     return NextResponse.json({ data: (tags ?? []) as PhotoTag[] });
   } catch (err) {
+    captureError(err, { context: 'photo-tags' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -68,23 +71,9 @@ export async function POST(
       return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { personId, x, y, width, height } = body as {
-      personId: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    };
-
-    if (!personId) {
-      return NextResponse.json({ error: 'personId is required' }, { status: 400 });
-    }
-
-    // Validate bounding box (0-1 range)
-    if ([x, y, width, height].some((v) => typeof v !== 'number' || v < 0 || v > 1)) {
-      return NextResponse.json({ error: 'Bounding box values must be between 0 and 1' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, photoTagCreateSchema);
+    if (parsed.error) return parsed.error;
+    const { personId, x, y, width, height } = parsed.data;
 
     const { data: tag, error: insertError } = await supabase
       .from('photo_tags')
@@ -108,6 +97,7 @@ export async function POST(
 
     return NextResponse.json({ data: tag as PhotoTag }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'photo-tags' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -126,12 +116,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { tagId } = body as { tagId: string };
-
-    if (!tagId) {
-      return NextResponse.json({ error: 'tagId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, photoTagDeleteSchema);
+    if (parsed.error) return parsed.error;
+    const { tagId } = parsed.data;
 
     // Get the tag to decrement count
     const { data: tag } = await supabase
@@ -159,6 +146,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'photo-tags' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

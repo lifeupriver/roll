@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 
 export interface Memory {
   id: string;
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: memories });
   } catch (err) {
+    captureError(err, { context: 'memories' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

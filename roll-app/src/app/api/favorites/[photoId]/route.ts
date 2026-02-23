@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 
 export async function DELETE(
   _request: NextRequest,
@@ -37,6 +38,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'favorite-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

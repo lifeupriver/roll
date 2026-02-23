@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 import { sendEmail } from '@/lib/email/resend';
 import { circleInviteEmail } from '@/lib/email/templates';
 import { circleInviteSchema } from '@/lib/validation';
@@ -106,6 +107,7 @@ export async function POST(
       },
     });
   } catch (err) {
+    captureError(err, { context: 'circle-invite' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -149,6 +151,7 @@ export async function GET(
 
     return NextResponse.json({ data: invites ?? [] });
   } catch (err) {
+    captureError(err, { context: 'circle-invite' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
