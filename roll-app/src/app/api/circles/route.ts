@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { parseBody, createCircleSchema } from '@/lib/validation';
 import type { Circle } from '@/types/circle';
 
 export async function GET() {
@@ -70,12 +71,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { name, coverPhotoUrl } = body as { name: string; coverPhotoUrl?: string };
-
-    if (!name) {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, createCircleSchema);
+    if (parsed.error) return parsed.error;
+    const { name, coverPhotoUrl } = parsed.data;
 
     // Create the circle
     const { data: circle, error: circleError } = await supabase

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createThumbnail, generateLqip } from '@/lib/processing/sharp';
 import { uploadObject, getObject, getThumbnailUrl, getThumbnailKey } from '@/lib/storage/r2';
+import { parseBody, completeUploadSchema } from '@/lib/validation';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -13,30 +14,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { photos } = body as {
-      photos: Array<{
-        storageKey: string;
-        contentHash: string;
-        filename: string;
-        contentType: string;
-        sizeBytes: number;
-        width: number;
-        height: number;
-        exifData: {
-          dateTaken?: string;
-          latitude?: number;
-          longitude?: number;
-          cameraMake?: string;
-          cameraModel?: string;
-        };
-        thumbnailBase64?: string;
-      }>;
-    };
-
-    if (!photos || !Array.isArray(photos)) {
-      return NextResponse.json({ error: 'Invalid request: photos array required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, completeUploadSchema);
+    if (parsed.error) return parsed.error;
+    const { photos } = parsed.data;
 
     // Validate all storage keys belong to the authenticated user
     const expectedPrefix = `originals/${user.id}/`;

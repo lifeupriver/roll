@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { parseBody, createCirclePostSchema } from '@/lib/validation';
 import type { CirclePost } from '@/types/circle';
 
 export async function GET(
@@ -68,12 +69,9 @@ export async function POST(
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { caption, photoStorageKeys } = body as { caption?: string; photoStorageKeys: string[] };
-
-    if (!photoStorageKeys || !Array.isArray(photoStorageKeys) || photoStorageKeys.length === 0) {
-      return NextResponse.json({ error: 'photoStorageKeys is required and must be a non-empty array' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, createCirclePostSchema);
+    if (parsed.error) return parsed.error;
+    const { caption, photoStorageKeys } = parsed.data;
 
     // Create the post
     const { data: post, error: postError } = await supabase

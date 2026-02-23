@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { sendEmail } from '@/lib/email/resend';
 import { circleInviteEmail } from '@/lib/email/templates';
+import { circleInviteSchema } from '@/lib/validation';
+import { inviteLimiter } from '@/lib/rate-limit';
 import crypto from 'crypto';
 import type { CircleInvite } from '@/types/circle';
 
@@ -34,6 +36,9 @@ export async function POST(
       return NextResponse.json({ error: 'Only the creator can generate invite links' }, { status: 403 });
     }
 
+    const rateLimited = inviteLimiter.check(user.id);
+    if (rateLimited) return rateLimited;
+
     // Generate a 32-char hex token
     const token = crypto.randomBytes(16).toString('hex');
 
@@ -59,15 +64,19 @@ export async function POST(
     const typedInvite = invite as CircleInvite;
 
     // If an email was provided, send invite email
-    let body: { email?: string } = {};
+    let parsedEmail: string | undefined;
     try {
-      body = await request.json();
+      const raw = await request.json();
+      const result = circleInviteSchema.safeParse(raw);
+      if (result.success) {
+        parsedEmail = result.data.email;
+      }
     } catch {
       // No body — link-only invite
     }
 
     let emailSent = false;
-    if (body.email) {
+    if (parsedEmail) {
       // Get circle name and inviter name
       const { data: circle } = await supabase
         .from('circles')
@@ -85,7 +94,7 @@ export async function POST(
         const inviterName = profile.display_name || profile.email;
         const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/circle/join/${token}`;
         const { subject, html } = circleInviteEmail(inviterName, circle.name, inviteUrl);
-        emailSent = await sendEmail(body.email, subject, html);
+        emailSent = await sendEmail(parsedEmail!, subject, html);
       }
     }
 

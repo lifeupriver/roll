@@ -27,6 +27,10 @@ vi.mock('@/lib/stripe', () => ({
   getOrCreateCustomer: vi.fn().mockResolvedValue('cus_test123'),
 }));
 
+vi.mock('@/lib/rate-limit', () => ({
+  billingLimiter: { check: vi.fn().mockReturnValue(null) },
+}));
+
 import { POST } from '@/app/api/billing/print-checkout/route';
 
 function makeRequest(body: unknown): NextRequest {
@@ -36,6 +40,12 @@ function makeRequest(body: unknown): NextRequest {
     headers: { 'Content-Type': 'application/json' },
   });
 }
+
+// Valid UUIDs for test data
+const ORDER_UUID_1 = '550e8400-e29b-41d4-a716-446655440001';
+const ORDER_UUID_2 = '550e8400-e29b-41d4-a716-446655440002';
+const ORDER_UUID_FREE = '550e8400-e29b-41d4-a716-446655440003';
+const ORDER_UUID_OTHER = '550e8400-e29b-41d4-a716-446655440004';
 
 describe('POST /api/billing/print-checkout — server-side pricing', () => {
   const USER_ID = 'user-123';
@@ -54,7 +64,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
 
   it('rejects unauthenticated requests', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: { message: 'No session' } });
-    const res = await POST(makeRequest({ orderId: 'order-1' }));
+    const res = await POST(makeRequest({ orderId: ORDER_UUID_1 }));
     expect(res.status).toBe(401);
   });
 
@@ -73,9 +83,26 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects non-UUID orderId via Zod validation', async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: { email: 'test@example.com', stripe_customer_id: null },
+            error: null,
+          }),
+        }),
+      }),
+    });
+    const res = await POST(makeRequest({ orderId: 'not-a-uuid' }));
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Validation error');
+  });
+
   it('looks up pricing from DB, not from client request body', async () => {
     const dbOrder = {
-      id: 'order-1',
+      id: ORDER_UUID_1,
       photo_count: 10,
       print_size: '4x6',
       is_free_first_roll: false,
@@ -114,7 +141,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
 
     // Client sends a malicious body — only orderId should be used
     const res = await POST(makeRequest({
-      orderId: 'order-1',
+      orderId: ORDER_UUID_1,
       amount: 1, // Attacker tries to set price to $0.01
       pricePerPrint: 0,
     }));
@@ -151,7 +178,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
               eq: vi.fn().mockReturnValue({
                 single: vi.fn().mockResolvedValue({
                   data: {
-                    id: 'order-2',
+                    id: ORDER_UUID_2,
                     photo_count: 36,
                     print_size: '5x7',
                     is_free_first_roll: false,
@@ -167,7 +194,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
       return {};
     });
 
-    const res = await POST(makeRequest({ orderId: 'order-2' }));
+    const res = await POST(makeRequest({ orderId: ORDER_UUID_2 }));
     expect(res.status).toBe(200);
 
     const sessionArgs = mockCheckoutCreate.mock.calls[0][0];
@@ -207,7 +234,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
       return {};
     });
 
-    const res = await POST(makeRequest({ orderId: 'order-someone-else' }));
+    const res = await POST(makeRequest({ orderId: ORDER_UUID_OTHER }));
     expect(res.status).toBe(404);
   });
 
@@ -232,7 +259,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
               eq: vi.fn().mockReturnValue({
                 single: vi.fn().mockResolvedValue({
                   data: {
-                    id: 'order-free',
+                    id: ORDER_UUID_FREE,
                     photo_count: 10,
                     print_size: '4x6',
                     is_free_first_roll: true,
@@ -248,7 +275,7 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
       return {};
     });
 
-    const res = await POST(makeRequest({ orderId: 'order-free' }));
+    const res = await POST(makeRequest({ orderId: ORDER_UUID_FREE }));
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toContain('Free orders');

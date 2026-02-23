@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getStripe, getOrCreateCustomer } from '@/lib/stripe';
+import { parseBody, printCheckoutSchema } from '@/lib/validation';
+import { billingLimiter } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +11,9 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const rateLimited = billingLimiter.check(user.id);
+    if (rateLimited) return rateLimited;
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -20,11 +25,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    const { orderId } = await request.json();
-
-    if (!orderId) {
-      return NextResponse.json({ error: 'orderId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, printCheckoutSchema);
+    if (parsed.error) return parsed.error;
+    const { orderId } = parsed.data;
 
     // Look up order from database to get authoritative pricing — never trust client input
     const { data: order, error: orderError } = await supabase

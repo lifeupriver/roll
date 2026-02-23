@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getPresignedUploadUrl } from '@/lib/storage/r2';
-import { MAX_FILES_PER_UPLOAD, MAX_FILE_SIZE_BYTES, ALLOWED_CONTENT_TYPES } from '@/lib/utils/constants';
+import { parseBody, presignUploadSchema } from '@/lib/validation';
+import { uploadLimiter } from '@/lib/rate-limit';
 import { randomUUID } from 'crypto';
 
 export async function POST(request: NextRequest) {
@@ -28,30 +29,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { files } = body as {
-      files: Array<{ filename: string; contentType: string; sizeBytes: number }>;
-    };
+    const rateLimited = uploadLimiter.check(user.id);
+    if (rateLimited) return rateLimited;
 
-    if (!files || !Array.isArray(files)) {
-      return NextResponse.json({ error: 'Invalid request: files array required' }, { status: 400 });
-    }
-
-    if (files.length > MAX_FILES_PER_UPLOAD) {
-      return NextResponse.json({ error: `Maximum ${MAX_FILES_PER_UPLOAD} files per upload` }, { status: 400 });
-    }
+    const parsed = await parseBody(request, presignUploadSchema);
+    if (parsed.error) return parsed.error;
+    const { files } = parsed.data;
 
     const uploads = [];
     for (const file of files) {
-      if (file.sizeBytes > MAX_FILE_SIZE_BYTES) {
-        return NextResponse.json({ error: `File ${file.filename} exceeds 50MB limit` }, { status: 400 });
-      }
-
-      const allowedTypes = ALLOWED_CONTENT_TYPES as readonly string[];
-      if (!allowedTypes.includes(file.contentType)) {
-        return NextResponse.json({ error: `Unsupported file type: ${file.contentType}` }, { status: 400 });
-      }
-
       const ext = file.filename.split('.').pop()?.toLowerCase() || 'jpg';
       const uuid = randomUUID();
       const storageKey = `originals/${user.id}/${uuid}.${ext}`;
