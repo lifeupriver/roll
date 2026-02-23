@@ -9,7 +9,7 @@ interface UseCameraCaptureReturn {
   capturedPhotos: File[];
   startCamera: (facingMode?: 'user' | 'environment') => Promise<void>;
   stopCamera: () => void;
-  capturePhoto: () => File | null;
+  capturePhoto: () => Promise<File | null>;
   clearPhotos: () => void;
   error: string | null;
 }
@@ -89,7 +89,7 @@ export function useCameraCapture(): UseCameraCaptureReturn {
     setIsActive(false);
   }, []);
 
-  const capturePhoto = useCallback((): File | null => {
+  const capturePhoto = useCallback(async (): Promise<File | null> => {
     if (!videoRef.current || !isActive) return null;
 
     const video = videoRef.current;
@@ -103,16 +103,14 @@ export function useCameraCapture(): UseCameraCaptureReturn {
     ctx.drawImage(video, 0, 0);
 
     // Convert to blob then to File
-    let file: File | null = null;
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/jpeg', 0.92)
+    );
+    if (!blob) return null;
 
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      file = new File([blob], `camera-${timestamp}.jpg`, { type: 'image/jpeg' });
-
-      setCapturedPhotos((prev) => [...prev, file!]);
-    }, 'image/jpeg', 0.92);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const file = new File([blob], `camera-${timestamp}.jpg`, { type: 'image/jpeg' });
+    setCapturedPhotos((prev) => [...prev, file]);
 
     return file;
   }, [isActive]);

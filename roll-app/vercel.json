@@ -14,5 +14,19 @@
     "src/app/api/prodigi/**/*.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-invites",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/retry-jobs",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-orphans",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

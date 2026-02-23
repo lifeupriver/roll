@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import type { Roll, RollStatus, FilmProfileId, RollPhoto } from '@/types/roll';
+import { captureError } from '@/lib/sentry';
+import { parseBody, updateRollSchema } from '@/lib/validation';
+import type { Roll, RollStatus, RollPhoto } from '@/types/roll';
 
 const VALID_STATUS_TRANSITIONS: Record<RollStatus, RollStatus[]> = {
   building: ['ready'],
@@ -52,6 +54,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    captureError(err, { context: 'roll-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -81,12 +84,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { name, status, film_profile } = body as {
-      name?: string;
-      status?: RollStatus;
-      film_profile?: FilmProfileId;
-    };
+    const parsed = await parseBody(request, updateRollSchema);
+    if (parsed.error) return parsed.error;
+    const { name, status, film_profile } = parsed.data;
 
     // Validate status transition if status is being changed
     if (status) {
@@ -126,6 +126,7 @@ export async function PATCH(
 
     return NextResponse.json({ data: data as Roll });
   } catch (err) {
+    captureError(err, { context: 'roll-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

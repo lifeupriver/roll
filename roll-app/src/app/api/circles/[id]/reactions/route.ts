@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import type { CircleReaction, ReactionType } from '@/types/circle';
-
-const VALID_REACTION_TYPES: ReactionType[] = ['heart', 'smile', 'wow'];
+import { captureError } from '@/lib/sentry';
+import { parseBody, circleReactionSchema } from '@/lib/validation';
+import type { CircleReaction } from '@/types/circle';
 
 export async function POST(
   request: NextRequest,
@@ -28,16 +28,9 @@ export async function POST(
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { postId, reactionType } = body as { postId: string; reactionType: ReactionType };
-
-    if (!postId) {
-      return NextResponse.json({ error: 'postId is required' }, { status: 400 });
-    }
-
-    if (!reactionType || !VALID_REACTION_TYPES.includes(reactionType)) {
-      return NextResponse.json({ error: 'reactionType must be one of: heart, smile, wow' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, circleReactionSchema);
+    if (parsed.error) return parsed.error;
+    const { postId, reactionType } = parsed.data;
 
     // Verify the post belongs to this circle
     const { data: post, error: postError } = await supabase
@@ -71,6 +64,7 @@ export async function POST(
 
     return NextResponse.json({ data: reaction as CircleReaction }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'circle-reactions' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -100,16 +94,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { postId, reactionType } = body as { postId: string; reactionType: ReactionType };
-
-    if (!postId) {
-      return NextResponse.json({ error: 'postId is required' }, { status: 400 });
-    }
-
-    if (!reactionType || !VALID_REACTION_TYPES.includes(reactionType)) {
-      return NextResponse.json({ error: 'reactionType must be one of: heart, smile, wow' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, circleReactionSchema);
+    if (parsed.error) return parsed.error;
+    const { postId, reactionType } = parsed.data;
 
     const { error: deleteError } = await supabase
       .from('circle_reactions')
@@ -124,6 +111,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'circle-reactions' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

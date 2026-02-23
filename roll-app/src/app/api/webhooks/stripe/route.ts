@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe, STRIPE_CONFIG } from '@/lib/stripe';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+import { captureError } from '@/lib/sentry';
 import type Stripe from 'stripe';
+
+// Webhook handlers need service role client to bypass RLS (no user session available)
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error('Missing Supabase service role configuration for webhooks');
+  }
+  return createClient(url, key);
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -18,7 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = getServiceSupabase();
 
   try {
     switch (event.type) {
@@ -81,7 +92,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error('Stripe webhook error:', err);
-    return NextResponse.json({ received: true });
+    captureError(err, { context: 'stripe-webhook', eventType: event.type });
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 }
+    );
   }
 }

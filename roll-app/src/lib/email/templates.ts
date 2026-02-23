@@ -1,3 +1,12 @@
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function emailWrapper(content: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -88,7 +97,7 @@ export function rollDevelopedEmail(
       Your roll is ready
     </h1>
     <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
-      <strong>${rollName}</strong> has been developed with the <strong>${filmProfile}</strong> profile. ${photoCount} photo${photoCount === 1 ? '' : 's'} ${photoCount === 1 ? 'is' : 'are'} ready to view.
+      <strong>${escapeHtml(rollName)}</strong> has been developed with the <strong>${escapeHtml(filmProfile)}</strong> profile. ${photoCount} photo${photoCount === 1 ? '' : 's'} ${photoCount === 1 ? 'is' : 'are'} ready to view.
     </p>
     ${
       previews
@@ -100,7 +109,7 @@ export function rollDevelopedEmail(
     ${ctaButton('View your photos', `https://roll.photos`)}`;
 
   return {
-    subject: `Your roll "${rollName}" is ready`,
+    subject: `Your roll "${escapeHtml(rollName)}" is ready`,
     html: emailWrapper(content),
   };
 }
@@ -115,7 +124,7 @@ export function printShippedEmail(
       Your prints are on the way
     </h1>
     <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
-      Prints from <strong>${rollName}</strong> have shipped and are headed your way.
+      Prints from <strong>${escapeHtml(rollName)}</strong> have shipped and are headed your way.
     </p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0; background-color: #FAF7F2; border-radius: 6px;">
       <tr>
@@ -128,7 +137,7 @@ export function printShippedEmail(
     ${ctaButton('Track shipment', trackingUrl)}`;
 
   return {
-    subject: `Your prints from "${rollName}" have shipped`,
+    subject: `Your prints from "${escapeHtml(rollName)}" have shipped`,
     html: emailWrapper(content),
   };
 }
@@ -139,7 +148,7 @@ export function referralInviteEmail(
 ): { subject: string; html: string } {
   const content = `
     <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: bold; color: #1A1612; margin: 0 0 16px;">
-      ${inviterName} thinks you&rsquo;ll love Roll
+      ${escapeHtml(inviterName)} thinks you&rsquo;ll love Roll
     </h1>
     <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
       Roll rescues your photos from the digital graveyard. Upload your camera roll, we remove the junk, you pick your best 36 shots, choose a film stock, and get real prints delivered to your door.
@@ -149,11 +158,11 @@ export function referralInviteEmail(
     </p>
     ${ctaButton('Try Roll free', signupUrl)}
     <p style="font-size: 13px; line-height: 1.5; color: #9A9590; margin: 0;">
-      If you don&rsquo;t know ${inviterName}, you can safely ignore this email.
+      If you don&rsquo;t know ${escapeHtml(inviterName)}, you can safely ignore this email.
     </p>`;
 
   return {
-    subject: `${inviterName} invited you to try Roll — your first prints are free`,
+    subject: `${escapeHtml(inviterName)} invited you to try Roll — your first prints are free`,
     html: emailWrapper(content),
   };
 }
@@ -168,15 +177,15 @@ export function circleInviteEmail(
       You&rsquo;re invited to a circle
     </h1>
     <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
-      <strong>${inviterName}</strong> invited you to join <strong>${circleName}</strong> on Roll. Circles are shared spaces where you can view and contribute photos together.
+      <strong>${escapeHtml(inviterName)}</strong> invited you to join <strong>${escapeHtml(circleName)}</strong> on Roll. Circles are shared spaces where you can view and contribute photos together.
     </p>
     ${ctaButton('Join circle', inviteUrl)}
     <p style="font-size: 13px; line-height: 1.5; color: #9A9590; margin: 0;">
-      If you don&rsquo;t know ${inviterName}, you can safely ignore this email.
+      If you don&rsquo;t know ${escapeHtml(inviterName)}, you can safely ignore this email.
     </p>`;
 
   return {
-    subject: `${inviterName} invited you to "${circleName}" on Roll`,
+    subject: `${escapeHtml(inviterName)} invited you to "${escapeHtml(circleName)}" on Roll`,
     html: emailWrapper(content),
   };
 }

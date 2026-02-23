@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createProdigiOrder } from '@/lib/prodigi';
-import type { PrintOrder, PrintOrderItem, PrintProduct, PrintSize, ShippingAddress } from '@/types/print';
+import { parseBody, createOrderSchema } from '@/lib/validation';
+import { orderLimiter } from '@/lib/rate-limit';
+import { captureError } from '@/lib/sentry';
+import type { PrintOrder, PrintOrderItem } from '@/types/print';
 
 // ---------------------------------------------------------------------------
 // GET /api/orders — list the current user's print orders
@@ -27,6 +30,7 @@ export async function GET() {
 
     return NextResponse.json({ data: orders as PrintOrder[] });
   } catch (err) {
+    captureError(err, { context: 'orders-list' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -44,21 +48,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { rollId, product, printSize, shipping } = body as {
-      rollId: string;
-      product: PrintProduct;
-      printSize: PrintSize;
-      shipping: ShippingAddress;
-    };
+    const rateLimited = orderLimiter.check(user.id);
+    if (rateLimited) return rateLimited;
 
-    // --- Validation ---
-    if (!rollId || !product || !printSize || !shipping) {
-      return NextResponse.json(
-        { error: 'rollId, product, printSize, and shipping are required' },
-        { status: 400 },
-      );
-    }
+    const parsed = await parseBody(request, createOrderSchema);
+    if (parsed.error) return parsed.error;
+    const { rollId, product, printSize, shipping } = parsed.data;
 
     // (a) Verify roll exists, belongs to user, and is developed
     const { data: roll, error: rollError } = await supabase
@@ -180,6 +175,7 @@ export async function POST(request: NextRequest) {
       { status: 201 },
     );
   } catch (err) {
+    captureError(err, { context: 'orders-create' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

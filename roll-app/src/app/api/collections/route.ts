@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 
 export interface SmartCollection {
   id: string;
@@ -185,6 +186,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: collections });
   } catch (err) {
+    captureError(err, { context: 'collections' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

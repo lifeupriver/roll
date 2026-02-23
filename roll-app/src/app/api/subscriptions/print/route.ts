@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, createPrintSubscriptionSchema, updatePrintSubscriptionSchema } from '@/lib/validation';
 
 export interface PrintSubscription {
   id: string;
@@ -45,6 +47,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: data ?? [] });
   } catch (err) {
+    captureError(err, { context: 'print-subscriptions' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -58,25 +61,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      printSize = '4x6',
-      frequency = 'monthly',
-      maxPhotos = 36,
-      shipping,
-    } = body;
-
-    if (!shipping || !shipping.name || !shipping.line1 || !shipping.city || !shipping.state || !shipping.postalCode) {
-      return NextResponse.json({ error: 'Complete shipping address required' }, { status: 400 });
-    }
-
-    if (!['4x6', '5x7'].includes(printSize)) {
-      return NextResponse.json({ error: 'Invalid print size' }, { status: 400 });
-    }
-
-    if (!['monthly', 'quarterly'].includes(frequency)) {
-      return NextResponse.json({ error: 'Invalid frequency' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, createPrintSubscriptionSchema);
+    if (parsed.error) return parsed.error;
+    const { printSize, frequency, maxPhotos, shipping } = parsed.data;
 
     // Calculate next print date
     const now = new Date();
@@ -113,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'print-subscriptions' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -126,12 +114,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { subscriptionId, isActive, shipping } = body;
-
-    if (!subscriptionId) {
-      return NextResponse.json({ error: 'subscriptionId required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, updatePrintSubscriptionSchema);
+    if (parsed.error) return parsed.error;
+    const { subscriptionId, isActive, shipping } = parsed.data;
 
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
@@ -163,6 +148,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (err) {
+    captureError(err, { context: 'print-subscriptions' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

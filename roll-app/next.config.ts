@@ -11,7 +11,7 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' blob: data: https://*.r2.cloudflarestorage.com https://*.supabase.co https://fonts.gstatic.com",
       "font-src 'self' https://fonts.gstatic.com",
@@ -41,6 +41,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverExternalPackages: ['web-push'],
   experimental: {
     serverActions: {
       bodySizeLimit: '50mb',

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 
 export interface YearInReviewData {
   year: number;
@@ -166,6 +167,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: result });
   } catch (err) {
+    captureError(err, { context: 'year-in-review' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

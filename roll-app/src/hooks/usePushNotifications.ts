@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 type PushPermission = 'default' | 'granted' | 'denied' | 'unsupported';
 
@@ -77,7 +78,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         setIsSubscribed(true);
       }
     } catch (err) {
-      console.error('[push] Subscribe failed:', err);
+      Sentry.captureException(err, { extra: { context: 'push-subscribe' } });
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +104,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
       setIsSubscribed(false);
     } catch (err) {
-      console.error('[push] Unsubscribe failed:', err);
+      Sentry.captureException(err, { extra: { context: 'push-unsubscribe' } });
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, circleCommentSchema, deleteCommentSchema } from '@/lib/validation';
 import type { CircleComment } from '@/types/circle';
 
 // POST — add a comment to a circle post
@@ -27,16 +29,9 @@ export async function POST(
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { postId, text } = body as { postId: string; text: string };
-
-    if (!postId || !text?.trim()) {
-      return NextResponse.json({ error: 'postId and text are required' }, { status: 400 });
-    }
-
-    if (text.length > 500) {
-      return NextResponse.json({ error: 'Comment must be 500 characters or less' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, circleCommentSchema);
+    if (parsed.error) return parsed.error;
+    const { postId, text } = parsed.data;
 
     // Verify post belongs to this circle
     const { data: post } = await supabase
@@ -66,6 +61,7 @@ export async function POST(
 
     return NextResponse.json({ data: comment as CircleComment }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'circle-comments' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -84,12 +80,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { commentId } = body as { commentId: string };
-
-    if (!commentId) {
-      return NextResponse.json({ error: 'commentId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, deleteCommentSchema);
+    if (parsed.error) return parsed.error;
+    const { commentId } = parsed.data;
 
     // Get the comment
     const { data: comment } = await supabase
@@ -128,6 +121,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'circle-comments' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

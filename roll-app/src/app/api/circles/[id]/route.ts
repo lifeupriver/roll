@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, updateCircleBodySchema } from '@/lib/validation';
 import type { Circle, CircleMember } from '@/types/circle';
 
 export async function GET(
@@ -55,6 +57,7 @@ export async function GET(
       },
     });
   } catch (err) {
+    captureError(err, { context: 'circle-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -88,16 +91,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'Only the creator can update the circle' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { name, coverPhotoUrl } = body as { name?: string; coverPhotoUrl?: string };
+    const parsed = await parseBody(request, updateCircleBodySchema);
+    if (parsed.error) return parsed.error;
+    const { name, coverPhotoUrl } = parsed.data;
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
     if (coverPhotoUrl !== undefined) updateData.cover_photo_url = coverPhotoUrl;
-
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
-    }
 
     const { data: circle, error: updateError } = await supabase
       .from('circles')
@@ -112,6 +112,7 @@ export async function PATCH(
 
     return NextResponse.json({ data: circle as Circle });
   } catch (err) {
+    captureError(err, { context: 'circle-detail' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

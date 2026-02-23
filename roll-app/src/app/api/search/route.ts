@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
 
 /**
  * GET /api/search?q=&scene=&camera=&from=&to=&faces=&limit=50
@@ -112,6 +113,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
+    captureError(err, { context: 'search' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

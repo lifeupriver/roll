@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, createRollSchema } from '@/lib/validation';
 import type { Roll } from '@/types/roll';
 
 export async function GET() {
@@ -22,6 +24,7 @@ export async function GET() {
 
     return NextResponse.json({ data: data as Roll[] });
   } catch (err) {
+    captureError(err, { context: 'rolls' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -35,8 +38,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name } = body as { name?: string };
+    const parsed = await parseBody(request, createRollSchema);
+    if (parsed.error) return parsed.error;
+    const { name } = parsed.data;
 
     // Auto-generate name from current date if not provided
     // Format: "Month Day–Day" (e.g., "February 12–18")
@@ -74,6 +78,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: data as Roll }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'rolls' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

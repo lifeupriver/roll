@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, addRollPhotoSchema } from '@/lib/validation';
 import type { RollPhoto } from '@/types/roll';
 
 export async function POST(
@@ -33,12 +35,9 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
-    const { photoId } = body as { photoId: string };
-
-    if (!photoId) {
-      return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, addRollPhotoSchema);
+    if (parsed.error) return parsed.error;
+    const { photoId } = parsed.data;
 
     // Count current photos in the roll
     const { count, error: countError } = await supabase
@@ -99,6 +98,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (err) {
+    captureError(err, { context: 'roll-photos' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -128,12 +128,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { photoId } = body as { photoId: string };
-
-    if (!photoId) {
-      return NextResponse.json({ error: 'photoId is required' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, addRollPhotoSchema);
+    if (parsed.error) return parsed.error;
+    const { photoId } = parsed.data;
 
     // Get the photo being removed to know its position
     const { data: removedPhoto, error: findError } = await supabase
@@ -158,24 +155,35 @@ export async function DELETE(
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
     }
 
-    // Reorder remaining positions: decrement positions for photos after the removed one
-    const { data: remainingPhotos, error: fetchError } = await supabase
-      .from('roll_photos')
-      .select('id, position')
-      .eq('roll_id', rollId)
-      .gt('position', removedPhoto.position)
-      .order('position', { ascending: true });
+    // Reorder remaining positions: decrement all positions after the removed one in a single query
+    const { error: reorderError } = await supabase.rpc('decrement_positions_after', {
+      p_roll_id: rollId,
+      p_removed_position: removedPhoto.position,
+    });
 
-    if (fetchError) {
-      return NextResponse.json({ error: fetchError.message }, { status: 500 });
-    }
+    // Fallback: if the RPC doesn't exist yet, use a batch update
+    if (reorderError) {
+      const { data: remainingPhotos, error: fetchError } = await supabase
+        .from('roll_photos')
+        .select('id, position')
+        .eq('roll_id', rollId)
+        .gt('position', removedPhoto.position)
+        .order('position', { ascending: true });
 
-    if (remainingPhotos && remainingPhotos.length > 0) {
-      for (const photo of remainingPhotos) {
-        await supabase
-          .from('roll_photos')
-          .update({ position: photo.position - 1 })
-          .eq('id', photo.id);
+      if (fetchError) {
+        return NextResponse.json({ error: fetchError.message }, { status: 500 });
+      }
+
+      if (remainingPhotos && remainingPhotos.length > 0) {
+        // Batch update all positions in parallel instead of sequential
+        await Promise.all(
+          remainingPhotos.map((photo) =>
+            supabase
+              .from('roll_photos')
+              .update({ position: photo.position - 1 })
+              .eq('id', photo.id)
+          )
+        );
       }
     }
 
@@ -196,6 +204,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    captureError(err, { context: 'roll-photos' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getStripe, STRIPE_CONFIG, getOrCreateCustomer } from '@/lib/stripe';
+import { captureError } from '@/lib/sentry';
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: { url: session.url } });
   } catch (err) {
+    captureError(err, { context: 'subscription-checkout' });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal server error' },
       { status: 500 }

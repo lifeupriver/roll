@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { captureError } from '@/lib/sentry';
+import { parseBody, createCirclePostSchema } from '@/lib/validation';
 import type { CirclePost } from '@/types/circle';
 
 export async function GET(
@@ -39,6 +41,7 @@ export async function GET(
 
     return NextResponse.json({ data: (posts ?? []) as CirclePost[] });
   } catch (err) {
+    captureError(err, { context: 'circle-posts' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -68,12 +71,9 @@ export async function POST(
       return NextResponse.json({ error: 'Circle not found' }, { status: 404 });
     }
 
-    const body = await request.json();
-    const { caption, photoStorageKeys } = body as { caption?: string; photoStorageKeys: string[] };
-
-    if (!photoStorageKeys || !Array.isArray(photoStorageKeys) || photoStorageKeys.length === 0) {
-      return NextResponse.json({ error: 'photoStorageKeys is required and must be a non-empty array' }, { status: 400 });
-    }
+    const parsed = await parseBody(request, createCirclePostSchema);
+    if (parsed.error) return parsed.error;
+    const { caption, photoStorageKeys } = parsed.data;
 
     // Create the post
     const { data: post, error: postError } = await supabase
@@ -118,6 +118,7 @@ export async function POST(
 
     return NextResponse.json({ data: fullPost as CirclePost }, { status: 201 });
   } catch (err) {
+    captureError(err, { context: 'circle-posts' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }

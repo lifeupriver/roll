@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /feed
+Disallow: /library
+Disallow: /account
+Disallow: /upload
+Disallow: /onboarding
+Disallow: /seed
+Disallow: /roll
+Disallow: /circle
+Disallow: /collections
+Disallow: /memories
+Disallow: /search
+Disallow: /map
+Disallow: /year-in-review
+
+Sitemap: https://roll.photos/sitemap.xml

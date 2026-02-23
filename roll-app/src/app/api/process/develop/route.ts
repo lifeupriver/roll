@@ -3,13 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 import type { FilmProfileId } from '@/types/roll';
 import { MIN_ROLL_PHOTOS, MAX_ROLL_PHOTOS } from '@/lib/utils/constants';
-
-interface DevelopRequest {
-  rollId: string;
-  filmProfileId: FilmProfileId;
-}
-
-const VALID_PROFILES: FilmProfileId[] = ['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern'];
+import { captureError } from '@/lib/sentry';
+import { processLimiter } from '@/lib/rate-limit';
+import { parseBody, developProcessSchema } from '@/lib/validation';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -21,24 +17,24 @@ export async function POST(request: NextRequest) {
 
   try {
     supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { rollId: requestRollId, filmProfileId } = body as DevelopRequest;
-    rollId = requestRollId;
+    const rateLimited = processLimiter.check(user.id);
+    if (rateLimited) return rateLimited;
 
-    if (!rollId || !filmProfileId) {
-      return NextResponse.json(
-        { error: 'rollId and filmProfileId are required' },
-        { status: 400 }
-      );
-    }
+    const parsed = await parseBody(request, developProcessSchema);
+    if (parsed.error) return parsed.error;
+    const { filmProfileId } = parsed.data;
+    rollId = parsed.data.rollId;
 
-    // Validate film profile
-    if (!VALID_PROFILES.includes(filmProfileId) || !FILM_PROFILE_CONFIGS[filmProfileId]) {
+    // Validate film profile config exists
+    if (!FILM_PROFILE_CONFIGS[filmProfileId]) {
       return NextResponse.json(
         { error: `Invalid film profile: ${filmProfileId}` },
         { status: 400 }
@@ -174,6 +170,7 @@ export async function POST(request: NextRequest) {
       data: { rollId, status: 'developed' },
     });
   } catch (err) {
+    captureError(err, { context: 'process-develop', rollId });
     const message = err instanceof Error ? err.message : 'Internal server error';
 
     // Set roll status to 'error' if we have a rollId and supabase client

@@ -1,3 +1,5 @@
+import { captureError } from '@/lib/sentry';
+
 export async function sendEmail(
   to: string,
   subject: string,
@@ -6,7 +8,7 @@ export async function sendEmail(
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
-    console.error('[email] RESEND_API_KEY is not set');
+    captureError(new Error('RESEND_API_KEY is not set'), { context: 'email' });
     return false;
   }
 
@@ -27,13 +29,13 @@ export async function sendEmail(
 
     if (!response.ok) {
       const body = await response.text();
-      console.error(`[email] Resend API error (${response.status}): ${body}`);
+      captureError(new Error(`Resend API error (${response.status}): ${body}`), { context: 'email' });
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('[email] Failed to send email:', error);
+    captureError(error, { context: 'email' });
     return false;
   }
 }

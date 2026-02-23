@@ -1,4 +1,5 @@
 import type { PushPayload } from '@/types/push';
+import { captureError } from '@/lib/sentry';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -27,11 +28,10 @@ export async function sendPushNotification(
   }
 
   try {
-    // Dynamic require to avoid bundler/TS static resolution
-    const dynamicRequire = new Function('mod', 'return require(mod)');
+    // Dynamic import to avoid bundler static resolution
     let webpush: any;
     try {
-      webpush = dynamicRequire('web-push');
+      webpush = await import('web-push');
     } catch {
       console.warn('[push] web-push package not installed — skipping push notification');
       return false;
@@ -56,7 +56,7 @@ export async function sendPushNotification(
 
     return true;
   } catch (err) {
-    console.error('[push] Failed to send notification:', err);
+    captureError(err, { context: 'push-notification' });
     return false;
   }
 }
