@@ -39,6 +39,16 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Admin pages — require auth, admin role checked at page/API level
+  if (pathname.startsWith('/admin')) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
+
   // App pages — redirect to login if not authenticated
   const protectedRoutes = ['/feed', '/library', '/circle', '/account', '/upload', '/onboarding', '/roll', '/year-in-review', '/collections', '/memories', '/search', '/map', '/seed'];
   const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
