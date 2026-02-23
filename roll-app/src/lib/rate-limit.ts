@@ -62,7 +62,7 @@ export function createRateLimiter(name: string, config: RateLimitConfig) {
             headers: {
               'Retry-After': String(Math.ceil(retryAfterMs / 1000)),
             },
-          },
+          }
         );
       }
 
@@ -114,4 +114,16 @@ export const orderLimiter = createRateLimiter('order', {
 export const inviteLimiter = createRateLimiter('invite', {
   maxRequests: 10,
   windowMs: 60_000,
+});
+
+/** General API: 60 requests per minute per user (for non-sensitive endpoints) */
+export const generalLimiter = createRateLimiter('general', {
+  maxRequests: 60,
+  windowMs: 60_000,
+});
+
+/** Processing (develop/filter): 5 requests per hour per user */
+export const processLimiter = createRateLimiter('process', {
+  maxRequests: 5,
+  windowMs: 3_600_000,
 });

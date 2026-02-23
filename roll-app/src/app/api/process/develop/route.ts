@@ -4,13 +4,21 @@ import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 import type { FilmProfileId } from '@/types/roll';
 import { MIN_ROLL_PHOTOS, MAX_ROLL_PHOTOS } from '@/lib/utils/constants';
 import { captureError } from '@/lib/sentry';
+import { processLimiter } from '@/lib/rate-limit';
 
 interface DevelopRequest {
   rollId: string;
   filmProfileId: FilmProfileId;
 }
 
-const VALID_PROFILES: FilmProfileId[] = ['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern'];
+const VALID_PROFILES: FilmProfileId[] = [
+  'warmth',
+  'golden',
+  'vivid',
+  'classic',
+  'gentle',
+  'modern',
+];
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,20 +30,23 @@ export async function POST(request: NextRequest) {
 
   try {
     supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const rateLimited = processLimiter.check(user.id);
+    if (rateLimited) return rateLimited;
 
     const body = await request.json();
     const { rollId: requestRollId, filmProfileId } = body as DevelopRequest;
     rollId = requestRollId;
 
     if (!rollId || !filmProfileId) {
-      return NextResponse.json(
-        { error: 'rollId and filmProfileId are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'rollId and filmProfileId are required' }, { status: 400 });
     }
 
     // Validate film profile
