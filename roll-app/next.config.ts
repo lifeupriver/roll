@@ -13,7 +13,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' blob: data: https://*.r2.cloudflarestorage.com https://*.supabase.co https://fonts.gstatic.com",
+      "img-src 'self' blob: data: https://*.r2.cloudflarestorage.com https://*.supabase.co https://fonts.gstatic.com https://picsum.photos https://fastly.picsum.photos",
       "font-src 'self' https://fonts.gstatic.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.cloudflarestorage.com https://*.posthog.com https://*.sentry.io",
       "worker-src 'self'",
@@ -38,6 +38,14 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+      {
+        protocol: 'https',
+        hostname: 'fastly.picsum.photos',
       },
     ],
   },

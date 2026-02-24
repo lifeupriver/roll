@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 import { developReel } from '@/lib/processing/reelDevelopPipeline';
+import { isEyeQEnabled } from '@/lib/eyeq';
 import { MIN_REEL_CLIPS } from '@/lib/utils/constants';
 import { captureError } from '@/lib/sentry';
 import { processLimiter } from '@/lib/rate-limit';
@@ -15,7 +16,10 @@ export async function POST(request: NextRequest) {
 
   try {
     supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -33,7 +37,7 @@ export async function POST(request: NextRequest) {
     if (!FILM_PROFILE_CONFIGS[filmProfileId]) {
       return NextResponse.json(
         { error: `Invalid film profile: ${filmProfileId}` },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -51,15 +55,12 @@ export async function POST(request: NextRequest) {
     if (profile.tier === 'free' && filmProfileId !== 'warmth') {
       return NextResponse.json(
         { error: 'Free users can only use the Warmth film profile' },
-        { status: 403 },
+        { status: 403 }
       );
     }
 
     if (profile.tier === 'free' && audioMood !== 'original') {
-      return NextResponse.json(
-        { error: 'Audio moods require Roll+' },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: 'Audio moods require Roll+' }, { status: 403 });
     }
 
     // Fetch reel
@@ -77,14 +78,14 @@ export async function POST(request: NextRequest) {
     if (reel.status !== 'ready') {
       return NextResponse.json(
         { error: `Reel must be in 'ready' status to develop. Current: '${reel.status}'` },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     if (reel.clip_count < MIN_REEL_CLIPS) {
       return NextResponse.json(
         { error: `Reel must have at least ${MIN_REEL_CLIPS} clips` },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -113,18 +114,33 @@ export async function POST(request: NextRequest) {
     if (clipsError) throw new Error(`Failed to fetch reel clips: ${clipsError.message}`);
     if (!reelClips || reelClips.length === 0) throw new Error('No clips found in reel');
 
-    // Run the development pipeline
+    // Fetch storage keys for each clip's source video
+    const photoIds = reelClips.map((c: { photo_id: string }) => c.photo_id);
+    const { data: videoRecords } = await supabase
+      .from('photos')
+      .select('id, storage_key, content_type')
+      .in('id', photoIds);
+
+    const clipStorageKeys: Record<string, { storageKey: string; contentType: string }> = {};
+    if (videoRecords) {
+      for (const rec of videoRecords) {
+        clipStorageKeys[rec.id] = {
+          storageKey: rec.storage_key,
+          contentType: rec.content_type || 'video/mp4',
+        };
+      }
+    }
+
+    // Run the development pipeline with EyeQ integration
     const result = await developReel({
       userId: user.id,
       reelId,
       clips: reelClips as ReelClip[],
       filmProfileId: filmProfileId as FilmProfileId,
       audioMood: audioMood as AudioMood,
-      onClipProcessed: async (clipIndex, totalClips) => {
-        await supabase!
-          .from('reels')
-          .update({ clips_processed: clipIndex })
-          .eq('id', reelId);
+      clipStorageKeys,
+      onClipProcessed: async (clipIndex) => {
+        await supabase!.from('reels').update({ clips_processed: clipIndex }).eq('id', reelId);
       },
     });
 
@@ -148,13 +164,20 @@ export async function POST(request: NextRequest) {
         assembled_storage_key: result.assembledKey,
         poster_storage_key: result.posterKey,
         assembled_duration_ms: result.assembledDurationMs,
+        correction_skipped_count: result.correctionSkippedCount,
       })
       .eq('id', reelId);
 
     if (completeError) throw new Error(`Failed to complete reel: ${completeError.message}`);
 
     return NextResponse.json({
-      data: { reelId, status: 'developed', assembledDurationMs: result.assembledDurationMs },
+      data: {
+        reelId,
+        status: 'developed',
+        assembledDurationMs: result.assembledDurationMs,
+        eyeqEnabled: isEyeQEnabled(),
+        correctionSkippedCount: result.correctionSkippedCount,
+      },
     });
   } catch (err) {
     captureError(err, { context: 'process-develop-reel', reelId });
