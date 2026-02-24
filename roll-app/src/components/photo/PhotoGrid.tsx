@@ -14,6 +14,7 @@ interface PhotoGridProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoading?: boolean;
+  columns?: number;
 }
 
 export function PhotoGrid({
@@ -26,6 +27,7 @@ export function PhotoGrid({
   onLoadMore,
   hasMore = false,
   isLoading = false,
+  columns,
 }: PhotoGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -51,8 +53,11 @@ export function PhotoGrid({
 
   return (
     <div className="w-full">
-      {/* Contact sheet grid: 4px gaps, no border-radius, 3 cols desktop / 2 cols mobile */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-[var(--space-micro)]">
+      {/* Contact sheet grid: 4px gaps, no border-radius */}
+      <div
+        className={columns ? 'grid gap-[var(--space-micro)]' : 'grid grid-cols-2 lg:grid-cols-3 gap-[var(--space-micro)]'}
+        style={columns ? { gridTemplateColumns: `repeat(${columns}, 1fr)` } : undefined}
+      >
         {photos.map((photo) => (
           <PhotoCard
             key={photo.id}
