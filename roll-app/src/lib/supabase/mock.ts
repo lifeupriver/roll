@@ -151,24 +151,38 @@ const CAMERAS = [
   { make: 'Google', model: 'Pixel 8 Pro' },
 ];
 
+// Sample video URLs for prototype playback (public Google test videos)
+const SAMPLE_VIDEOS = [
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+  'https://storage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+];
+
 function generatePhotos(count: number) {
+  let videoIndex = 0;
   return Array.from({ length: count }, (_, i) => {
     const config = PHOTO_SEEDS[i % PHOTO_SEEDS.length];
     const camera = CAMERAS[i % CAMERAS.length];
     // Every 10th photo is a video clip
     const isVideo = i % 10 === 7;
+    const videoUrl = isVideo ? SAMPLE_VIDEOS[videoIndex++ % SAMPLE_VIDEOS.length] : null;
 
     return {
       id: uuid(100 + i),
       user_id: MOCK_USER_ID,
-      storage_key: `originals/${MOCK_USER_ID}/photo_${i}.jpg`,
+      storage_key: isVideo ? (videoUrl as string) : `originals/${MOCK_USER_ID}/photo_${i}.jpg`,
       thumbnail_url: picsum(config.seed, 400, 530),
       lqip_base64: null,
       content_type: isVideo ? 'video/mp4' : 'image/jpeg',
       media_type: isVideo ? 'video' : 'photo',
       filename: `IMG_${(1000 + i).toString()}.${isVideo ? 'mp4' : 'jpg'}`,
-      width: 3024,
-      height: 4032,
+      width: isVideo ? 1920 : 3024,
+      height: isVideo ? 1080 : 4032,
       size_bytes: 3500000 + i * 50000,
       file_size_bytes: 3500000 + i * 50000,
       content_hash: `hash_${i}`,
@@ -183,7 +197,8 @@ function generatePhotos(count: number) {
       face_count: config.faces,
       scene_classification: config.scene,
       phash: `phash_${i}`,
-      duration_ms: isVideo ? 5000 + i * 800 : null,
+      preview_storage_key: videoUrl,
+      duration_ms: isVideo ? 10000 + (i % 5) * 5000 : null,
       duration_category: isVideo ? 'moment' : null,
       audio_classification: isVideo ? 'ambient' : null,
       stabilization_score: isVideo ? 0.75 : null,

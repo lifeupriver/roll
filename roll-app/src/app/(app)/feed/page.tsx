@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Sparkles, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
+import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { FilmStripProgress } from '@/components/roll/FilmStripProgress';
 import { ReelStripProgress } from '@/components/reel/ReelStripProgress';
@@ -35,7 +36,7 @@ export default function FeedPage() {
     setReel: setReelState,
   } = useReelStore();
 
-  const [_lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
 
   // Determine if we're in clip mode (building a reel)
@@ -412,6 +413,18 @@ export default function FeedPage() {
             }}
           />
         </div>
+      )}
+
+      {/* Lightbox for full-screen photo/video viewing */}
+      {lightboxIndex !== null && (
+        <PhotoLightbox
+          photos={photos}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          mode="feed"
+          onCheck={isClipMode ? handleClipCheck : handleCheck}
+          isChecked={isClipMode ? isClipAdded : isChecked}
+        />
       )}
     </div>
   );

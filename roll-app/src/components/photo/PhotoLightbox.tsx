@@ -2,7 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronLeft, ChevronRight, Check, Heart } from 'lucide-react';
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Heart,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
+import { formatDuration } from '@/components/reel/ClipDurationBadge';
 
 interface PhotoLightboxProps {
   photos: Array<{
@@ -14,6 +25,9 @@ interface PhotoLightboxProps {
     camera_model: string | null;
     latitude: number | null;
     longitude: number | null;
+    media_type?: 'photo' | 'video';
+    preview_storage_key?: string | null;
+    duration_ms?: number | null;
   }>;
   initialIndex: number;
   onClose: () => void;
@@ -40,13 +54,19 @@ export function PhotoLightbox({
   const [metadataVisible, setMetadataVisible] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
   const metadataTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentPhoto = photos[currentIndex];
+  const isVideo = currentPhoto.media_type === 'video';
+  const videoUrl = currentPhoto.preview_storage_key || (isVideo ? currentPhoto.storage_key : null);
 
   // Mount portal on client only
   useEffect(() => {
@@ -65,6 +85,16 @@ export function PhotoLightbox({
       document.body.style.overflow = '';
     };
   }, []);
+
+  // Reset video state when switching photos
+  useEffect(() => {
+    setIsPlaying(false);
+    setVideoProgress(0);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [currentIndex]);
 
   // Show metadata after photo settles (200ms delay)
   useEffect(() => {
@@ -153,6 +183,46 @@ export function PhotoLightbox({
     touchStartX.current = null;
     touchDeltaX.current = 0;
   }, [goToPrevious, goToNext]);
+
+  // Video controls
+  const togglePlayPause = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      video.play();
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  }, []);
+
+  const handleTimeUpdate = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    setVideoProgress(video.currentTime / video.duration);
+  }, []);
+
+  const handleVideoEnded = useCallback(() => {
+    setIsPlaying(false);
+    setVideoProgress(0);
+  }, []);
+
+  const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const fraction = (e.clientX - rect.left) / rect.width;
+    video.currentTime = fraction * video.duration;
+    setVideoProgress(fraction);
+  }, []);
 
   // Format camera info
   const cameraInfo = (() => {
@@ -255,21 +325,92 @@ export function PhotoLightbox({
         </button>
       )}
 
-      {/* Photo display area */}
+      {/* Media display area */}
       <div className="flex-1 flex items-center justify-center w-full px-[var(--space-section)] sm:px-[var(--space-hero)] overflow-hidden">
-        <img
-          key={currentPhoto.id}
-          src={currentPhoto.thumbnail_url}
-          alt={`Photo${formattedDate ? ` from ${formattedDate}` : ''}`}
-          draggable={false}
-          className={[
-            'max-w-full max-h-full object-contain select-none',
-            'transition-all duration-[250ms] ease-out',
-            transitionDirection
-              ? 'scale-95 opacity-80'
-              : 'scale-100 opacity-100',
-          ].join(' ')}
-        />
+        {isVideo && videoUrl ? (
+          <div
+            key={currentPhoto.id}
+            className={[
+              'relative max-w-full max-h-full',
+              'transition-all duration-[250ms] ease-out',
+              transitionDirection ? 'scale-95 opacity-80' : 'scale-100 opacity-100',
+            ].join(' ')}
+          >
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              poster={currentPhoto.thumbnail_url}
+              playsInline
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={handleVideoEnded}
+              onClick={togglePlayPause}
+              className="max-w-full max-h-[70vh] object-contain select-none cursor-pointer rounded-[var(--radius-card)]"
+            />
+            {/* Play/pause overlay */}
+            {!isPlaying && (
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                aria-label="Play video"
+                className="absolute inset-0 flex items-center justify-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                  <Play size={32} className="text-white ml-1" fill="white" fillOpacity={0.9} />
+                </div>
+              </button>
+            )}
+            {/* Video controls bar */}
+            <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 px-3 py-2 bg-gradient-to-t from-black/60 to-transparent">
+              <button
+                type="button"
+                onClick={togglePlayPause}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+                className="text-white/90 hover:text-white shrink-0"
+              >
+                {isPlaying ? (
+                  <Pause size={18} />
+                ) : (
+                  <Play size={18} fill="white" fillOpacity={0.9} />
+                )}
+              </button>
+              {/* Progress bar */}
+              <div
+                className="flex-1 h-1 bg-white/30 rounded-full cursor-pointer"
+                onClick={handleProgressClick}
+              >
+                <div
+                  className="h-full bg-white rounded-full transition-[width] duration-100"
+                  style={{ width: `${videoProgress * 100}%` }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={toggleMute}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+                className="text-white/90 hover:text-white shrink-0"
+              >
+                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              </button>
+              {currentPhoto.duration_ms && (
+                <span className="text-white/80 text-xs font-[family-name:var(--font-mono)] tabular-nums shrink-0">
+                  {formatDuration(currentPhoto.duration_ms)}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <img
+            key={currentPhoto.id}
+            src={currentPhoto.thumbnail_url}
+            alt={`Photo${formattedDate ? ` from ${formattedDate}` : ''}`}
+            draggable={false}
+            className={[
+              'max-w-full max-h-full object-contain select-none',
+              'transition-all duration-[250ms] ease-out',
+              transitionDirection ? 'scale-95 opacity-80' : 'scale-100 opacity-100',
+            ].join(' ')}
+          />
+        )}
       </div>
 
       {/* Bottom bar: metadata + actions */}
@@ -284,16 +425,12 @@ export function PhotoLightbox({
         {/* Metadata bar */}
         <div className="flex flex-col items-center gap-[var(--space-micro)]">
           {formattedDate && (
-            <p
-              className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide"
-            >
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide">
               {formattedDate}
             </p>
           )}
           {cameraInfo && (
-            <p
-              className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide"
-            >
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide">
               {cameraInfo}
             </p>
           )}
@@ -309,9 +446,7 @@ export function PhotoLightbox({
               role="checkbox"
               aria-checked={isChecked?.(currentPhoto.id) ?? false}
               aria-label={
-                isChecked?.(currentPhoto.id)
-                  ? 'Remove photo from roll'
-                  : 'Select photo for roll'
+                isChecked?.(currentPhoto.id) ? 'Remove photo from roll' : 'Select photo for roll'
               }
               className={[
                 'flex items-center justify-center',
@@ -336,9 +471,7 @@ export function PhotoLightbox({
               role="checkbox"
               aria-checked={isHearted?.(currentPhoto.id) ?? false}
               aria-label={
-                isHearted?.(currentPhoto.id)
-                  ? 'Remove from favorites'
-                  : 'Mark as favorite'
+                isHearted?.(currentPhoto.id) ? 'Remove from favorites' : 'Mark as favorite'
               }
               className={[
                 'flex items-center justify-center',
