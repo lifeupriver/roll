@@ -40,8 +40,10 @@ export async function GET() {
 
     const stats: ReferralStats = {
       totalInvited: referrals?.length ?? 0,
-      totalSignedUp: referrals?.filter((r) => r.status === 'signed_up' || r.status === 'converted').length ?? 0,
-      totalConverted: referrals?.filter((r) => r.status === 'converted').length ?? 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      totalSignedUp: referrals?.filter((r: any) => r.status === 'signed_up' || r.status === 'converted').length ?? 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      totalConverted: referrals?.filter((r: any) => r.status === 'converted').length ?? 0,
       referralCode,
     };
 

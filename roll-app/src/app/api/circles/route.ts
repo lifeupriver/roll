@@ -22,7 +22,7 @@ export async function GET() {
       return NextResponse.json({ error: memberError.message }, { status: 500 });
     }
 
-    const circleIds = (memberships ?? []).map((m) => m.circle_id);
+    const circleIds = (memberships ?? []).map((m: { circle_id: string }) => m.circle_id);
 
     if (circleIds.length === 0) {
       return NextResponse.json({ data: [] });

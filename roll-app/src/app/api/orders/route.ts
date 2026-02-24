@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert print order items
-    const orderItems = rollPhotos.map((rp) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orderItems = rollPhotos.map((rp: any) => ({
       order_id: order.id,
       photo_id: rp.photo_id,
       processed_storage_key: rp.processed_storage_key,

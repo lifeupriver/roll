@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: photosError.message }, { status: 500 });
     }
 
-    const mapPhotos: MapPhoto[] = (photos ?? []).map((p) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mapPhotos: MapPhoto[] = (photos ?? []).map((p: any) => ({
       id: p.id,
       thumbnailUrl: p.thumbnail_url,
       latitude: p.latitude!,
