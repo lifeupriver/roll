@@ -172,7 +172,7 @@ function DevelopPageContent() {
               AI Color Correction
             </h2>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              Powered by eyeQ
+              Cloud-powered per-photo AI
             </p>
           </div>
         </div>
@@ -202,7 +202,7 @@ function DevelopPageContent() {
         disabled={developing}
         onClick={handleDevelop}
       >
-        {developing ? 'Sending to eyeQ...' : `Develop ${roll.photo_count} Photos`}
+        {developing ? 'Developing...' : `Develop ${roll.photo_count} Photos`}
       </Button>
 
       <p className="text-center text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">

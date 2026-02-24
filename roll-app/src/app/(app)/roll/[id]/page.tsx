@@ -422,7 +422,7 @@ export default function RollDetailPage() {
               Developing photo {processed} of {total}...
             </p>
             <p className="text-[length:var(--text-label)] text-[var(--color-ink-tertiary)]">
-              eyeQ is color correcting your photos
+              AI is color correcting your photos
             </p>
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function RollDetailPage() {
           </span>
         </div>
 
-        {/* Developed photo grid — color corrected by eyeQ. Hearts mark favorites for sharing. */}
+        {/* Developed photo grid — AI color corrected. Hearts mark favorites for sharing. */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {photos.map((rp) => (
             <div key={rp.id} className="relative overflow-hidden group">

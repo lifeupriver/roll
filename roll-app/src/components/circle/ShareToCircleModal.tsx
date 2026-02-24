@@ -176,7 +176,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
           <>
             {favorites.length === 0 && (
               <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center py-[var(--space-section)]">
-                No favorites to share yet. Develop a roll with eyeQ, then heart your favorite
+                No favorites to share yet. Develop a roll first, then heart your favorite
                 color-corrected photos.
               </p>
             )}

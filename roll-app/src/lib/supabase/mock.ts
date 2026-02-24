@@ -255,7 +255,7 @@ function generateRollPhotos(rollId: string, count: number, offset: number = 0) {
       roll_id: rollId,
       photo_id: photo?.id ?? uuid(100 + photoIndex),
       position: i + 1,
-      // Use a different picsum seed for processed photos (simulates eyeQ color correction)
+      // Use a different picsum seed for processed photos (simulates AI color correction)
       processed_storage_key: picsum(`corrected-${photoIndex}`, 400, 530),
       correction_applied: true,
       created_at: now,
