@@ -50,11 +50,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter out already-used photos
-    const candidates = photos.filter((p) => !usedIds.has(p.id));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const candidates = photos.filter((p: any) => !usedIds.has(p.id));
 
     // Score each photo
     const now = Date.now();
-    const scored = candidates.map((photo) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const scored = candidates.map((photo: any) => {
       let score = 0;
 
       // Aesthetic score (0-1) — strongest signal (weight: 40%)
@@ -79,7 +81,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort by score descending
-    scored.sort((a, b) => b.score - a.score);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    scored.sort((a: any, b: any) => b.score - a.score);
 
     // Apply diversity: penalize consecutive similar scenes
     const selected: typeof scored = [];
@@ -105,9 +108,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Re-sort selected by adjusted score
-    selected.sort((a, b) => b.score - a.score);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    selected.sort((a: any, b: any) => b.score - a.score);
 
-    const photoIds = selected.map((s) => s.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const photoIds = selected.map((s: any) => s.id);
     const scores: Record<string, number> = {};
     for (const s of selected) {
       scores[s.id] = Math.round(s.score * 100) / 100;

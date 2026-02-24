@@ -46,7 +46,8 @@ export async function GET(request: NextRequest) {
 
     // ── Trip detection ────────────────────────────────────────────────
     // Group photos taken within 3 days of each other with similar locations
-    const withDates = photos.filter((p) => p.date_taken);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const withDates = photos.filter((p: any) => p.date_taken);
     if (withDates.length > 0) {
       let currentTrip: typeof withDates = [withDates[0]];
       const trips: (typeof withDates)[] = [];
@@ -84,7 +85,8 @@ export async function GET(request: NextRequest) {
         }
 
         // Pick the best cover photo (highest aesthetic score or most faces)
-        const cover = trip.reduce((best, p) => (p.face_count > best.face_count ? p : best), trip[0]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cover = trip.reduce((best: any, p: any) => (p.face_count > best.face_count ? p : best), trip[0]);
 
         collections.push({
           id: `trip-${start}`,
@@ -134,7 +136,8 @@ export async function GET(request: NextRequest) {
     }
 
     // ── People collection ─────────────────────────────────────────────
-    const peoplePhotos = photos.filter((p) => p.face_count > 0);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const peoplePhotos = photos.filter((p: any) => p.face_count > 0);
     if (peoplePhotos.length >= 3) {
       const cover = peoplePhotos[0];
       collections.push({

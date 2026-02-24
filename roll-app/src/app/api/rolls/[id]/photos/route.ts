@@ -177,7 +177,8 @@ export async function DELETE(
       if (remainingPhotos && remainingPhotos.length > 0) {
         // Batch update all positions in parallel instead of sequential
         await Promise.all(
-          remainingPhotos.map((photo) =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          remainingPhotos.map((photo: any) =>
             supabase
               .from('roll_photos')
               .update({ position: photo.position - 1 })
