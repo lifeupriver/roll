@@ -42,7 +42,7 @@ export type FilterStatus = 'pending' | 'visible' | 'filtered_auto' | 'hidden_man
 
 export type FilterReason = 'blur' | 'screenshot' | 'duplicate' | 'exposure' | 'document' | 'accidental' | 'screen_recording' | 'too_shaky' | null;
 
-export type ContentMode = 'all' | 'people' | 'landscapes' | 'clips';
+export type ContentMode = 'all' | 'people' | 'clips';
 
 export interface UploadProgress {
   file: File;

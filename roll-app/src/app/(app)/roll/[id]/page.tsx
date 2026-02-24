@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2 } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
 import Link from 'next/link';
@@ -43,9 +43,14 @@ export default function RollDetailPage() {
   // Favorites tracking
   const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
 
-  // Inline name editing
+  // Inline name editing (caption for the roll)
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState('');
+
+  // Photo caption editing
+  const [editingCaptionId, setEditingCaptionId] = useState<string | null>(null);
+  const [captionText, setCaptionText] = useState('');
+  const [photoCaptions, setPhotoCaptions] = useState<Map<string, string>>(new Map());
 
   // Processing poll state
   const [processStatus, setProcessStatus] = useState<ProcessStatus | null>(null);
@@ -110,7 +115,6 @@ export default function RollDetailPage() {
 
         if (data.status === 'developed') {
           clearInterval(interval);
-          // Refresh full roll data
           fetchRoll();
         }
 
@@ -127,7 +131,7 @@ export default function RollDetailPage() {
   }, [roll?.status, rollId, fetchRoll]);
 
   // ------------------------------------------------------------------
-  // Rename roll
+  // Rename roll (roll caption)
   // ------------------------------------------------------------------
   const handleStartEditing = useCallback(() => {
     setEditName(roll?.name || '');
@@ -165,6 +169,47 @@ export default function RollDetailPage() {
   );
 
   // ------------------------------------------------------------------
+  // Photo caption
+  // ------------------------------------------------------------------
+  const handleStartCaptionEdit = useCallback((photoId: string) => {
+    setCaptionText(photoCaptions.get(photoId) || '');
+    setEditingCaptionId(photoId);
+  }, [photoCaptions]);
+
+  const handleSaveCaption = useCallback(async () => {
+    if (!editingCaptionId) return;
+    const trimmed = captionText.trim();
+    setPhotoCaptions((prev) => {
+      const next = new Map(prev);
+      if (trimmed) {
+        next.set(editingCaptionId, trimmed);
+      } else {
+        next.delete(editingCaptionId);
+      }
+      return next;
+    });
+    setEditingCaptionId(null);
+    // Persist to backend (best-effort)
+    try {
+      await fetch(`/api/photos/${editingCaptionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption: trimmed || null }),
+      });
+    } catch {
+      // Non-critical
+    }
+  }, [editingCaptionId, captionText]);
+
+  const handleCaptionKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') handleSaveCaption();
+      if (e.key === 'Escape') setEditingCaptionId(null);
+    },
+    [handleSaveCaption]
+  );
+
+  // ------------------------------------------------------------------
   // Remove photo from roll
   // ------------------------------------------------------------------
   const handleRemovePhoto = useCallback(
@@ -176,7 +221,6 @@ export default function RollDetailPage() {
           body: JSON.stringify({ photoId }),
         });
         if (!res.ok) throw new Error('Failed to remove photo');
-        // Update local state
         setPhotos((prev) => {
           const filtered = prev.filter((p) => p.photo_id !== photoId);
           return filtered.map((p, i) => ({ ...p, position: i + 1 }));
@@ -208,8 +252,6 @@ export default function RollDetailPage() {
         body: JSON.stringify({ status: 'ready' }),
       });
       if (!res.ok) {
-        // If the roll is in error, the valid transition is error -> processing.
-        // Try that instead.
         const res2 = await fetch(`/api/rolls/${rollId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -234,7 +276,6 @@ export default function RollDetailPage() {
   // ------------------------------------------------------------------
   const handleHeartToggle = useCallback(
     async (photoId: string, hearted: boolean) => {
-      // Optimistic update
       setFavoritedIds((prev) => {
         const next = new Set(prev);
         if (hearted) next.add(photoId);
@@ -257,7 +298,6 @@ export default function RollDetailPage() {
           if (!res.ok) throw new Error('Failed to unfavorite');
         }
       } catch {
-        // Revert optimistic update
         setFavoritedIds((prev) => {
           const next = new Set(prev);
           if (hearted) next.delete(photoId);
@@ -271,6 +311,25 @@ export default function RollDetailPage() {
   );
 
   // ------------------------------------------------------------------
+  // Archive roll (only developed rolls can be archived)
+  // ------------------------------------------------------------------
+  const handleArchive = useCallback(async () => {
+    if (!roll || roll.status !== 'developed') return;
+    try {
+      const res = await fetch(`/api/rolls/${rollId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'archived' }),
+      });
+      if (!res.ok) throw new Error('Failed to archive');
+      toast('Roll archived', 'success');
+      router.push('/library');
+    } catch {
+      toast('Failed to archive roll', 'error');
+    }
+  }, [roll, rollId, toast, router]);
+
+  // ------------------------------------------------------------------
   // Helpers
   // ------------------------------------------------------------------
   const photoCount = photos.length;
@@ -278,6 +337,7 @@ export default function RollDetailPage() {
   const isReady = roll?.status === 'ready';
   const isFull = photoCount >= maxPhotos;
   const canDevelop = photoCount >= 10;
+  const favoriteCount = favoritedIds.size;
 
   // ------------------------------------------------------------------
   // Loading state
@@ -314,19 +374,17 @@ export default function RollDetailPage() {
   if (roll.status === 'error') {
     return (
       <div className="flex flex-col gap-[var(--space-section)]">
-        {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
+          <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
+            <ArrowLeft size={20} />
+          </button>
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
         </div>
 
-        {/* Error content */}
         <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)] text-center">
-          <div
-            className="flex items-center justify-center w-16 h-16 rounded-full"
-            style={{ backgroundColor: 'oklch(0.62 0.15 45 / 0.1)' }}
-          >
+          <div className="flex items-center justify-center w-16 h-16 rounded-full" style={{ backgroundColor: 'oklch(0.62 0.15 45 / 0.1)' }}>
             <AlertCircle size={32} strokeWidth={1.5} className="text-[var(--color-error)]" />
           </div>
           <div className="flex flex-col gap-[var(--space-tight)]">
@@ -337,23 +395,15 @@ export default function RollDetailPage() {
               {roll.processing_error || 'An unexpected error occurred while developing your roll.'}
             </p>
           </div>
-          <Button variant="primary" onClick={handleRetry}>
-            Try Again
-          </Button>
+          <Button variant="primary" onClick={handleRetry}>Try Again</Button>
         </div>
 
-        {/* Dimmed grid */}
         {photos.length > 0 && (
           <div className="opacity-50">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
-                  <img
-                    src={rp.photos.thumbnail_url}
-                    alt=""
-                    loading="lazy"
-                    className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
-                  />
+                  <img src={rp.photos.thumbnail_url} alt="" loading="lazy" className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]" />
                 </div>
               ))}
             </div>
@@ -372,52 +422,33 @@ export default function RollDetailPage() {
 
     return (
       <div className="flex flex-col gap-[var(--space-section)]">
-        {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
+          <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
+            <ArrowLeft size={20} />
+          </button>
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
         </div>
 
-        {/* Grid + overlay container */}
         <div className="relative">
-          {/* Dimmed grid */}
           <div className="opacity-50">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
-                  <img
-                    src={rp.photos.thumbnail_url}
-                    alt=""
-                    loading="lazy"
-                    className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
-                  />
+                  <img src={rp.photos.thumbnail_url} alt="" loading="lazy" className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]" />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Centered overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-component)]">
             <style>{`
-              @keyframes film-reel-spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-              }
-              .film-reel-rotate {
-                animation: film-reel-spin 2s linear infinite;
-              }
-              @media (prefers-reduced-motion: reduce) {
-                .film-reel-rotate {
-                  animation: none;
-                }
-              }
+              @keyframes film-reel-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+              .film-reel-rotate { animation: film-reel-spin 2s linear infinite; }
+              @media (prefers-reduced-motion: reduce) { .film-reel-rotate { animation: none; } }
             `}</style>
-            <Film
-              size={48}
-              strokeWidth={1.5}
-              className="film-reel-rotate text-[var(--color-processing)]"
-            />
+            <Film size={48} strokeWidth={1.5} className="film-reel-rotate text-[var(--color-processing)]" />
             <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink)] tracking-[0.02em]">
               Developing photo {processed} of {total}...
             </p>
@@ -435,19 +466,46 @@ export default function RollDetailPage() {
   // ------------------------------------------------------------------
   if (roll.status === 'developed') {
     return (
-      <div className="flex flex-col gap-[var(--space-section)]">
+      <div className="flex flex-col gap-[var(--space-section)] pb-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
-            {roll.name || 'Untitled Roll'}
-          </h1>
-          <span className="inline-flex items-center gap-[var(--space-tight)] px-[var(--space-tight)] py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium bg-[var(--color-developed)]/10 text-[var(--color-developed)]">
+        <div className="flex items-center gap-[var(--space-element)]">
+          <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
+            <ArrowLeft size={20} />
+          </button>
+          <div className="flex-1 min-w-0">
+            {isEditingName ? (
+              <input
+                autoFocus
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={handleSaveName}
+                onKeyDown={handleNameKeyDown}
+                placeholder="Caption this roll..."
+                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
+              />
+            ) : (
+              <button type="button" onClick={handleStartEditing} className="text-left w-full">
+                <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] truncate">
+                  {roll.name || <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>}
+                </h1>
+              </button>
+            )}
+          </div>
+          <span className="inline-flex items-center gap-[var(--space-tight)] px-[var(--space-tight)] py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium bg-[var(--color-developed)]/10 text-[var(--color-developed)] shrink-0">
             <Wand2 size={12} />
             Developed
           </span>
         </div>
 
-        {/* Developed photo grid — AI color corrected. Hearts mark favorites for sharing. */}
+        {/* Favorites summary */}
+        {favoriteCount > 0 && (
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+            {favoriteCount} favorite{favoriteCount !== 1 ? 's' : ''} selected
+          </p>
+        )}
+
+        {/* Developed photo grid with hearts and captions */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {photos.map((rp) => (
             <div key={rp.id} className="relative overflow-hidden group">
@@ -464,26 +522,77 @@ export default function RollDetailPage() {
                   onChange={(hearted) => handleHeartToggle(rp.photo_id, hearted)}
                 />
               </div>
+
+              {/* Caption overlay */}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent">
+                {editingCaptionId === rp.photo_id ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={captionText}
+                    onChange={(e) => setCaptionText(e.target.value)}
+                    onBlur={handleSaveCaption}
+                    onKeyDown={handleCaptionKeyDown}
+                    placeholder="Caption this photo..."
+                    maxLength={200}
+                    className="w-full px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleStartCaptionEdit(rp.photo_id)}
+                    className="w-full text-left px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <span className="text-[length:var(--text-caption)] text-white/80">
+                      {photoCaptions.get(rp.photo_id) || (
+                        <span className="flex items-center gap-1">
+                          <MessageSquare size={10} /> Add caption
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* CTAs */}
-        <div className="flex flex-col gap-[var(--space-element)]">
-          <Link href={`/roll/${rollId}/order`} className="block">
-            <Button variant="primary" size="lg">
-              <Printer size={18} className="mr-2" />
-              Order Prints
-            </Button>
-          </Link>
-          <Button variant="secondary" size="lg" onClick={() => router.push('/circle')}>
-            <Share2 size={18} className="mr-2" />
-            Share Favorites to Circle
-          </Button>
-          <p className="text-center text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-            Heart your favorites above, then share individual photos to your Circle
-          </p>
+        {/* Print prompt — prominent CTA for developed rolls */}
+        <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] border border-[var(--color-border)]">
+          <div className="flex items-start gap-[var(--space-element)]">
+            <div className="w-10 h-10 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0">
+              <Printer size={20} className="text-[var(--color-action)]" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                Print this roll
+              </p>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
+                Turn your favorites into physical prints. High-quality photo prints delivered to your door.
+              </p>
+              <Link href={`/roll/${rollId}/order`}>
+                <Button variant="primary" size="sm">
+                  <Printer size={14} className="mr-1" /> Order Prints
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
+
+        {/* Share to circle */}
+        <Button variant="secondary" size="lg" onClick={() => router.push('/circle')}>
+          <Share2 size={18} className="mr-2" />
+          Share to Circle
+        </Button>
+
+        {/* Archive */}
+        <button
+          type="button"
+          onClick={handleArchive}
+          className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)] transition-colors text-center py-[var(--space-element)]"
+        >
+          Archive this roll
+        </button>
       </div>
     );
   }
@@ -498,41 +607,37 @@ export default function RollDetailPage() {
           0%, 100% { background-color: transparent; }
           50% { background-color: var(--color-action-subtle); }
         }
-        .develop-pulse {
-          animation: develop-pulse 1.5s ease-in-out infinite;
-        }
+        .develop-pulse { animation: develop-pulse 1.5s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .develop-pulse {
-            animation: none;
-            background-color: var(--color-action-subtle);
-          }
+          .develop-pulse { animation: none; background-color: var(--color-action-subtle); }
         }
       `}</style>
 
-      {/* Header: roll name + counter */}
-      <div className="flex items-center justify-between gap-[var(--space-element)]">
-        {isEditingName ? (
-          <input
-            autoFocus
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            onBlur={handleSaveName}
-            onKeyDown={handleNameKeyDown}
-            className="flex-1 bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] px-[var(--space-element)] py-[var(--space-tight)] font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={handleStartEditing}
-            className="text-left cursor-pointer bg-transparent border-none p-0 hover:opacity-70 transition-opacity"
-            title="Click to edit roll name"
-          >
-            <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
-              {roll.name || 'Untitled Roll'}
-            </h1>
-          </button>
-        )}
+      {/* Header: back, roll name + counter */}
+      <div className="flex items-center gap-[var(--space-element)]">
+        <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
+          <ArrowLeft size={20} />
+        </button>
+        <div className="flex-1 min-w-0">
+          {isEditingName ? (
+            <input
+              autoFocus
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={handleSaveName}
+              onKeyDown={handleNameKeyDown}
+              placeholder="Name this roll..."
+              className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
+            />
+          ) : (
+            <button type="button" onClick={handleStartEditing} className="text-left w-full hover:opacity-70 transition-opacity" title="Click to edit roll name">
+              <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
+                {roll.name || <span className="text-[var(--color-ink-tertiary)]">Name this roll...</span>}
+              </h1>
+            </button>
+          )}
+        </div>
         <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tracking-[0.02em] shrink-0">
           {photoCount} / {maxPhotos}
         </span>
@@ -553,11 +658,7 @@ export default function RollDetailPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {photos.map((rp) => (
-            <div
-              key={rp.id}
-              className="relative group overflow-hidden bg-[var(--color-surface-sunken)]"
-            >
-              {/* Photo */}
+            <div key={rp.id} className="relative group overflow-hidden bg-[var(--color-surface-sunken)]">
               <img
                 src={rp.photos.thumbnail_url}
                 alt={`Position ${rp.position}`}
@@ -565,40 +666,18 @@ export default function RollDetailPage() {
                 className="w-full aspect-[3/4] object-cover"
               />
 
-              {/* Position badge (top-left) */}
-              <span
-                className={[
-                  'absolute top-[var(--space-tight)] left-[var(--space-tight)]',
-                  'inline-flex items-center justify-center',
-                  'min-w-[1.5rem] h-6 px-[var(--space-micro)]',
-                  'rounded-[var(--radius-pill)]',
-                  'bg-[var(--color-surface-overlay)]/70',
-                  'text-[var(--color-ink-inverse)]',
-                  'font-[family-name:var(--font-mono)]',
-                  'text-[length:var(--text-caption)]',
-                  'tracking-[0.02em]',
-                ].join(' ')}
-              >
+              {/* Position badge */}
+              <span className="absolute top-[var(--space-tight)] left-[var(--space-tight)] inline-flex items-center justify-center min-w-[1.5rem] h-6 px-[var(--space-micro)] rounded-[var(--radius-pill)] bg-[var(--color-surface-overlay)]/70 text-[var(--color-ink-inverse)] font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] tracking-[0.02em]">
                 {rp.position}
               </span>
 
-              {/* Remove button (top-right, visible on hover) */}
+              {/* Remove button */}
               {(roll.status === 'building' || roll.status === 'ready') && (
                 <button
                   type="button"
                   onClick={() => handleRemovePhoto(rp.photo_id)}
                   aria-label={`Remove photo ${rp.position} from roll`}
-                  className={[
-                    'absolute top-[var(--space-tight)] right-[var(--space-tight)]',
-                    'w-7 h-7 rounded-full',
-                    'flex items-center justify-center',
-                    'bg-[var(--color-surface-overlay)]/70',
-                    'text-[var(--color-ink-inverse)]',
-                    'opacity-0 group-hover:opacity-100',
-                    'transition-opacity duration-150',
-                    'cursor-pointer border-none',
-                    'hover:bg-[var(--color-error)]',
-                  ].join(' ')}
+                  className="absolute top-[var(--space-tight)] right-[var(--space-tight)] w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-overlay)]/70 text-[var(--color-ink-inverse)] opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-pointer border-none hover:bg-[var(--color-error)]"
                 >
                   <X size={16} strokeWidth={2} />
                 </button>

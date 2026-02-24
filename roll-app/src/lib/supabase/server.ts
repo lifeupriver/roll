@@ -51,7 +51,7 @@ export async function insertPhotos(photos: Partial<Photo>[]) {
 
 export async function getVisiblePhotos(
   userId: string,
-  contentMode: 'all' | 'people' | 'landscapes' = 'all',
+  contentMode: 'all' | 'people' | 'clips' = 'all',
   cursor?: string,
   limit: number = 20
 ) {
@@ -67,8 +67,8 @@ export async function getVisiblePhotos(
 
   if (contentMode === 'people') {
     query = query.gt('face_count', 0);
-  } else if (contentMode === 'landscapes') {
-    query = query.eq('face_count', 0).contains('scene_classification', ['landscape']);
+  } else if (contentMode === 'clips') {
+    query = query.eq('media_type', 'video');
   }
 
   if (cursor) {

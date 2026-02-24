@@ -8,8 +8,9 @@ const VALID_STATUS_TRANSITIONS: Record<RollStatus, RollStatus[]> = {
   building: ['ready'],
   ready: ['processing', 'building'],
   processing: ['developed', 'error'],
-  developed: [],
+  developed: ['archived'],
   error: ['processing'],
+  archived: [],
 };
 
 export async function GET(

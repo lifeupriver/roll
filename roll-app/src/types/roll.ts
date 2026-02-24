@@ -1,4 +1,4 @@
-export type RollStatus = 'building' | 'ready' | 'processing' | 'developed' | 'error';
+export type RollStatus = 'building' | 'ready' | 'processing' | 'developed' | 'error' | 'archived';
 
 export type FilmProfileId = 'warmth' | 'golden' | 'vivid' | 'classic' | 'gentle' | 'modern';
 
