@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Sparkles, Smartphone, Grid2x2, Grid3x3 } from 'lucide-react';
+import { Sparkles, Smartphone, Grid2x2, Grid3x3, Film, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ContentModePills } from '@/components/photo/ContentModePills';
-import { FilmStripProgress } from '@/components/roll/FilmStripProgress';
-import { ReelStripProgress } from '@/components/reel/ReelStripProgress';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { usePhotos } from '@/hooks/usePhotos';
@@ -111,7 +109,6 @@ export default function FeedPage() {
   const contentModeOptions = [
     { value: 'all', label: 'All' },
     { value: 'people', label: 'People' },
-    { value: 'landscapes', label: 'Landscapes' },
     { value: 'clips', label: 'Clips' },
   ];
 
@@ -316,6 +313,11 @@ export default function FeedPage() {
     }
   }, [rollCount, currentRoll, setRoll, isChecked, checkPhoto, uncheckPhoto]);
 
+  // Roll status helpers
+  const maxPhotos = 36;
+  const rollIsFull = rollCount >= maxPhotos;
+  const fillPercent = Math.min((rollCount / maxPhotos) * 100, 100);
+
   if (!loading && photos.length === 0) {
     return (
       <div>
@@ -334,7 +336,7 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="pb-16">
+    <div className="pb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-[var(--space-component)]">
         <div className="flex items-center gap-[var(--space-element)]">
@@ -346,23 +348,10 @@ export default function FeedPage() {
             Synced
           </Badge>
         </div>
-        <div className="flex items-center gap-[var(--space-tight)]">
-          {!isClipMode && rollCount > 0 && rollCount < 36 && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleAutoFill}
-              isLoading={suggesting}
-              disabled={suggesting}
-            >
-              <Sparkles size={16} className="mr-1" /> Auto-fill
-            </Button>
-          )}
-        </div>
       </div>
 
       {/* Content mode pills + grid size slider */}
-      <div className="flex items-center justify-between mb-[var(--space-section)]">
+      <div className="flex items-center justify-between mb-[var(--space-component)]">
         <ContentModePills
           activeMode={contentMode}
           onChange={(mode) => {
@@ -386,6 +375,140 @@ export default function FeedPage() {
         </div>
       </div>
 
+      {/* Roll status banner — above the grid */}
+      {!isClipMode && (
+        <div
+          className={`mb-[var(--space-component)] rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
+            rollIsFull
+              ? 'bg-[var(--color-action)] text-white'
+              : rollCount > 0
+                ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
+                : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
+          }`}
+        >
+          {rollIsFull ? (
+            // Roll is full — prompt to develop
+            <button
+              type="button"
+              onClick={() => {
+                if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
+              }}
+              className="w-full flex items-center justify-between cursor-pointer"
+            >
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={20} />
+                <div className="text-left">
+                  <p className="text-[length:var(--text-label)] font-medium">
+                    Roll is full! Ready to develop
+                  </p>
+                  <p className="text-[length:var(--text-caption)] opacity-80">
+                    {rollCount}/{maxPhotos} photos selected
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-[var(--space-tight)]">
+                <span className="text-[length:var(--text-label)] font-medium">Develop</span>
+                <ChevronRight size={18} />
+              </div>
+            </button>
+          ) : rollCount > 0 ? (
+            // Building a roll — show progress
+            <button
+              type="button"
+              onClick={() => {
+                if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
+              }}
+              className="w-full cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-[var(--space-tight)]">
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <Film size={16} className="text-[var(--color-ink-secondary)]" />
+                  <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    {currentRoll?.name || 'Next Roll'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
+                    {rollCount}/{maxPhotos}
+                  </span>
+                  {rollCount < maxPhotos && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAutoFill();
+                      }}
+                      isLoading={suggesting}
+                      disabled={suggesting}
+                    >
+                      <Sparkles size={14} className="mr-1" /> Auto-fill
+                    </Button>
+                  )}
+                  <ChevronRight size={16} className="text-[var(--color-ink-tertiary)]" />
+                </div>
+              </div>
+              {/* Progress bar */}
+              <div className="h-1.5 rounded-[var(--radius-pill)] bg-[var(--color-surface-sunken)] overflow-hidden">
+                <div
+                  className="h-full rounded-[var(--radius-pill)] bg-[var(--color-action)] transition-[width] duration-300 ease-out"
+                  style={{ width: `${fillPercent}%` }}
+                />
+              </div>
+            </button>
+          ) : (
+            // No roll started — prompt to begin
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Film size={16} className="text-[var(--color-ink-tertiary)]" />
+              <p className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
+                Tap photos to choose images for your next roll
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Reel status banner — above the grid (clip mode) */}
+      {isClipMode && (
+        <div
+          className={`mb-[var(--space-component)] rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
+            reelCount > 0
+              ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
+              : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
+          }`}
+        >
+          {reelCount > 0 && currentReel ? (
+            <button
+              type="button"
+              onClick={() => router.push(`/library/reels/${currentReel.id}`)}
+              className="w-full cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <Film size={16} className="text-[var(--color-ink-secondary)]" />
+                  <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    {currentReel.name || 'Next Reel'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
+                    {reelCount} clip{reelCount !== 1 ? 's' : ''}
+                  </span>
+                  <ChevronRight size={16} className="text-[var(--color-ink-tertiary)]" />
+                </div>
+              </div>
+            </button>
+          ) : (
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Film size={16} className="text-[var(--color-ink-tertiary)]" />
+              <p className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
+                Tap clips to add them to your next reel
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Photo/clip grid — the contact sheet */}
       <PhotoGrid
         photos={photos}
@@ -399,36 +522,6 @@ export default function FeedPage() {
         isLoading={loading}
         columns={gridColumns}
       />
-
-      {/* Film strip progress bar — for photo rolls */}
-      {!isClipMode && rollCount > 0 && (
-        <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 lg:left-60 z-30">
-          <FilmStripProgress
-            rollName={currentRoll?.name || `Roll ${(currentRoll?.id || '').slice(0, 4)}`}
-            currentCount={rollCount}
-            maxCount={36}
-            onTap={() => {
-              if (currentRoll?.id) {
-                router.push(`/roll/${currentRoll.id}`);
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {/* Reel strip progress bar — for video reels */}
-      {isClipMode && reelCount > 0 && currentReel && (
-        <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 lg:left-60 z-30">
-          <ReelStripProgress
-            reelName={currentReel.name || `Reel ${currentReel.id.slice(0, 4)}`}
-            currentDurationMs={currentDurationMs}
-            targetDurationMs={currentReel.target_duration_ms}
-            onTap={() => {
-              router.push(`/library/reels/${currentReel.id}`);
-            }}
-          />
-        </div>
-      )}
 
       {/* Lightbox for full-screen photo/video viewing */}
       {lightboxIndex !== null && (

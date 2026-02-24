@@ -57,12 +57,12 @@ describe('photoStore', () => {
     usePhotoStore.getState().setCursor('cursor-1');
     usePhotoStore.getState().setHasMore(false);
 
-    usePhotoStore.getState().setContentMode('favorites');
+    usePhotoStore.getState().setContentMode('people');
 
     expect(usePhotoStore.getState().photos).toHaveLength(0);
     expect(usePhotoStore.getState().cursor).toBeNull();
     expect(usePhotoStore.getState().hasMore).toBe(true);
-    expect(usePhotoStore.getState().contentMode).toBe('favorites');
+    expect(usePhotoStore.getState().contentMode).toBe('people');
   });
 
   it('togglePhotoSelection adds and removes', () => {

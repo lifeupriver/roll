@@ -1,6 +1,6 @@
 import type { FilmProfileId } from './roll';
 
-export type ReelStatus = 'building' | 'ready' | 'processing' | 'developed' | 'error';
+export type ReelStatus = 'building' | 'ready' | 'processing' | 'developed' | 'error' | 'archived';
 
 export type ReelSize = 'short' | 'standard' | 'feature';
 

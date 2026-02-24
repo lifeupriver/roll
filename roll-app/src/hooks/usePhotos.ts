@@ -47,8 +47,6 @@ export function usePhotos(): UsePhotosReturn {
         query = query.eq('media_type', 'video');
       } else if (activeMode === 'people') {
         query = query.gt('face_count', 0);
-      } else if (activeMode === 'landscapes') {
-        query = query.eq('face_count', 0).contains('scene_classification', ['landscape']);
       }
 
       if (append && cursor) {

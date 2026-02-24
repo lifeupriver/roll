@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Heart, Film } from 'lucide-react';
-import { RollCard } from '@/components/roll/RollCard';
-import { ReelCard } from '@/components/reel/ReelCard';
+import { Image, Heart, Film, Play, Share2, Wand2 } from 'lucide-react';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
@@ -31,6 +29,20 @@ interface FavoriteWithPhoto {
   created_at: string;
   photos: Photo;
   rolls: { name: string | null; film_profile: string | null };
+}
+
+const STATUS_LABEL: Record<string, { label: string; color: string }> = {
+  building: { label: 'Building', color: 'var(--color-processing)' },
+  ready: { label: 'Ready', color: 'var(--color-processing)' },
+  processing: { label: 'Processing', color: 'var(--color-processing)' },
+  developed: { label: 'Developed', color: 'var(--color-developed)' },
+  error: { label: 'Error', color: 'var(--color-error)' },
+  archived: { label: 'Archived', color: 'var(--color-ink-tertiary)' },
+};
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 export default function LibraryPage() {
@@ -105,13 +117,11 @@ export default function LibraryPage() {
   // Unfavorite handler
   const handleUnfavorite = useCallback(
     async (photoId: string) => {
-      // Optimistic removal
       setFavorites((prev) => prev.filter((f) => f.photo_id !== photoId));
       try {
         const res = await fetch(`/api/favorites/${photoId}`, { method: 'DELETE' });
         if (!res.ok) throw new Error('Failed to remove favorite');
       } catch {
-        // Revert and refetch
         toast('Failed to remove favorite', 'error');
         const res = await fetch('/api/favorites');
         if (res.ok) {
@@ -122,6 +132,15 @@ export default function LibraryPage() {
     },
     [toast]
   );
+
+  const [showArchived, setShowArchived] = useState(false);
+
+  // Separate rolls by state
+  const archivedRolls = rolls.filter((r) => r.status === 'archived');
+  const developedRolls = rolls.filter((r) => r.status === 'developed');
+  const inProgressRolls = rolls.filter((r) => r.status !== 'developed' && r.status !== 'archived');
+  const archivedReels = reels.filter((r) => r.status === 'archived');
+  const activeReels = reels.filter((r) => r.status !== 'archived');
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
@@ -137,9 +156,9 @@ export default function LibraryPage() {
         options={SECTION_OPTIONS}
       />
 
-      {/* Rolls section */}
+      {/* Rolls section — grid layout */}
       {activeSection === 'rolls' && (
-        <section className="flex flex-col gap-[var(--space-element)]">
+        <section className="flex flex-col gap-[var(--space-section)]">
           {isLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />
@@ -148,14 +167,8 @@ export default function LibraryPage() {
 
           {error && (
             <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)] text-center">
-              <p className="text-[length:var(--text-body)] text-[var(--color-error)]">
-                {error}
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => window.location.reload()}
-              >
+              <p className="text-[length:var(--text-body)] text-[var(--color-error)]">{error}</p>
+              <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>
                 Try again
               </Button>
             </div>
@@ -176,29 +189,130 @@ export default function LibraryPage() {
             />
           )}
 
-          {!isLoading && !error && rolls.length > 0 && (
-            <div className="flex flex-col gap-[var(--space-element)]">
-              {rolls.map((roll) => (
-                <RollCard
-                  key={roll.id}
-                  roll={{
-                    id: roll.id,
-                    name: roll.name,
-                    status: roll.status,
-                    film_profile: roll.film_profile,
-                    photo_count: roll.photo_count,
-                    max_photos: roll.max_photos,
-                    created_at: roll.created_at,
-                  }}
-                  onClick={() => router.push(`/roll/${roll.id}`)}
-                />
-              ))}
+          {/* In-progress rolls (building/ready/processing) */}
+          {!isLoading && !error && inProgressRolls.length > 0 && (
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
+                In Progress
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
+                {inProgressRolls.map((roll) => {
+                  const status = STATUS_LABEL[roll.status] || STATUS_LABEL.building;
+                  return (
+                    <button
+                      key={roll.id}
+                      type="button"
+                      onClick={() => router.push(`/roll/${roll.id}`)}
+                      className="text-left group cursor-pointer"
+                    >
+                      {/* Cover placeholder */}
+                      <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)]">
+                          <Film size={24} className="text-[var(--color-ink-tertiary)]" />
+                          <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tabular-nums">
+                            {roll.photo_count}/{roll.max_photos}
+                          </span>
+                        </div>
+                        {/* Status badge */}
+                        <span
+                          className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium"
+                          style={{ backgroundColor: `color-mix(in oklch, ${status.color} 15%, transparent)`, color: status.color }}
+                        >
+                          {status.label}
+                        </span>
+                      </div>
+                      <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                        {roll.name || 'Untitled Roll'}
+                      </p>
+                      <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                        {roll.photo_count} photo{roll.photo_count !== 1 ? 's' : ''} &middot; {formatDate(roll.created_at)}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Developed rolls — the main library */}
+          {!isLoading && !error && developedRolls.length > 0 && (
+            <div>
+              {inProgressRolls.length > 0 && (
+                <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
+                  Developed
+                </h2>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
+                {developedRolls.map((roll) => (
+                  <button
+                    key={roll.id}
+                    type="button"
+                    onClick={() => router.push(`/roll/${roll.id}`)}
+                    className="text-left group cursor-pointer"
+                  >
+                    {/* Cover image placeholder */}
+                    <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Wand2 size={24} className="text-[var(--color-developed)]" />
+                      </div>
+                      <span className="absolute top-[var(--space-tight)] right-[var(--space-tight)] inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium bg-[var(--color-developed)]/10 text-[var(--color-developed)]">
+                        <Wand2 size={10} /> Developed
+                      </span>
+                    </div>
+                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                      {roll.name || 'Untitled Roll'}
+                    </p>
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                      {roll.photo_count} photo{roll.photo_count !== 1 ? 's' : ''}
+                      {roll.film_profile && <> &middot; <span className="capitalize">{roll.film_profile}</span></>}
+                      {' '}&middot; {formatDate(roll.created_at)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Archived rolls */}
+          {!isLoading && !error && archivedRolls.length > 0 && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowArchived(!showArchived)}
+                className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)] transition-colors mb-[var(--space-element)]"
+              >
+                <span>{showArchived ? 'Hide' : 'Show'} archived ({archivedRolls.length})</span>
+              </button>
+              {showArchived && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)] opacity-60">
+                  {archivedRolls.map((roll) => (
+                    <button
+                      key={roll.id}
+                      type="button"
+                      onClick={() => router.push(`/roll/${roll.id}`)}
+                      className="text-left group cursor-pointer"
+                    >
+                      <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Archived</span>
+                        </div>
+                      </div>
+                      <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] truncate">
+                        {roll.name || 'Untitled Roll'}
+                      </p>
+                      <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                        {roll.photo_count} photos &middot; {formatDate(roll.created_at)}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>
       )}
 
-      {/* Reels section */}
+      {/* Reels section — grid layout */}
       {activeSection === 'reels' && (
         <section className="flex flex-col gap-[var(--space-element)]">
           {reelsLoading && (
@@ -209,20 +323,14 @@ export default function LibraryPage() {
 
           {!reelsLoading && error && (
             <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)] text-center">
-              <p className="text-[length:var(--text-body)] text-[var(--color-error)]">
-                {error}
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => window.location.reload()}
-              >
+              <p className="text-[length:var(--text-body)] text-[var(--color-error)]">{error}</p>
+              <Button variant="secondary" size="sm" onClick={() => window.location.reload()}>
                 Try again
               </Button>
             </div>
           )}
 
-          {!reelsLoading && !error && reels.length === 0 && (
+          {!reelsLoading && !error && activeReels.length === 0 && reels.length === 0 && (
             <Empty
               icon={Film}
               title="No reels yet"
@@ -237,32 +345,60 @@ export default function LibraryPage() {
             />
           )}
 
-          {!reelsLoading && !error && reels.length > 0 && (
-            <div className="flex flex-col gap-[var(--space-element)]">
-              {reels.map((reel) => (
-                <ReelCard
-                  key={reel.id}
-                  reel={{
-                    id: reel.id,
-                    name: reel.name,
-                    status: reel.status,
-                    film_profile: reel.film_profile,
-                    audio_mood: reel.audio_mood,
-                    clip_count: reel.clip_count,
-                    current_duration_ms: reel.current_duration_ms,
-                    target_duration_ms: reel.target_duration_ms,
-                    assembled_duration_ms: reel.assembled_duration_ms,
-                    created_at: reel.created_at,
-                  }}
-                  onClick={() => router.push(`/library/reels/${reel.id}`)}
-                />
-              ))}
+          {!reelsLoading && !error && activeReels.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
+              {activeReels.map((reel) => {
+                const isDeveloped = reel.status === 'developed';
+                const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
+                return (
+                  <button
+                    key={reel.id}
+                    type="button"
+                    onClick={() => router.push(`/library/reels/${reel.id}`)}
+                    className="text-left group cursor-pointer"
+                  >
+                    <div className="relative aspect-video bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                      {reel.poster_storage_key ? (
+                        <img
+                          src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Film size={24} className="text-[var(--color-ink-tertiary)]" />
+                        </div>
+                      )}
+                      {/* Play indicator */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                          <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
+                        </div>
+                      </div>
+                      {/* Status badge */}
+                      <span
+                        className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium"
+                        style={{ backgroundColor: `color-mix(in oklch, ${status.color} 15%, transparent)`, color: status.color }}
+                      >
+                        {status.label}
+                      </span>
+                    </div>
+                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                      {reel.name || 'Untitled Reel'}
+                    </p>
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                      {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
           )}
         </section>
       )}
 
-      {/* Favorites section */}
+      {/* Favorites section — grid */}
       {activeSection === 'favorites' && (
         <section>
           {favoritesLoading && (
@@ -289,7 +425,7 @@ export default function LibraryPage() {
                     loading="lazy"
                     className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
                   />
-                  {/* Heart overlay - always visible (filled) */}
+                  {/* Heart overlay */}
                   <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
                     <HeartButton
                       isHearted={true}
