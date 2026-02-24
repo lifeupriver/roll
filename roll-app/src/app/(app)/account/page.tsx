@@ -10,11 +10,12 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, ToggleLeft, ToggleRight } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, Moon, Sun } from 'lucide-react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useTheme } from '@/hooks/useTheme';
 import type { PrintOrder } from '@/types/print';
 import type { ReferralStats } from '@/types/referral';
 
@@ -33,6 +34,7 @@ export default function AccountPage() {
   const [referralEmail, setReferralEmail] = useState('');
   const [referralSending, setReferralSending] = useState(false);
   const { permission: pushPermission, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   // Fetch referral stats
   useEffect(() => {
@@ -183,6 +185,41 @@ export default function AccountPage() {
               Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
             </p>
           </div>
+        </div>
+      </Card>
+
+      {/* Darkroom Mode */}
+      <Card>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[var(--space-element)]">
+            {theme === 'darkroom' ? (
+              <Moon size={18} className="text-[var(--color-action)]" />
+            ) : (
+              <Sun size={18} className="text-[var(--color-action)]" />
+            )}
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+                Darkroom Mode
+              </h2>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                {theme === 'darkroom' ? 'Deep charcoal with safelight accents' : 'Light paper theme'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className={`relative w-12 h-7 rounded-[var(--radius-pill)] transition-colors duration-200 ${
+              theme === 'darkroom'
+                ? 'bg-[var(--color-action)]'
+                : 'bg-[var(--color-surface-sunken)]'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                theme === 'darkroom' ? 'translate-x-5.5' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
         </div>
       </Card>
 

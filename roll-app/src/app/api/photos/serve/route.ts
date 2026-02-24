@@ -32,6 +32,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'key parameter required' }, { status: 400 });
   }
 
+  // Handle local placeholder paths (mock data)
+  if (key.startsWith('/placeholders/')) {
+    const origin = request.nextUrl.origin;
+    return NextResponse.redirect(`${origin}${key}`);
+  }
+
   // Handle data: URIs (inline SVG placeholders from mock data)
   if (key.startsWith('data:')) {
     // Handle base64-encoded SVG

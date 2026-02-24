@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="530" viewBox="0 0 400 530">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7aa06a"/>
+      <stop offset="100%" stop-color="#4a7040"/>
+    </linearGradient>
+    <radialGradient id="bokeh" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0%" stop-color="#90b080" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#5a8a4a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <filter id="sharpish">
+      <feGaussianBlur stdDeviation="1.5"/>
+    </filter>
+  </defs>
+  <rect width="400" height="530" fill="url(#bg)" filter="url(#soft)"/>
+  <rect width="400" height="530" fill="url(#bokeh)"/>
+  <circle cx="120" cy="100" r="20" fill="#b0d0a0" opacity="0.2" filter="url(#soft)"/>
+  <circle cx="320" cy="80" r="25" fill="#a0c090" opacity="0.15" filter="url(#soft)"/>
+  <circle cx="60" cy="300" r="30" fill="#80b070" opacity="0.15" filter="url(#soft)"/>
+  <circle cx="350" cy="250" r="22" fill="#90c080" opacity="0.12" filter="url(#soft)"/>
+  <ellipse cx="200" cy="200" rx="60" ry="72" fill="#c8b8a0" opacity="0.6" filter="url(#sharpish)"/>
+  <ellipse cx="200" cy="185" rx="50" ry="60" fill="#d0c0a8" opacity="0.4"/>
+  <rect x="145" y="300" width="110" height="170" rx="18" fill="#8a7a68" opacity="0.5" filter="url(#sharpish)"/>
+  <rect x="155" y="310" width="90" height="150" rx="12" fill="#9a8a78" opacity="0.3"/>
+</svg>

@@ -21,54 +21,53 @@ const MOCK_AUTH_USER = {
 
 // ── Mock data per table ──────────────────────────────────────────────
 
-// Generate deterministic hex color from seed string
-function hue2rgb(p: number, q: number, t: number): number {
-  if (t < 0) t += 1;
-  if (t > 1) t -= 1;
-  if (t < 1 / 6) return p + (q - p) * 6 * t;
-  if (t < 1 / 2) return q;
-  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-  return p;
-}
+// Scene-based placeholder images served from /public/placeholders/
+// These are rich SVGs with gradients and realistic compositions
+const PLACEHOLDER_MAP: Record<string, string> = {
+  landscape: '/placeholders/landscape-golden.svg',
+  nature: '/placeholders/landscape-green.svg',
+  beach: '/placeholders/beach.svg',
+  portrait: '/placeholders/portrait-warm.svg',
+  food: '/placeholders/food.svg',
+  restaurant: '/placeholders/food.svg',
+  urban: '/placeholders/urban.svg',
+  street: '/placeholders/urban.svg',
+  architecture: '/placeholders/urban.svg',
+  indoor: '/placeholders/indoor.svg',
+  home: '/placeholders/indoor.svg',
+  pet: '/placeholders/pet.svg',
+  event: '/placeholders/event.svg',
+  group: '/placeholders/event.svg',
+  travel: '/placeholders/landscape-golden.svg',
+  sport: '/placeholders/portrait-outdoor.svg',
+  outdoor: '/placeholders/portrait-outdoor.svg',
+};
 
-function hslToHex(h: number, s: number, l: number): string {
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const r = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
-  const g = Math.round(hue2rgb(p, q, h) * 255);
-  const b = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
-  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
+// All available placeholders for cycling when no scene matches
+const ALL_PLACEHOLDERS = [
+  '/placeholders/landscape-golden.svg',
+  '/placeholders/landscape-blue.svg',
+  '/placeholders/landscape-green.svg',
+  '/placeholders/portrait-warm.svg',
+  '/placeholders/portrait-outdoor.svg',
+  '/placeholders/food.svg',
+  '/placeholders/urban.svg',
+  '/placeholders/indoor.svg',
+  '/placeholders/pet.svg',
+  '/placeholders/beach.svg',
+  '/placeholders/event.svg',
+];
 
-function seedColor(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+// Pick a placeholder based on scene tags, with deterministic fallback
+function placeholderForScene(scenes: string[], index: number): string {
+  for (const scene of scenes) {
+    if (PLACEHOLDER_MAP[scene]) return PLACEHOLDER_MAP[scene];
   }
-  return hslToHex((Math.abs(hash) % 360) / 360, 0.55, 0.6);
+  return ALL_PLACEHOLDERS[index % ALL_PLACEHOLDERS.length];
 }
 
-function seedColor2(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = ((hash << 7) - hash + seed.charCodeAt(i)) | 0;
-  }
-  return hslToHex((Math.abs(hash) % 360) / 360, 0.4, 0.45);
-}
-
-// SVG data URI placeholder — renders instantly, no network needed
-// Uses base64 encoding for maximum browser compatibility
-function placeholderSvg(seed: string, w = 400, h = 530): string {
-  const bg = seedColor(seed);
-  const fg = seedColor2(seed);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${bg}"/><circle cx="${Math.round(w * 0.35)}" cy="${Math.round(h * 0.3)}" r="${Math.round(w * 0.12)}" fill="${fg}" opacity=".3"/><rect y="${Math.round(h * 0.55)}" width="${w}" height="${Math.round(h * 0.45)}" fill="${fg}" opacity=".2"/><polygon points="${Math.round(w * 0.1)},${Math.round(h * 0.7)} ${Math.round(w * 0.4)},${Math.round(h * 0.4)} ${Math.round(w * 0.7)},${Math.round(h * 0.65)}" fill="${fg}" opacity=".15"/></svg>`;
-  // Use base64 to avoid encoding issues with special characters
-  const b64 = typeof btoa === 'function' ? btoa(svg) : Buffer.from(svg).toString('base64');
-  return `data:image/svg+xml;base64,${b64}`;
-}
-
-function picsum(seed: string, w = 600, h = 400) {
-  return placeholderSvg(seed, w, h);
+function picsum(_seed: string, _w = 600, _h = 400, scenes: string[] = [], index = 0) {
+  return placeholderForScene(scenes, index);
 }
 
 function uuid(n: number) {
@@ -84,7 +83,7 @@ const MOCK_PROFILE = {
   id: MOCK_USER_ID,
   email: 'preview@roll.photos',
   display_name: 'Alex Rivera',
-  avatar_url: picsum('avatar-alex', 200, 200),
+  avatar_url: '/placeholders/portrait-warm.svg',
   tier: 'plus' as const,
   onboarding_complete: true,
   photo_count: 84,
@@ -222,7 +221,7 @@ function generatePhotos(count: number) {
       id: uuid(100 + i),
       user_id: MOCK_USER_ID,
       storage_key: isVideo ? (videoUrl as string) : `originals/${MOCK_USER_ID}/photo_${i}.jpg`,
-      thumbnail_url: picsum(config.seed, 400, 530),
+      thumbnail_url: picsum(config.seed, 400, 530, config.scene, i),
       lqip_base64: null,
       content_type: isVideo ? 'video/mp4' : 'image/jpeg',
       media_type: isVideo ? 'video' : 'photo',
@@ -332,8 +331,8 @@ function generateRollPhotos(rollId: string, count: number, offset: number = 0) {
       roll_id: rollId,
       photo_id: photo?.id ?? uuid(100 + photoIndex),
       position: i + 1,
-      // Use a different picsum seed for processed photos (simulates AI color correction)
-      processed_storage_key: picsum(`corrected-${photoIndex}`, 400, 530),
+      // Use a scene-appropriate placeholder for processed photos
+      processed_storage_key: picsum(`corrected-${photoIndex}`, 400, 530, photo?.scene_classification as string[] ?? [], photoIndex + 5),
       correction_applied: true,
       created_at: now,
       photos: photo ?? null,
@@ -359,7 +358,7 @@ const MOCK_REELS = [
     clips_processed: 8,
     correction_skipped_count: 0,
     assembled_storage_key: `reels/${MOCK_USER_ID}/${uuid(400)}/assembled.mp4`,
-    poster_storage_key: picsum('reel-poster-summer', 400, 300),
+    poster_storage_key: '/placeholders/beach.svg',
     assembled_duration_ms: 147000,
     created_at: lastWeek,
     updated_at: yesterday,
@@ -396,7 +395,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[0],
     email: 'jordan@example.com',
     display_name: 'Jordan Lee',
-    avatar_url: picsum('jordan-avatar', 200, 200),
+    avatar_url: '/placeholders/portrait-warm.svg',
     tier: 'plus',
     onboarding_complete: true,
     photo_count: 42,
@@ -410,7 +409,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[1],
     email: 'sam@example.com',
     display_name: 'Sam Chen',
-    avatar_url: picsum('sam-avatar', 200, 200),
+    avatar_url: '/placeholders/portrait-outdoor.svg',
     tier: 'free',
     onboarding_complete: true,
     photo_count: 18,
@@ -424,7 +423,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[2],
     email: 'riley@example.com',
     display_name: 'Riley Park',
-    avatar_url: picsum('riley-avatar', 200, 200),
+    avatar_url: '/placeholders/event.svg',
     tier: 'plus',
     onboarding_complete: true,
     photo_count: 67,
@@ -438,7 +437,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[3],
     email: 'morgan@example.com',
     display_name: 'Morgan Taylor',
-    avatar_url: picsum('morgan-avatar', 200, 200),
+    avatar_url: '/placeholders/landscape-blue.svg',
     tier: 'free',
     onboarding_complete: true,
     photo_count: 9,
@@ -455,7 +454,7 @@ const MOCK_CIRCLES = [
     id: uuid(500),
     creator_id: MOCK_USER_ID,
     name: 'Family Photos',
-    cover_photo_url: picsum('circle-family-cover', 600, 300),
+    cover_photo_url: '/placeholders/landscape-golden.svg',
     member_count: 4,
     invite_token: 'abc123',
     created_at: twoWeeksAgo,
@@ -465,7 +464,7 @@ const MOCK_CIRCLES = [
     id: uuid(501),
     creator_id: MOCK_USER_ID,
     name: 'NYC Weekend Crew',
-    cover_photo_url: picsum('circle-nyc-cover', 600, 300),
+    cover_photo_url: '/placeholders/urban.svg',
     member_count: 3,
     invite_token: 'def456',
     created_at: lastWeek,
@@ -570,43 +569,43 @@ const MOCK_CIRCLE_POST_PHOTOS = [
   {
     id: uuid(570),
     post_id: uuid(560),
-    storage_key: picsum('share-sunset-beach', 400, 530),
+    storage_key: '/placeholders/beach.svg',
     position: 1,
   },
   {
     id: uuid(571),
     post_id: uuid(561),
-    storage_key: picsum('share-mountain-view', 400, 530),
+    storage_key: '/placeholders/landscape-blue.svg',
     position: 1,
   },
   {
     id: uuid(572),
     post_id: uuid(561),
-    storage_key: picsum('share-cabin-fire', 400, 530),
+    storage_key: '/placeholders/indoor.svg',
     position: 2,
   },
   {
     id: uuid(573),
     post_id: uuid(562),
-    storage_key: picsum('share-family-garden', 400, 530),
+    storage_key: '/placeholders/landscape-green.svg',
     position: 1,
   },
   {
     id: uuid(574),
     post_id: uuid(563),
-    storage_key: picsum('share-brooklyn-bridge', 400, 530),
+    storage_key: '/placeholders/urban.svg',
     position: 1,
   },
   {
     id: uuid(575),
     post_id: uuid(563),
-    storage_key: picsum('share-central-park', 400, 530),
+    storage_key: '/placeholders/landscape-green.svg',
     position: 2,
   },
   {
     id: uuid(576),
     post_id: uuid(564),
-    storage_key: picsum('share-rooftop-sunset', 400, 530),
+    storage_key: '/placeholders/landscape-golden.svg',
     position: 1,
   },
 ];
@@ -1023,8 +1022,8 @@ const mockAuth = {
 const mockStorage = {
   from: (_bucket: string) => ({
     upload: async () => ({ data: { path: 'mock-path' }, error: null }),
-    getPublicUrl: (path: string) => ({
-      data: { publicUrl: `https://picsum.photos/seed/${path}/600/400` },
+    getPublicUrl: (_path: string) => ({
+      data: { publicUrl: '/placeholders/landscape-golden.svg' },
     }),
     download: async () => ({ data: new Blob(), error: null }),
     remove: async () => ({ data: [], error: null }),
