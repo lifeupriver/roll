@@ -31,7 +31,8 @@ export async function sendPushNotification(
     // Dynamic import to avoid bundler static resolution
     let webpush: any;
     try {
-      webpush = await import('web-push');
+      // @ts-expect-error — web-push is an optional dependency
+      webpush = await import(/* webpackIgnore: true */ 'web-push');
     } catch {
       console.warn('[push] web-push package not installed — skipping push notification');
       return false;

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { captureError } from '@/lib/sentry';
 
 /**
@@ -49,7 +49,8 @@ export interface Job {
   completed_at: string | null;
 }
 
-type JobProcessor = (job: Job, supabase: ReturnType<typeof createClient>) => Promise<void>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type JobProcessor = (job: Job, supabase: SupabaseClient<any>) => Promise<void>;
 
 const processors = new Map<string, JobProcessor>();
 
@@ -104,7 +105,7 @@ export async function dispatchJob(jobId: string): Promise<void> {
     .update({
       status: 'running',
       started_at: new Date().toISOString(),
-      attempts: supabase.rpc ? undefined : 1, // ideally: attempts + 1
+      attempts: 1, // TODO: increment via RPC for retry support
     })
     .eq('id', jobId)
     .eq('status', 'pending')
