@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Heart, Film, Play, Share2, Wand2 } from 'lucide-react';
+import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X } from 'lucide-react';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
@@ -56,6 +56,7 @@ export default function LibraryPage() {
   const [reelsLoading, setReelsLoading] = useState(false);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rollCovers, setRollCovers] = useState<Map<string, string>>(new Map());
 
   // Fetch rolls
   useEffect(() => {
@@ -75,6 +76,33 @@ export default function LibraryPage() {
     }
     fetchRolls();
   }, []);
+
+  // Fetch cover photos for rolls
+  useEffect(() => {
+    if (rolls.length === 0) return;
+    async function fetchCovers() {
+      const covers = new Map<string, string>();
+      for (const roll of rolls) {
+        try {
+          const res = await fetch(`/api/rolls/${roll.id}`);
+          if (res.ok) {
+            const json = await res.json();
+            const firstPhoto = json.data?.photos?.[0];
+            if (firstPhoto) {
+              covers.set(
+                roll.id,
+                firstPhoto.processed_storage_key || firstPhoto.photos?.thumbnail_url || ''
+              );
+            }
+          }
+        } catch {
+          // Non-critical
+        }
+      }
+      setRollCovers(covers);
+    }
+    fetchCovers();
+  }, [rolls]);
 
   // Fetch reels when switching to reels tab
   useEffect(() => {
@@ -133,6 +161,58 @@ export default function LibraryPage() {
     [toast]
   );
 
+  // Favorite caption editing
+  const [editingFavCaptionId, setEditingFavCaptionId] = useState<string | null>(null);
+  const [favCaptionText, setFavCaptionText] = useState('');
+  const [favCaptions, setFavCaptions] = useState<Map<string, string>>(new Map());
+
+  const handleStartFavCaption = useCallback((photoId: string) => {
+    setFavCaptionText(favCaptions.get(photoId) || '');
+    setEditingFavCaptionId(photoId);
+  }, [favCaptions]);
+
+  const handleSaveFavCaption = useCallback(async () => {
+    if (!editingFavCaptionId) return;
+    const trimmed = favCaptionText.trim();
+    setFavCaptions((prev) => {
+      const next = new Map(prev);
+      if (trimmed) next.set(editingFavCaptionId, trimmed);
+      else next.delete(editingFavCaptionId);
+      return next;
+    });
+    setEditingFavCaptionId(null);
+    try {
+      await fetch(`/api/photos/${editingFavCaptionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption: trimmed || null }),
+      });
+    } catch {
+      // Non-critical
+    }
+  }, [editingFavCaptionId, favCaptionText]);
+
+  const handleFavCaptionKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') handleSaveFavCaption();
+      if (e.key === 'Escape') setEditingFavCaptionId(null);
+    },
+    [handleSaveFavCaption]
+  );
+
+  // Selection mode for favorites
+  const [selectedFavIds, setSelectedFavIds] = useState<Set<string>>(new Set());
+  const isSelecting = selectedFavIds.size > 0;
+
+  const toggleFavSelection = useCallback((photoId: string) => {
+    setSelectedFavIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(photoId)) next.delete(photoId);
+      else next.add(photoId);
+      return next;
+    });
+  }, []);
+
   const [showArchived, setShowArchived] = useState(false);
 
   // Separate rolls by state
@@ -146,7 +226,7 @@ export default function LibraryPage() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Page title */}
       <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
-        Library
+        Shelf
       </h1>
 
       {/* Section toggle */}
@@ -205,14 +285,23 @@ export default function LibraryPage() {
                       onClick={() => router.push(`/roll/${roll.id}`)}
                       className="text-left group cursor-pointer"
                     >
-                      {/* Cover placeholder */}
+                      {/* Cover photo or placeholder */}
                       <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)]">
-                          <Film size={24} className="text-[var(--color-ink-tertiary)]" />
-                          <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tabular-nums">
-                            {roll.photo_count}/{roll.max_photos}
-                          </span>
-                        </div>
+                        {rollCovers.get(roll.id) ? (
+                          <img
+                            src={rollCovers.get(roll.id)}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)]">
+                            <Film size={24} className="text-[var(--color-ink-tertiary)]" />
+                            <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tabular-nums">
+                              {roll.photo_count}/{roll.max_photos}
+                            </span>
+                          </div>
+                        )}
                         {/* Status badge */}
                         <span
                           className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium"
@@ -250,11 +339,20 @@ export default function LibraryPage() {
                     onClick={() => router.push(`/roll/${roll.id}`)}
                     className="text-left group cursor-pointer"
                   >
-                    {/* Cover image placeholder */}
+                    {/* Cover image */}
                     <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Wand2 size={24} className="text-[var(--color-developed)]" />
-                      </div>
+                      {rollCovers.get(roll.id) ? (
+                        <img
+                          src={rollCovers.get(roll.id)}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Wand2 size={24} className="text-[var(--color-developed)]" />
+                        </div>
+                      )}
                       <span className="absolute top-[var(--space-tight)] right-[var(--space-tight)] inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium bg-[var(--color-developed)]/10 text-[var(--color-developed)]">
                         <Wand2 size={10} /> Developed
                       </span>
@@ -401,6 +499,35 @@ export default function LibraryPage() {
       {/* Favorites section — grid */}
       {activeSection === 'favorites' && (
         <section>
+          {/* Selection toolbar */}
+          {isSelecting && (
+            <div className="flex items-center justify-between mb-[var(--space-component)] p-[var(--space-element)] bg-[var(--color-action-subtle)] rounded-[var(--radius-card)]">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <button
+                  type="button"
+                  onClick={() => setSelectedFavIds(new Set())}
+                  className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]"
+                >
+                  <X size={18} />
+                </button>
+                <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                  {selectedFavIds.size} selected
+                </span>
+              </div>
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Button variant="secondary" size="sm" onClick={() => router.push('/circle')}>
+                  <Share2 size={14} className="mr-1" /> Share
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {!isSelecting && favorites.length > 0 && (
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
+              Tap photos to select them
+            </p>
+          )}
+
           {favoritesLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />
@@ -418,13 +545,31 @@ export default function LibraryPage() {
           {!favoritesLoading && favorites.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-micro)]">
               {favorites.map((fav) => (
-                <div key={fav.id} className="relative group">
+                <div
+                  key={fav.id}
+                  className="relative group overflow-hidden cursor-pointer"
+                  onClick={() => toggleFavSelection(fav.photo_id)}
+                >
                   <img
                     src={fav.photos.thumbnail_url}
                     alt={`Favorited photo from ${fav.rolls?.name || 'roll'}`}
                     loading="lazy"
                     className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
                   />
+                  {/* Selection overlay */}
+                  {selectedFavIds.has(fav.photo_id) && (
+                    <div className="absolute inset-0 bg-[var(--color-action)]/15 ring-2 ring-inset ring-[var(--color-action)] pointer-events-none" />
+                  )}
+                  {/* Selection checkmark */}
+                  <div
+                    className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 z-10 pointer-events-none ${
+                      selectedFavIds.has(fav.photo_id)
+                        ? 'bg-[var(--color-action)] scale-100'
+                        : 'bg-black/30 border border-white/50 scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100'
+                    }`}
+                  >
+                    <Check size={14} strokeWidth={2.5} className="text-white" />
+                  </div>
                   {/* Heart overlay */}
                   <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
                     <HeartButton
@@ -432,14 +577,43 @@ export default function LibraryPage() {
                       onChange={() => handleUnfavorite(fav.photo_id)}
                     />
                   </div>
-                  {/* Roll name badge */}
-                  {fav.rolls?.name && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent px-[var(--space-tight)] py-[var(--space-tight)]">
-                      <span className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)] font-[family-name:var(--font-body)]">
-                        {fav.rolls.name}
-                      </span>
-                    </div>
-                  )}
+                  {/* Caption + Roll name overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent">
+                    {editingFavCaptionId === fav.photo_id ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={favCaptionText}
+                        onChange={(e) => setFavCaptionText(e.target.value)}
+                        onBlur={handleSaveFavCaption}
+                        onKeyDown={handleFavCaptionKeyDown}
+                        placeholder="Write a caption..."
+                        maxLength={200}
+                        className="w-full px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleStartFavCaption(fav.photo_id)}
+                        className="w-full text-left px-[var(--space-tight)] py-[var(--space-tight)]"
+                      >
+                        {favCaptions.get(fav.photo_id) ? (
+                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)] mb-0.5">
+                            {favCaptions.get(fav.photo_id)}
+                          </p>
+                        ) : (
+                          <p className="text-[length:var(--text-caption)] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mb-0.5">
+                            <MessageSquare size={10} /> Write a caption
+                          </p>
+                        )}
+                        {fav.rolls?.name && (
+                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)]/70 font-[family-name:var(--font-body)]">
+                            {fav.rolls.name}
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

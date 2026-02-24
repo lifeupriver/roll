@@ -249,7 +249,7 @@ const MOCK_ROLLS = [
     name: 'Morning Walk',
     status: 'building',
     film_profile: null,
-    photo_count: 12,
+    photo_count: 18,
     max_photos: 36,
     processing_started_at: null,
     processing_completed_at: null,
@@ -257,6 +257,22 @@ const MOCK_ROLLS = [
     photos_processed: 0,
     correction_skipped_count: 0,
     created_at: now,
+    updated_at: now,
+  },
+  {
+    id: uuid(203),
+    user_id: MOCK_USER_ID,
+    name: 'Summer Evenings',
+    status: 'ready',
+    film_profile: null,
+    photo_count: 36,
+    max_photos: 36,
+    processing_started_at: null,
+    processing_completed_at: null,
+    processing_error: null,
+    photos_processed: 0,
+    correction_skipped_count: 0,
+    created_at: yesterday,
     updated_at: now,
   },
 ];
@@ -393,7 +409,7 @@ const MOCK_CIRCLES = [
     id: uuid(500),
     creator_id: MOCK_USER_ID,
     name: 'Family Photos',
-    cover_photo_url: null,
+    cover_photo_url: picsum('circle-family-cover', 600, 300),
     member_count: 4,
     invite_token: 'abc123',
     created_at: twoWeeksAgo,
@@ -403,7 +419,7 @@ const MOCK_CIRCLES = [
     id: uuid(501),
     creator_id: MOCK_USER_ID,
     name: 'NYC Weekend Crew',
-    cover_photo_url: null,
+    cover_photo_url: picsum('circle-nyc-cover', 600, 300),
     member_count: 3,
     invite_token: 'def456',
     created_at: lastWeek,
@@ -713,6 +729,8 @@ const TABLE_DATA: Record<string, unknown[]> = {
   roll_photos: [
     ...generateRollPhotos(MOCK_ROLLS[0].id, 24, 0),
     ...generateRollPhotos(MOCK_ROLLS[1].id, 36, 24),
+    ...generateRollPhotos(MOCK_ROLLS[2].id, 18, 60),
+    ...generateRollPhotos(MOCK_ROLLS[3].id, 36, 0),
   ],
   reels: MOCK_REELS,
   reel_clips: [],
@@ -732,6 +750,7 @@ const TABLE_DATA: Record<string, unknown[]> = {
   people: [],
   tags: [],
   photo_tags: [],
+  photo_stacks: generatePhotoStacks(),
 };
 
 // ── Chainable mock query builder ─────────────────────────────────────
@@ -982,8 +1001,64 @@ export function createMockSupabaseClient() {
   };
 }
 
+// ── Mock photo stacks (similar images grouped) ──────────────────────
+
+function generatePhotoStacks() {
+  // Group some consecutive photos into stacks to simulate similar photos
+  const stacks: Array<{
+    id: string;
+    top_photo_id: string;
+    photo_ids: string[];
+    similarity: number;
+  }> = [];
+
+  // Stack 1: Friends dinner photos (indices 0, 3, 6 — similar people/indoor scenes)
+  stacks.push({
+    id: uuid(1000),
+    top_photo_id: MOCK_PHOTOS[0].id,
+    photo_ids: [MOCK_PHOTOS[0].id, MOCK_PHOTOS[3].id, MOCK_PHOTOS[6].id],
+    similarity: 0.87,
+  });
+
+  // Stack 2: Landscape photos (indices 20, 21, 22 — mountain, ocean, forest)
+  stacks.push({
+    id: uuid(1001),
+    top_photo_id: MOCK_PHOTOS[20].id,
+    photo_ids: [MOCK_PHOTOS[20].id, MOCK_PHOTOS[21].id, MOCK_PHOTOS[22].id, MOCK_PHOTOS[23].id],
+    similarity: 0.82,
+  });
+
+  // Stack 3: Food photos (indices 35, 36, 37)
+  stacks.push({
+    id: uuid(1002),
+    top_photo_id: MOCK_PHOTOS[35].id,
+    photo_ids: [MOCK_PHOTOS[35].id, MOCK_PHOTOS[36].id, MOCK_PHOTOS[37].id],
+    similarity: 0.91,
+  });
+
+  // Stack 4: Indoor portrait (indices 1, 5, 10)
+  stacks.push({
+    id: uuid(1003),
+    top_photo_id: MOCK_PHOTOS[1].id,
+    photo_ids: [MOCK_PHOTOS[1].id, MOCK_PHOTOS[5].id, MOCK_PHOTOS[10].id],
+    similarity: 0.78,
+  });
+
+  // Stack 5: Event photos (indices 2, 9, 19)
+  stacks.push({
+    id: uuid(1004),
+    top_photo_id: MOCK_PHOTOS[2].id,
+    photo_ids: [MOCK_PHOTOS[2].id, MOCK_PHOTOS[9].id, MOCK_PHOTOS[19].id],
+    similarity: 0.84,
+  });
+
+  return stacks;
+}
+
+const MOCK_PHOTO_STACKS = generatePhotoStacks();
+
 export function isPreviewMode(): boolean {
   return process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
 }
 
-export { MOCK_USER_ID, MOCK_AUTH_USER, MOCK_PROFILE };
+export { MOCK_USER_ID, MOCK_AUTH_USER, MOCK_PROFILE, MOCK_PHOTOS, MOCK_PHOTO_STACKS };

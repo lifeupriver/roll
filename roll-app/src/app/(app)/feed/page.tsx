@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { Sparkles, Smartphone, Grid2x2, Grid3x3, Film, ChevronRight } from 'lucide-react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { Sparkles, Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, Layers } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import { PhotoStack } from '@/components/photo/PhotoStack';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
@@ -12,7 +13,7 @@ import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
 import { useReelStore } from '@/stores/reelStore';
 import { track } from '@/lib/analytics';
-import type { ContentMode } from '@/types/photo';
+import type { ContentMode, PhotoStack as PhotoStackType } from '@/types/photo';
 import { Badge } from '@/components/ui/Badge';
 
 export default function FeedPage() {
@@ -37,6 +38,8 @@ export default function FeedPage() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
   const [gridColumns, setGridColumns] = useState(3);
+  const [stacksEnabled, setStacksEnabled] = useState(true);
+  const [photoStacks, setPhotoStacks] = useState<PhotoStackType[]>([]);
 
   // Determine if we're in clip mode (building a reel)
   const isClipMode = contentMode === 'clips';
@@ -105,6 +108,71 @@ export default function FeedPage() {
     }
     loadActiveReel();
   }, [setReelState]);
+
+  // Load photo stacks
+  useEffect(() => {
+    if (!stacksEnabled || contentMode !== 'all') {
+      setPhotoStacks([]);
+      return;
+    }
+    async function loadStacks() {
+      try {
+        const res = await fetch('/api/photos/stacks');
+        if (res.ok) {
+          const { data } = await res.json();
+          if (Array.isArray(data)) {
+            // Convert stack data to PhotoStack objects using loaded photos
+            const stacks: PhotoStackType[] = data.map((s: { id: string; top_photo_id: string; photo_ids: string[]; similarity: number }) => {
+              const stackPhotos = s.photo_ids
+                .map((pid: string) => photos.find((p) => p.id === pid))
+                .filter(Boolean) as typeof photos;
+              const topPhoto = photos.find((p) => p.id === s.top_photo_id) || stackPhotos[0];
+              return {
+                id: s.id,
+                topPhoto: topPhoto!,
+                photos: stackPhotos,
+                similarity: s.similarity,
+              };
+            }).filter((s: PhotoStackType) => s.topPhoto && s.photos.length >= 2);
+            setPhotoStacks(stacks);
+          }
+        }
+      } catch {
+        // Stacks are optional
+      }
+    }
+    if (photos.length > 0) loadStacks();
+  }, [stacksEnabled, photos.length, contentMode]);
+
+  // Compute which photo IDs are in stacks (to hide duplicates from main grid)
+  const stackedPhotoIds = useMemo(() => {
+    if (!stacksEnabled || photoStacks.length === 0) return new Set<string>();
+    const ids = new Set<string>();
+    for (const stack of photoStacks) {
+      // Don't hide the top photo — we show it via the stack component
+      for (const photo of stack.photos) {
+        if (photo.id !== stack.topPhoto.id) {
+          ids.add(photo.id);
+        }
+      }
+    }
+    return ids;
+  }, [stacksEnabled, photoStacks]);
+
+  // Photos to render in the grid (excluding stacked duplicates)
+  const displayPhotos = useMemo(() => {
+    if (!stacksEnabled || stackedPhotoIds.size === 0) return photos;
+    return photos.filter((p) => !stackedPhotoIds.has(p.id));
+  }, [photos, stacksEnabled, stackedPhotoIds]);
+
+  // Find which stack a photo belongs to (by top photo ID)
+  const stackByTopPhotoId = useMemo(() => {
+    const map = new Map<string, PhotoStackType>();
+    for (const stack of photoStacks) {
+      map.set(stack.topPhoto.id, stack);
+    }
+    return map;
+  }, [photoStacks]);
 
   const contentModeOptions = [
     { value: 'all', label: 'All' },
@@ -323,7 +391,7 @@ export default function FeedPage() {
       <div>
         <div className="flex items-center justify-between mb-[var(--space-section)]">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
-            Camera Roll
+            Roll
           </h1>
         </div>
         <Empty
@@ -341,7 +409,7 @@ export default function FeedPage() {
       <div className="flex items-center justify-between mb-[var(--space-component)]">
         <div className="flex items-center gap-[var(--space-element)]">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
-            Camera Roll
+            Roll
           </h1>
           <Badge variant="info">
             <Smartphone size={12} className="mr-1 inline" />
@@ -360,18 +428,36 @@ export default function FeedPage() {
           }}
           options={contentModeOptions}
         />
-        <div className="flex items-center gap-[var(--space-tight)]">
-          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-          <input
-            type="range"
-            min={2}
-            max={6}
-            value={gridColumns}
-            onChange={(e) => setGridColumns(Number(e.target.value))}
-            className="w-20 accent-[var(--color-action)]"
-            aria-label="Grid columns"
-          />
-          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        <div className="flex items-center gap-[var(--space-element)]">
+          {/* Stacks toggle */}
+          {!isClipMode && (
+            <button
+              type="button"
+              onClick={() => setStacksEnabled(!stacksEnabled)}
+              className={`flex items-center gap-1 px-2 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                stacksEnabled
+                  ? 'bg-[var(--color-action-subtle)] text-[var(--color-action)]'
+                  : 'bg-[var(--color-surface-raised)] text-[var(--color-ink-tertiary)]'
+              }`}
+              title={stacksEnabled ? 'Stacking on — similar photos are grouped' : 'Stacking off'}
+            >
+              <Layers size={14} />
+              Stacks
+            </button>
+          )}
+          <div className="flex items-center gap-[var(--space-tight)]">
+            <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+            <input
+              type="range"
+              min={2}
+              max={6}
+              value={gridColumns}
+              onChange={(e) => setGridColumns(Number(e.target.value))}
+              className="w-20 accent-[var(--color-action)]"
+              aria-label="Grid columns"
+            />
+            <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+          </div>
         </div>
       </div>
 
@@ -511,7 +597,7 @@ export default function FeedPage() {
 
       {/* Photo/clip grid — the contact sheet */}
       <PhotoGrid
-        photos={photos}
+        photos={isClipMode ? photos : displayPhotos}
         mode="feed"
         checkedIds={isClipMode ? clipIds : checkedPhotoIds}
         onCheck={isClipMode ? handleClipCheck : handleCheck}
@@ -521,6 +607,23 @@ export default function FeedPage() {
         onLoadMore={loadMore}
         isLoading={loading}
         columns={gridColumns}
+        renderOverride={
+          !isClipMode && stacksEnabled
+            ? (photoId: string) => {
+                const stack = stackByTopPhotoId.get(photoId);
+                if (!stack) return null;
+                return (
+                  <PhotoStack
+                    key={`stack-${stack.id}`}
+                    stack={stack}
+                    isChecked={isChecked}
+                    onCheck={handleCheck}
+                    onPhotoTap={handlePhotoTap}
+                  />
+                );
+              }
+            : undefined
+        }
       />
 
       {/* Lightbox for full-screen photo/video viewing */}

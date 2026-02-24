@@ -361,7 +361,7 @@ export default function RollDetailPage() {
         description={error || 'This roll does not exist or you do not have access.'}
         action={
           <Button variant="secondary" onClick={() => router.push('/library')}>
-            Back to Library
+            Back to Shelf
           </Button>
         }
       />
@@ -498,6 +498,32 @@ export default function RollDetailPage() {
           </span>
         </div>
 
+        {/* Order Prints — prominent CTA at top */}
+        <Link href={`/roll/${rollId}/order`} className="block">
+          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Printer size={24} />
+              <div>
+                <p className="text-[length:var(--text-body)] font-medium">
+                  Order Prints
+                </p>
+                <p className="text-[length:var(--text-caption)] opacity-80">
+                  High-quality prints delivered to your door
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
+              Print
+            </div>
+          </div>
+        </Link>
+
+        {/* Share to circle */}
+        <Button variant="secondary" size="md" onClick={() => router.push('/circle')}>
+          <Share2 size={18} className="mr-2" />
+          Share to Circle
+        </Button>
+
         {/* Favorites summary */}
         {favoriteCount > 0 && (
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
@@ -523,7 +549,7 @@ export default function RollDetailPage() {
                 />
               </div>
 
-              {/* Caption overlay */}
+              {/* Caption overlay — always visible when caption exists */}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent">
                 {editingCaptionId === rp.photo_id ? (
                   <input
@@ -533,7 +559,7 @@ export default function RollDetailPage() {
                     onChange={(e) => setCaptionText(e.target.value)}
                     onBlur={handleSaveCaption}
                     onKeyDown={handleCaptionKeyDown}
-                    placeholder="Caption this photo..."
+                    placeholder="Write a caption..."
                     maxLength={200}
                     className="w-full px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
                   />
@@ -541,12 +567,14 @@ export default function RollDetailPage() {
                   <button
                     type="button"
                     onClick={() => handleStartCaptionEdit(rp.photo_id)}
-                    className="w-full text-left px-2 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className={`w-full text-left px-2 py-1.5 transition-opacity ${
+                      photoCaptions.get(rp.photo_id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                    }`}
                   >
                     <span className="text-[length:var(--text-caption)] text-white/80">
                       {photoCaptions.get(rp.photo_id) || (
                         <span className="flex items-center gap-1">
-                          <MessageSquare size={10} /> Add caption
+                          <MessageSquare size={10} /> Write a caption
                         </span>
                       )}
                     </span>
@@ -556,34 +584,6 @@ export default function RollDetailPage() {
             </div>
           ))}
         </div>
-
-        {/* Print prompt — prominent CTA for developed rolls */}
-        <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] border border-[var(--color-border)]">
-          <div className="flex items-start gap-[var(--space-element)]">
-            <div className="w-10 h-10 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0">
-              <Printer size={20} className="text-[var(--color-action)]" />
-            </div>
-            <div className="flex-1">
-              <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                Print this roll
-              </p>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
-                Turn your favorites into physical prints. High-quality photo prints delivered to your door.
-              </p>
-              <Link href={`/roll/${rollId}/order`}>
-                <Button variant="primary" size="sm">
-                  <Printer size={14} className="mr-1" /> Order Prints
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Share to circle */}
-        <Button variant="secondary" size="lg" onClick={() => router.push('/circle')}>
-          <Share2 size={18} className="mr-2" />
-          Share to Circle
-        </Button>
 
         {/* Archive */}
         <button
@@ -648,7 +648,7 @@ export default function RollDetailPage() {
         <Empty
           icon={Film}
           title="No photos yet"
-          description="Head to your Camera Roll to select photos for this roll."
+          description="Head to your feed to select photos for this roll."
           action={
             <Link href="/feed">
               <Button variant="secondary">Browse Photos</Button>

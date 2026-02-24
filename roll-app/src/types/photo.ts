@@ -59,3 +59,19 @@ export interface FilterResult {
   scene_classification: string[];
   phash: string;
 }
+
+// Stack — groups of visually similar photos
+export interface PhotoStack {
+  id: string;
+  topPhoto: Photo;          // Best photo (highest aesthetic score) — chosen for roll
+  photos: Photo[];           // All photos in the stack (including topPhoto)
+  similarity: number;        // 0–1 how similar the photos are
+}
+
+export type StackMode = 'auto' | 'manual' | 'off';
+
+export interface StackSettings {
+  mode: StackMode;
+  sensitivity: number;       // 0–1, higher = more aggressive grouping
+  minStackSize: number;      // Minimum photos to form a stack (default 2)
+}

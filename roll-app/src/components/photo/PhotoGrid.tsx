@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { PhotoCard } from './PhotoCard';
 import type { Photo } from '@/types/photo';
 
@@ -15,6 +15,8 @@ interface PhotoGridProps {
   hasMore?: boolean;
   isLoading?: boolean;
   columns?: number;
+  /** Optional: render a custom element for specific photo IDs (e.g. stacks) */
+  renderOverride?: (photoId: string) => ReactNode | null;
 }
 
 export function PhotoGrid({
@@ -28,6 +30,7 @@ export function PhotoGrid({
   hasMore = false,
   isLoading = false,
   columns,
+  renderOverride,
 }: PhotoGridProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -58,17 +61,23 @@ export function PhotoGrid({
         className={columns ? 'grid gap-[var(--space-micro)]' : 'grid grid-cols-2 lg:grid-cols-3 gap-[var(--space-micro)]'}
         style={columns ? { gridTemplateColumns: `repeat(${columns}, 1fr)` } : undefined}
       >
-        {photos.map((photo) => (
-          <PhotoCard
-            key={photo.id}
-            photo={photo}
-            isChecked={checkedIds?.has(photo.id) ?? false}
-            mode={mode}
-            onCheck={onCheck ? () => onCheck(photo.id) : undefined}
-            onHide={onHide ? () => onHide(photo.id) : undefined}
-            onTap={onPhotoTap ? () => onPhotoTap(photo.id) : undefined}
-          />
-        ))}
+        {photos.map((photo) => {
+          // Check if this photo has a custom override (e.g. stack rendering)
+          const override = renderOverride?.(photo.id);
+          if (override) return override;
+
+          return (
+            <PhotoCard
+              key={photo.id}
+              photo={photo}
+              isChecked={checkedIds?.has(photo.id) ?? false}
+              mode={mode}
+              onCheck={onCheck ? () => onCheck(photo.id) : undefined}
+              onHide={onHide ? () => onHide(photo.id) : undefined}
+              onTap={onPhotoTap ? () => onPhotoTap(photo.id) : undefined}
+            />
+          );
+        })}
 
         {/* Loading skeletons */}
         {isLoading &&
