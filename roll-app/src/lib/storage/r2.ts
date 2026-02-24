@@ -1,9 +1,20 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  GetObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+const isPreview = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
 
 let _r2Client: S3Client | null = null;
 
 function getR2Client(): S3Client {
+  if (isPreview) {
+    throw new Error('R2 is not available in preview mode');
+  }
+
   if (!_r2Client) {
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -54,11 +65,7 @@ export async function getPresignedDownloadUrl(
   return getSignedUrl(client, command, { expiresIn });
 }
 
-export async function uploadObject(
-  key: string,
-  body: Buffer,
-  contentType: string
-): Promise<void> {
+export async function uploadObject(key: string, body: Buffer, contentType: string): Promise<void> {
   const client = getR2Client();
   await client.send(
     new PutObjectCommand({
@@ -119,7 +126,12 @@ export function getProxyUrl(userId: string, contentHash: string): string {
   return `${publicUrl}/proxies/${userId}/${contentHash}_preview.mp4`;
 }
 
-export function getReelClipKey(userId: string, reelId: string, position: number, profile: string): string {
+export function getReelClipKey(
+  userId: string,
+  reelId: string,
+  position: number,
+  profile: string
+): string {
   return `reels/${userId}/${reelId}/clips/${position}_${profile}.mp4`;
 }
 

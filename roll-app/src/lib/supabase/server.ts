@@ -1,8 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { isPreviewMode, createMockSupabaseClient } from './mock';
 import type { Photo } from '@/types/photo';
 
 export async function createServerSupabaseClient() {
+  if (isPreviewMode()) {
+    return createMockSupabaseClient() as ReturnType<typeof createServerClient>;
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -29,17 +34,17 @@ export async function createServerSupabaseClient() {
 
 export async function getServerSession() {
   const supabase = await createServerSupabaseClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) return null;
   return user;
 }
 
 export async function insertPhotos(photos: Partial<Photo>[]) {
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from('photos')
-    .insert(photos)
-    .select();
+  const { data, error } = await supabase.from('photos').insert(photos).select();
   if (error) throw error;
   return data;
 }
@@ -77,11 +82,7 @@ export async function getVisiblePhotos(
 
 export async function getPhotoById(photoId: string) {
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from('photos')
-    .select('*')
-    .eq('id', photoId)
-    .single();
+  const { data, error } = await supabase.from('photos').select('*').eq('id', photoId).single();
   if (error) throw error;
   return data as Photo;
 }

@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
-import type { FilmProfileId } from '@/types/roll';
 import { MIN_ROLL_PHOTOS, MAX_ROLL_PHOTOS } from '@/lib/utils/constants';
 import { captureError } from '@/lib/sentry';
 import { processLimiter } from '@/lib/rate-limit';
 import { parseBody, developProcessSchema } from '@/lib/validation';
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { correctImage, isCorrectionEnabled, activeCorrectionProvider } from '@/lib/correction';
+import { getObject, uploadObject } from '@/lib/storage/r2';
 
 export async function POST(request: NextRequest) {
   let supabase: Awaited<ReturnType<typeof createServerSupabaseClient>> | null = null;
@@ -119,18 +116,50 @@ export async function POST(request: NextRequest) {
       throw new Error('No photos found in roll');
     }
 
-    // Step 3: Process each photo
+    // Step 3: Process each photo through EyeQ + film profile
+    let correctionSkippedCount = 0;
+
     for (let i = 0; i < rollPhotos.length; i++) {
       const photo = rollPhotos[i];
-
-      // Simulate processing: set processed_storage_key and correction_applied
       const processedKey = `processed/${user.id}/${rollId}/${photo.position}_${filmProfileId}.jpg`;
+      let correctionApplied = false;
+
+      try {
+        // Fetch the original photo from R2
+        const { data: photoRecord } = await supabase
+          .from('photos')
+          .select('storage_key, content_type')
+          .eq('id', photo.photo_id)
+          .single();
+
+        if (photoRecord?.storage_key) {
+          const originalBuffer = await getObject(photoRecord.storage_key);
+          const contentType = photoRecord.content_type || 'image/jpeg';
+
+          // Send to correction provider (EyeQ or Imagen) for AI color correction
+          const correctionResult = await correctImage(originalBuffer, contentType);
+
+          if (correctionResult) {
+            // Upload corrected image to R2
+            await uploadObject(processedKey, correctionResult.correctedBuffer, 'image/jpeg');
+            correctionApplied = true;
+          } else {
+            // No provider configured — upload original as "processed" placeholder
+            await uploadObject(processedKey, originalBuffer, contentType);
+            correctionSkippedCount++;
+          }
+        }
+      } catch (correctionError) {
+        // Correction failed for this photo — continue without correction
+        captureError(correctionError, { context: 'photo-correction', photoId: photo.photo_id });
+        correctionSkippedCount++;
+      }
 
       const { error: photoUpdateError } = await supabase
         .from('roll_photos')
         .update({
           processed_storage_key: processedKey,
-          correction_applied: true,
+          correction_applied: correctionApplied,
         })
         .eq('id', photo.id);
 
@@ -147,9 +176,6 @@ export async function POST(request: NextRequest) {
       if (counterError) {
         throw new Error(`Failed to update photos_processed counter: ${counterError.message}`);
       }
-
-      // Simulate processing time
-      await delay(100);
     }
 
     // Step 4: Set roll status to 'developed'
@@ -158,6 +184,7 @@ export async function POST(request: NextRequest) {
       .update({
         status: 'developed',
         processing_completed_at: new Date().toISOString(),
+        correction_skipped_count: correctionSkippedCount,
       })
       .eq('id', rollId);
 
@@ -167,7 +194,13 @@ export async function POST(request: NextRequest) {
 
     // Step 5: Return success
     return NextResponse.json({
-      data: { rollId, status: 'developed' },
+      data: {
+        rollId,
+        status: 'developed',
+        correctionProvider: activeCorrectionProvider(),
+        correctionEnabled: isCorrectionEnabled(),
+        correctionSkippedCount,
+      },
     });
   } catch (err) {
     captureError(err, { context: 'process-develop', rollId });

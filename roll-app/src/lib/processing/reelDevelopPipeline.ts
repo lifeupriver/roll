@@ -1,5 +1,13 @@
 import { FILM_PROFILE_CONFIGS, type FilmProfileConfig } from './filmProfiles';
-import { getReelClipKey, getAssembledReelKey, getReelPosterKey } from '@/lib/storage/r2';
+import {
+  getReelClipKey,
+  getAssembledReelKey,
+  getReelPosterKey,
+  getObject,
+  uploadObject,
+} from '@/lib/storage/r2';
+import { correctVideo } from '@/lib/correction';
+import { captureError } from '@/lib/sentry';
 import type { AudioMood, ReelClip } from '@/types/reel';
 import type { FilmProfileId } from '@/types/roll';
 
@@ -17,7 +25,7 @@ export function buildClipFilterChain(profile: FilmProfileConfig): string {
   // Exposure bias (brightness/saturation adjustment)
   if (profile.exposureBias.brightness !== 1.0 || profile.exposureBias.saturation !== 1.0) {
     filters.push(
-      `eq=brightness=${(profile.exposureBias.brightness - 1).toFixed(2)}:saturation=${profile.exposureBias.saturation.toFixed(2)}`,
+      `eq=brightness=${(profile.exposureBias.brightness - 1).toFixed(2)}:saturation=${profile.exposureBias.saturation.toFixed(2)}`
     );
   }
 
@@ -40,7 +48,7 @@ export function buildClipFilterChain(profile: FilmProfileConfig): string {
 export function buildAssemblyCommand(
   clipPaths: string[],
   outputPath: string,
-  _audioMood: AudioMood,
+  _audioMood: AudioMood
 ): string[] {
   const inputs: string[] = [];
   const filterParts: string[] = [];
@@ -59,7 +67,7 @@ export function buildAssemblyCommand(
     for (let i = 1; i < clipPaths.length; i++) {
       const outLabel = i === clipPaths.length - 1 ? 'vout' : `v${i}`;
       filterParts.push(
-        `[${prevLabel}][${i}:v]xfade=transition=fade:duration=0.5:offset=OFFSET_${i}[${outLabel}]`,
+        `[${prevLabel}][${i}:v]xfade=transition=fade:duration=0.5:offset=OFFSET_${i}[${outLabel}]`
       );
       prevLabel = outLabel;
     }
@@ -68,9 +76,7 @@ export function buildAssemblyCommand(
     let prevAudioLabel = '0:a';
     for (let i = 1; i < clipPaths.length; i++) {
       const outLabel = i === clipPaths.length - 1 ? 'aout' : `a${i}`;
-      filterParts.push(
-        `[${prevAudioLabel}][${i}:a]acrossfade=d=0.5[${outLabel}]`,
-      );
+      filterParts.push(`[${prevAudioLabel}][${i}:a]acrossfade=d=0.5[${outLabel}]`);
       prevAudioLabel = outLabel;
     }
   }
@@ -78,33 +84,47 @@ export function buildAssemblyCommand(
   return [
     'ffmpeg',
     ...inputs,
-    '-filter_complex', filterParts.join(';'),
-    '-map', '[vout]', '-map', '[aout]',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
-    '-c:a', 'aac', '-b:a', '192k',
-    '-movflags', '+faststart',
+    '-filter_complex',
+    filterParts.join(';'),
+    '-map',
+    '[vout]',
+    '-map',
+    '[aout]',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'slow',
+    '-crf',
+    '18',
+    '-c:a',
+    'aac',
+    '-b:a',
+    '192k',
+    '-movflags',
+    '+faststart',
     outputPath,
   ];
 }
 
 /**
- * Simulate the reel development pipeline.
- * In production, this would:
- * 1. Trim each clip to in/out points
- * 2. Stabilize if needed
- * 3. Sample 3 frames for eyeQ color correction
- * 4. Apply eyeQ-derived correction + LUT + grain + vignette via FFmpeg
- * 5. Assemble all clips with crossfade transitions
- * 6. Apply audio mood (mix/replace audio)
- * 7. Encode final reel
+ * Reel development pipeline.
  *
- * For the prototype, we simulate the pipeline by generating expected storage keys.
+ * For each clip:
+ * 1. Fetch the original video from R2
+ * 2. Send to EyeQ Perfectly Clear for AI color correction (v2 API supports video)
+ * 3. Upload the corrected clip to R2
+ * 4. Fall back gracefully if EyeQ is unavailable
+ *
+ * Assembly (FFmpeg trim + transitions + audio mood) would run as a post-step
+ * in production. The pipeline produces per-clip corrected files and the
+ * expected assembled reel key.
  */
 export interface DevelopReelResult {
   assembledKey: string;
   posterKey: string;
   clipKeys: Array<{ clipId: string; processedKey: string; correctionApplied: boolean }>;
   assembledDurationMs: number;
+  correctionSkippedCount: number;
 }
 
 export async function developReel(params: {
@@ -113,27 +133,57 @@ export async function developReel(params: {
   clips: ReelClip[];
   filmProfileId: FilmProfileId;
   audioMood: AudioMood;
+  /** Optional: map from photo_id → storage_key for fetching clip originals. */
+  clipStorageKeys?: Record<string, { storageKey: string; contentType: string }>;
   onClipProcessed?: (clipIndex: number, totalClips: number) => Promise<void>;
 }): Promise<DevelopReelResult> {
-  const { userId, reelId, clips, filmProfileId, onClipProcessed } = params;
+  const { userId, reelId, clips, filmProfileId, clipStorageKeys, onClipProcessed } = params;
 
   const profile = FILM_PROFILE_CONFIGS[filmProfileId];
   if (!profile) throw new Error(`Invalid film profile: ${filmProfileId}`);
 
   const clipKeys: DevelopReelResult['clipKeys'] = [];
   let assembledDurationMs = 0;
+  let correctionSkippedCount = 0;
 
-  // Process each clip
+  // Process each clip through EyeQ
   for (let i = 0; i < clips.length; i++) {
     const clip = clips[i];
     const processedKey = getReelClipKey(userId, reelId, clip.position, filmProfileId);
+    let correctionApplied = false;
 
-    // In production: FFmpeg would process the clip here
-    // For prototype, we simulate by generating the key
+    try {
+      const storageInfo = clipStorageKeys?.[clip.photo_id];
+
+      if (storageInfo) {
+        const originalBuffer = await getObject(storageInfo.storageKey);
+        const contentType = storageInfo.contentType || 'video/mp4';
+
+        // Send to correction provider for AI video correction
+        const correctionResult = await correctVideo(originalBuffer, contentType);
+
+        if (correctionResult) {
+          await uploadObject(processedKey, correctionResult.correctedBuffer, 'video/mp4');
+          correctionApplied = true;
+        } else {
+          // No provider configured — use original as processed placeholder
+          await uploadObject(processedKey, originalBuffer, contentType);
+          correctionSkippedCount++;
+        }
+      } else {
+        // No storage key available — skip correction for this clip
+        correctionSkippedCount++;
+      }
+    } catch (correctionError) {
+      // Correction failed for this clip — continue without correction
+      captureError(correctionError, { context: 'video-correction', clipId: clip.id });
+      correctionSkippedCount++;
+    }
+
     clipKeys.push({
       clipId: clip.id,
       processedKey,
-      correctionApplied: true, // Simulate eyeQ success
+      correctionApplied,
     });
 
     assembledDurationMs += clip.trimmed_duration_ms;
@@ -142,9 +192,6 @@ export async function developReel(params: {
     if (onClipProcessed) {
       await onClipProcessed(i + 1, clips.length);
     }
-
-    // Simulate processing time
-    await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
   // Account for crossfade overlap (0.5s per transition)
@@ -161,5 +208,6 @@ export async function developReel(params: {
     posterKey,
     clipKeys,
     assembledDurationMs,
+    correctionSkippedCount,
   };
 }
