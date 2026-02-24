@@ -6,7 +6,7 @@ import {
   getObject,
   uploadObject,
 } from '@/lib/storage/r2';
-import { correctVideo } from '@/lib/eyeq';
+import { correctVideo } from '@/lib/correction';
 import { captureError } from '@/lib/sentry';
 import type { AudioMood, ReelClip } from '@/types/reel';
 import type { FilmProfileId } from '@/types/roll';
@@ -159,16 +159,14 @@ export async function developReel(params: {
         const originalBuffer = await getObject(storageInfo.storageKey);
         const contentType = storageInfo.contentType || 'video/mp4';
 
-        // Send to EyeQ for AI video correction
-        const eyeqResult = await correctVideo(originalBuffer, contentType, {
-          preset: process.env.EYEQ_PRESET || undefined,
-        });
+        // Send to correction provider for AI video correction
+        const correctionResult = await correctVideo(originalBuffer, contentType);
 
-        if (eyeqResult) {
-          await uploadObject(processedKey, eyeqResult.correctedBuffer, 'video/mp4');
+        if (correctionResult) {
+          await uploadObject(processedKey, correctionResult.correctedBuffer, 'video/mp4');
           correctionApplied = true;
         } else {
-          // EyeQ not configured — use original as processed placeholder
+          // No provider configured — use original as processed placeholder
           await uploadObject(processedKey, originalBuffer, contentType);
           correctionSkippedCount++;
         }
@@ -176,9 +174,9 @@ export async function developReel(params: {
         // No storage key available — skip correction for this clip
         correctionSkippedCount++;
       }
-    } catch (eyeqError) {
-      // EyeQ failed for this clip — continue without correction
-      captureError(eyeqError, { context: 'eyeq-video-correction', clipId: clip.id });
+    } catch (correctionError) {
+      // Correction failed for this clip — continue without correction
+      captureError(correctionError, { context: 'video-correction', clipId: clip.id });
       correctionSkippedCount++;
     }
 

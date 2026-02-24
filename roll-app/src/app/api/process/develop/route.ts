@@ -5,7 +5,7 @@ import { MIN_ROLL_PHOTOS, MAX_ROLL_PHOTOS } from '@/lib/utils/constants';
 import { captureError } from '@/lib/sentry';
 import { processLimiter } from '@/lib/rate-limit';
 import { parseBody, developProcessSchema } from '@/lib/validation';
-import { correctImage, isEyeQEnabled } from '@/lib/eyeq';
+import { correctImage, isCorrectionEnabled, activeCorrectionProvider } from '@/lib/correction';
 import { getObject, uploadObject } from '@/lib/storage/r2';
 
 export async function POST(request: NextRequest) {
@@ -136,24 +136,22 @@ export async function POST(request: NextRequest) {
           const originalBuffer = await getObject(photoRecord.storage_key);
           const contentType = photoRecord.content_type || 'image/jpeg';
 
-          // Send to EyeQ for AI color correction
-          const eyeqResult = await correctImage(originalBuffer, contentType, {
-            preset: process.env.EYEQ_PRESET || undefined,
-          });
+          // Send to correction provider (EyeQ or Imagen) for AI color correction
+          const correctionResult = await correctImage(originalBuffer, contentType);
 
-          if (eyeqResult) {
+          if (correctionResult) {
             // Upload corrected image to R2
-            await uploadObject(processedKey, eyeqResult.correctedBuffer, 'image/jpeg');
+            await uploadObject(processedKey, correctionResult.correctedBuffer, 'image/jpeg');
             correctionApplied = true;
           } else {
-            // EyeQ not configured — upload original as "processed" placeholder
+            // No provider configured — upload original as "processed" placeholder
             await uploadObject(processedKey, originalBuffer, contentType);
             correctionSkippedCount++;
           }
         }
-      } catch (eyeqError) {
-        // EyeQ failed for this photo — continue without correction
-        captureError(eyeqError, { context: 'eyeq-photo-correction', photoId: photo.photo_id });
+      } catch (correctionError) {
+        // Correction failed for this photo — continue without correction
+        captureError(correctionError, { context: 'photo-correction', photoId: photo.photo_id });
         correctionSkippedCount++;
       }
 
@@ -199,7 +197,8 @@ export async function POST(request: NextRequest) {
       data: {
         rollId,
         status: 'developed',
-        eyeqEnabled: isEyeQEnabled(),
+        correctionProvider: activeCorrectionProvider(),
+        correctionEnabled: isCorrectionEnabled(),
         correctionSkippedCount,
       },
     });

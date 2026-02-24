@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 import { developReel } from '@/lib/processing/reelDevelopPipeline';
-import { isEyeQEnabled } from '@/lib/eyeq';
+import { isCorrectionEnabled, activeCorrectionProvider } from '@/lib/correction';
 import { MIN_REEL_CLIPS } from '@/lib/utils/constants';
 import { captureError } from '@/lib/sentry';
 import { processLimiter } from '@/lib/rate-limit';
@@ -175,7 +175,8 @@ export async function POST(request: NextRequest) {
         reelId,
         status: 'developed',
         assembledDurationMs: result.assembledDurationMs,
-        eyeqEnabled: isEyeQEnabled(),
+        correctionProvider: activeCorrectionProvider(),
+        correctionEnabled: isCorrectionEnabled(),
         correctionSkippedCount: result.correctionSkippedCount,
       },
     });
