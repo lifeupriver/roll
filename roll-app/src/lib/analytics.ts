@@ -39,14 +39,22 @@ export type AnalyticsEvent =
   | { event: 'photo_unchecked'; properties: { rollId: string; photoCount: number } }
   | { event: 'roll_created'; properties: { rollId: string } }
   | { event: 'roll_filled'; properties: { rollId: string } }
-  | { event: 'roll_develop_started'; properties: { rollId: string; filmProfile: string; photoCount: number } }
+  | { event: 'roll_develop_started'; properties: { rollId: string; photoCount: number } }
   | { event: 'roll_develop_completed'; properties: { rollId: string; durationMs: number } }
   | { event: 'roll_autofill'; properties: { rollId: string; count: number } }
   // Favorites
   | { event: 'photo_hearted'; properties: { photoId: string; rollId: string } }
   | { event: 'photo_unhearted'; properties: { photoId: string } }
   // Print orders
-  | { event: 'print_order_started'; properties: { rollId: string; photoCount: number; printSize: string; isFreeFirstRoll: boolean } }
+  | {
+      event: 'print_order_started';
+      properties: {
+        rollId: string;
+        photoCount: number;
+        printSize: string;
+        isFreeFirstRoll: boolean;
+      };
+    }
   | { event: 'print_order_completed'; properties: { orderId: string } }
   // Circle
   | { event: 'circle_created'; properties: { circleId: string } }

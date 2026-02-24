@@ -1,5 +1,5 @@
 interface BadgeProps {
-  variant?: 'developed' | 'processing' | 'action' | 'error';
+  variant?: 'developed' | 'processing' | 'action' | 'error' | 'info';
   children: React.ReactNode;
   className?: string;
 }
@@ -10,6 +10,7 @@ export function Badge({ variant = 'processing', children, className = '' }: Badg
     processing: 'bg-[var(--color-processing)]/10 text-[var(--color-processing)]',
     action: 'bg-[var(--color-action)]/10 text-[var(--color-action)]',
     error: 'bg-[var(--color-error)]/10 text-[var(--color-error)]',
+    info: 'bg-[var(--color-ink-tertiary)]/10 text-[var(--color-ink-tertiary)]',
   };
 
   return (

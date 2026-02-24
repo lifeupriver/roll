@@ -6,7 +6,7 @@ import { Grid3X3, Image, Users, User } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 const navItems = [
-  { href: '/feed', label: 'Feed', icon: Grid3X3 },
+  { href: '/feed', label: 'Photos', icon: Grid3X3 },
   { href: '/library', label: 'Library', icon: Image },
   { href: '/circle', label: 'Circle', icon: Users },
   { href: '/account', label: 'Account', icon: User },
@@ -26,7 +26,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="flex flex-col gap-[var(--space-section)] p-[var(--space-section)]">
-          <Link href="/feed" className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] tracking-[0.15em] text-[var(--color-ink)] px-[var(--space-element)]">
+          <Link
+            href="/feed"
+            className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] tracking-[0.15em] text-[var(--color-ink)] px-[var(--space-element)]"
+          >
             ROLL
           </Link>
           <nav className="flex flex-col gap-[var(--space-tight)]">
@@ -67,9 +70,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-0.5 py-1 min-w-[64px] touch-target ${
-                isActive
-                  ? 'text-[var(--color-action)]'
-                  : 'text-[var(--color-ink-tertiary)]'
+                isActive ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-tertiary)]'
               }`}
             >
               <item.icon size={24} strokeWidth={1.5} />

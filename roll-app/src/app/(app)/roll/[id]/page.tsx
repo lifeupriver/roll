@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2 } from 'lucide-react';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
-import { FILM_PROFILES as filmProfiles } from '@/types/roll';
 import Link from 'next/link';
 
 interface Photo {
@@ -86,9 +85,7 @@ export default function RollDetailPage() {
         const res = await fetch('/api/favorites');
         if (res.ok) {
           const { data } = await res.json();
-          const ids = new Set<string>(
-            (data ?? []).map((f: { photo_id: string }) => f.photo_id)
-          );
+          const ids = new Set<string>((data ?? []).map((f: { photo_id: string }) => f.photo_id));
           setFavoritedIds(ids);
         }
       } catch {
@@ -282,10 +279,6 @@ export default function RollDetailPage() {
   const isFull = photoCount >= maxPhotos;
   const canDevelop = photoCount >= 10;
 
-  const filmProfile = roll?.film_profile
-    ? filmProfiles.find((fp) => fp.id === roll.film_profile) ?? null
-    : null;
-
   // ------------------------------------------------------------------
   // Loading state
   // ------------------------------------------------------------------
@@ -334,11 +327,7 @@ export default function RollDetailPage() {
             className="flex items-center justify-center w-16 h-16 rounded-full"
             style={{ backgroundColor: 'oklch(0.62 0.15 45 / 0.1)' }}
           >
-            <AlertCircle
-              size={32}
-              strokeWidth={1.5}
-              className="text-[var(--color-error)]"
-            />
+            <AlertCircle size={32} strokeWidth={1.5} className="text-[var(--color-error)]" />
           </div>
           <div className="flex flex-col gap-[var(--space-tight)]">
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
@@ -430,10 +419,10 @@ export default function RollDetailPage() {
               className="film-reel-rotate text-[var(--color-processing)]"
             />
             <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink)] tracking-[0.02em]">
-              Processing photo {processed} of {total}...
+              Developing photo {processed} of {total}...
             </p>
             <p className="text-[length:var(--text-label)] text-[var(--color-ink-tertiary)]">
-              Estimated time: ~2 minutes
+              AI is color correcting your photos
             </p>
           </div>
         </div>
@@ -452,18 +441,13 @@ export default function RollDetailPage() {
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
-          {filmProfile && (
-            <span className="inline-flex items-center gap-[var(--space-tight)] px-[var(--space-tight)] py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium bg-[var(--color-surface-raised)]">
-              <span
-                className="h-2 w-2 rounded-full shrink-0"
-                style={{ backgroundColor: filmProfile.stockColor }}
-              />
-              {filmProfile.name}
-            </span>
-          )}
+          <span className="inline-flex items-center gap-[var(--space-tight)] px-[var(--space-tight)] py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium bg-[var(--color-developed)]/10 text-[var(--color-developed)]">
+            <Wand2 size={12} />
+            Developed
+          </span>
         </div>
 
-        {/* Developed photo grid with film profile filter + hearts */}
+        {/* Developed photo grid — AI color corrected. Hearts mark favorites for sharing. */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {photos.map((rp) => (
             <div key={rp.id} className="relative overflow-hidden group">
@@ -471,10 +455,7 @@ export default function RollDetailPage() {
                 src={rp.processed_storage_key || rp.photos.thumbnail_url}
                 alt=""
                 loading="lazy"
-                className={[
-                  'w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]',
-                  filmProfile?.cssFilterClass ?? '',
-                ].join(' ')}
+                className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
               />
               {/* Heart overlay */}
               <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
@@ -495,14 +476,13 @@ export default function RollDetailPage() {
               Order Prints
             </Button>
           </Link>
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => router.push('/circle')}
-          >
+          <Button variant="secondary" size="lg" onClick={() => router.push('/circle')}>
             <Share2 size={18} className="mr-2" />
-            Share to Circle
+            Share Favorites to Circle
           </Button>
+          <p className="text-center text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            Heart your favorites above, then share individual photos to your Circle
+          </p>
         </div>
       </div>
     );
@@ -563,7 +543,7 @@ export default function RollDetailPage() {
         <Empty
           icon={Film}
           title="No photos yet"
-          description="Head to your feed to select photos for this roll."
+          description="Head to your Camera Roll to select photos for this roll."
           action={
             <Link href="/feed">
               <Button variant="secondary">Browse Photos</Button>
@@ -637,11 +617,7 @@ export default function RollDetailPage() {
         )}
         {isReady ? (
           <Link href={`/roll/develop?rollId=${rollId}`} className="block">
-            <Button
-              variant="primary"
-              size="lg"
-              className={isFull ? 'develop-pulse' : ''}
-            >
+            <Button variant="primary" size="lg" className={isFull ? 'develop-pulse' : ''}>
               <Film size={18} className="mr-2" />
               Develop
             </Button>

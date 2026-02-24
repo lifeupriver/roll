@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Check, EyeOff, Maximize2, Copy } from 'lucide-react';
+import { Check, EyeOff, Maximize2, Copy, Play } from 'lucide-react';
 import { ClipDurationBadge } from '@/components/reel/ClipDurationBadge';
 
 interface PhotoCardProps {
@@ -24,14 +24,7 @@ interface PhotoCardProps {
   onTap?: () => void;
 }
 
-export function PhotoCard({
-  photo,
-  isChecked,
-  mode,
-  onCheck,
-  onHide,
-  onTap,
-}: PhotoCardProps) {
+export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: PhotoCardProps) {
   const [loaded, setLoaded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -87,21 +80,35 @@ export function PhotoCard({
         <div className="absolute inset-0 bg-[var(--color-surface-sunken)] skeleton-pulse" />
       )}
 
-      {/* Video duration badge */}
-      {photo.media_type === 'video' && photo.duration_ms && (
-        <ClipDurationBadge durationMs={photo.duration_ms} />
+      {/* Video play button + duration badge */}
+      {photo.media_type === 'video' && (
+        <>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+              <Play size={20} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
+            </div>
+          </div>
+          {photo.duration_ms && <ClipDurationBadge durationMs={photo.duration_ms} />}
+        </>
       )}
 
       {/* Checkmark button (feed mode) */}
       {mode === 'feed' && onCheck && (
         <button
-          onClick={(e) => { e.stopPropagation(); onCheck(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onCheck();
+          }}
           role="checkbox"
           aria-checked={isChecked}
           aria-label={
             photo.media_type === 'video'
-              ? (isChecked ? 'Remove clip from reel' : 'Add clip to reel')
-              : (isChecked ? 'Remove photo from roll' : 'Select photo for roll')
+              ? isChecked
+                ? 'Remove clip from reel'
+                : 'Add clip to reel'
+              : isChecked
+                ? 'Remove photo from roll'
+                : 'Select photo for roll'
           }
           className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 z-10 ${
             isChecked
@@ -121,7 +128,11 @@ export function PhotoCard({
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[var(--color-darkroom)]/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)] truncate">
           {photo.date_taken
-            ? new Date(photo.date_taken).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            ? new Date(photo.date_taken).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })
             : ''}
         </p>
       </div>
@@ -129,24 +140,27 @@ export function PhotoCard({
       {/* Long-press / right-click context menu */}
       {showMenu && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowMenu(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
           <div
             className="fixed z-50 bg-[var(--color-surface)] shadow-[var(--shadow-floating)] rounded-[var(--radius-card)] p-1 min-w-[160px]"
             style={{ top: menuPosition.y || '50%', left: menuPosition.x || '50%' }}
           >
             {onHide && (
               <button
-                onClick={() => { onHide(); setShowMenu(false); }}
+                onClick={() => {
+                  onHide();
+                  setShowMenu(false);
+                }}
                 className="flex items-center gap-[var(--space-tight)] w-full px-[var(--space-element)] py-[var(--space-tight)] text-[length:var(--text-label)] text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)] transition-colors"
               >
                 <EyeOff size={16} /> Hide
               </button>
             )}
             <button
-              onClick={() => { onTap?.(); setShowMenu(false); }}
+              onClick={() => {
+                onTap?.();
+                setShowMenu(false);
+              }}
               className="flex items-center gap-[var(--space-tight)] w-full px-[var(--space-element)] py-[var(--space-tight)] text-[length:var(--text-label)] text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)] transition-colors"
             >
               <Maximize2 size={16} /> View detail
