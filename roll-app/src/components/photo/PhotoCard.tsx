@@ -25,7 +25,7 @@ interface PhotoCardProps {
 }
 
 export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: PhotoCardProps) {
-  const [loaded, setLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,31 +68,13 @@ export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: Ph
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* LQIP placeholder */}
-      {photo.lqip_base64 && !loaded && (
-        <img
-          src={photo.lqip_base64}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover blur-sm pointer-events-none"
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Actual thumbnail */}
+      {/* Thumbnail image — shown directly, no lazy/opacity dance for data URIs */}
       <img
-        src={photo.thumbnail_url}
+        src={imgError ? undefined : photo.thumbnail_url}
         alt={`Photo from ${photo.date_taken || photo.created_at}`}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        className={`w-full aspect-[3/4] object-cover transition-opacity duration-200 ease-out pointer-events-none ${
-          loaded ? 'opacity-100' : 'opacity-0'
-        }`}
+        onError={() => setImgError(true)}
+        className="w-full aspect-[3/4] object-cover pointer-events-none bg-[var(--color-surface-sunken)]"
       />
-
-      {/* Skeleton while loading */}
-      {!loaded && !photo.lqip_base64 && (
-        <div className="absolute inset-0 bg-[var(--color-surface-sunken)] skeleton-pulse pointer-events-none" />
-      )}
 
       {/* Selection overlay (feed mode) */}
       {mode === 'feed' && isChecked && (
