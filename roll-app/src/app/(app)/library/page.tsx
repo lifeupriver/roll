@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X } from 'lucide-react';
+import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X, Grid3X3 } from 'lucide-react';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
@@ -14,9 +14,10 @@ import type { Roll } from '@/types/roll';
 import type { Reel } from '@/types/reel';
 import type { Photo } from '@/types/photo';
 
-type LibrarySection = 'rolls' | 'reels' | 'favorites';
+type LibrarySection = 'all' | 'rolls' | 'reels' | 'favorites';
 
 const SECTION_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'all', label: 'All Photos' },
   { value: 'rolls', label: 'Rolls' },
   { value: 'reels', label: 'Reels' },
   { value: 'favorites', label: 'Favorites' },
@@ -48,7 +49,7 @@ function formatDate(dateString: string): string {
 export default function LibraryPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState<LibrarySection>('rolls');
+  const [activeSection, setActiveSection] = useState<LibrarySection>('all');
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [reels, setReels] = useState<Reel[]>([]);
   const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
@@ -57,6 +58,58 @@ export default function LibraryPage() {
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rollCovers, setRollCovers] = useState<Map<string, string>>(new Map());
+
+  // All-photos state: combined photos from all developed rolls
+  const [allPhotos, setAllPhotos] = useState<Array<{ photo: Photo; rollName: string; rollId: string }>>([]);
+  const [allPhotosLoading, setAllPhotosLoading] = useState(false);
+
+  // Fetch all photos from developed rolls
+  useEffect(() => {
+    if (activeSection !== 'all') return;
+    async function fetchAllPhotos() {
+      setAllPhotosLoading(true);
+      try {
+        const rollsRes = await fetch('/api/rolls');
+        if (!rollsRes.ok) return;
+        const { data: allRolls } = await rollsRes.json();
+        const developedAndBuilding = (allRolls ?? []).filter(
+          (r: Roll) => r.status === 'developed' || r.status === 'building' || r.status === 'ready'
+        );
+
+        const combined: Array<{ photo: Photo; rollName: string; rollId: string }> = [];
+        for (const roll of developedAndBuilding) {
+          try {
+            const res = await fetch(`/api/rolls/${roll.id}`);
+            if (res.ok) {
+              const json = await res.json();
+              const rollPhotos = json.data?.photos ?? [];
+              for (const rp of rollPhotos) {
+                if (rp.photos) {
+                  combined.push({
+                    photo: {
+                      ...rp.photos,
+                      // Use processed photo if available (developed roll)
+                      thumbnail_url: rp.processed_storage_key || rp.photos.thumbnail_url,
+                    },
+                    rollName: roll.name || 'Untitled Roll',
+                    rollId: roll.id,
+                  });
+                }
+              }
+            }
+          } catch {
+            // Skip this roll
+          }
+        }
+        setAllPhotos(combined);
+      } catch {
+        // Non-critical
+      } finally {
+        setAllPhotosLoading(false);
+      }
+    }
+    fetchAllPhotos();
+  }, [activeSection]);
 
   // Fetch rolls
   useEffect(() => {
@@ -235,6 +288,63 @@ export default function LibraryPage() {
         onChange={(mode) => setActiveSection(mode as LibrarySection)}
         options={SECTION_OPTIONS}
       />
+
+      {/* All Photos section — continuous grid from all rolls */}
+      {activeSection === 'all' && (
+        <section>
+          {allPhotosLoading && (
+            <div className="flex items-center justify-center py-[var(--space-hero)]">
+              <Spinner size="md" />
+            </div>
+          )}
+
+          {!allPhotosLoading && allPhotos.length === 0 && (
+            <Empty
+              icon={Grid3X3}
+              title="No photos on the shelf yet"
+              description="Build a roll from your feed, develop it, and all your photos will appear here."
+              action={
+                <Link href="/feed">
+                  <Button variant="primary" size="md">
+                    Go to Feed
+                  </Button>
+                </Link>
+              }
+            />
+          )}
+
+          {!allPhotosLoading && allPhotos.length > 0 && (
+            <>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
+                {allPhotos.length} photos across all rolls
+              </p>
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-[var(--space-micro)]">
+                {allPhotos.map((item, i) => (
+                  <button
+                    key={`${item.rollId}-${item.photo.id}-${i}`}
+                    type="button"
+                    onClick={() => router.push(`/roll/${item.rollId}`)}
+                    className="relative group overflow-hidden"
+                  >
+                    <img
+                      src={item.photo.thumbnail_url}
+                      alt=""
+                      loading="lazy"
+                      className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                    />
+                    {/* Roll name overlay on hover */}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[length:var(--text-caption)] text-white truncate block">
+                        {item.rollName}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       {/* Rolls section — grid layout */}
       {activeSection === 'rolls' && (
