@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, ToggleLeft, ToggleRight } from 'lucide-react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
@@ -23,6 +23,9 @@ export default function AccountPage() {
   const { logout, loading: logoutLoading } = useAuth();
   const { toast } = useToast();
   const [showFiltered, setShowFiltered] = useState(false);
+  // Stack settings
+  const [stackMode, setStackMode] = useState<'auto' | 'manual' | 'off'>('auto');
+  const [stackSensitivity, setStackSensitivity] = useState(0.7);
   const [orders, setOrders] = useState<PrintOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
@@ -257,6 +260,80 @@ export default function AccountPage() {
         <p className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
           {user?.tier === 'plus' ? 'Unlimited storage' : 'Free tier: 100 photo limit'}
         </p>
+      </Card>
+
+      {/* Stack Settings */}
+      <Card>
+        <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)]">
+          <Layers size={18} className="text-[var(--color-action)]" />
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+            Photo Stacking
+          </h2>
+        </div>
+        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-component)]">
+          Similar photos are grouped into stacks. The best photo is automatically chosen for your roll. Tap a stack to see all photos inside.
+        </p>
+
+        {/* Stack mode */}
+        <div className="flex flex-col gap-[var(--space-element)]">
+          <div className="flex items-center justify-between">
+            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Stacking mode</span>
+            <div className="flex items-center gap-[var(--space-tight)]">
+              {(['auto', 'manual', 'off'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setStackMode(mode)}
+                  className={`px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                    stackMode === mode
+                      ? 'bg-[var(--color-action)] text-white'
+                      : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
+                  }`}
+                >
+                  {mode === 'auto' ? 'Auto' : mode === 'manual' ? 'Manual' : 'Off'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sensitivity slider (only when auto mode) */}
+          {stackMode === 'auto' && (
+            <div className="flex items-center justify-between">
+              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                Sensitivity
+              </span>
+              <div className="flex items-center gap-[var(--space-element)]">
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Low</span>
+                <input
+                  type="range"
+                  min={0.3}
+                  max={1}
+                  step={0.05}
+                  value={stackSensitivity}
+                  onChange={(e) => setStackSensitivity(Number(e.target.value))}
+                  className="w-24 accent-[var(--color-action)]"
+                />
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">High</span>
+              </div>
+            </div>
+          )}
+
+          {stackMode === 'auto' && (
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              Higher sensitivity groups more loosely similar photos together.
+            </p>
+          )}
+          {stackMode === 'manual' && (
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              You choose which photos to group. Long-press a photo in the feed to create or add to a stack.
+            </p>
+          )}
+          {stackMode === 'off' && (
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              All photos shown individually in the feed. No grouping.
+            </p>
+          )}
+        </div>
       </Card>
 
       {/* Year in Review */}

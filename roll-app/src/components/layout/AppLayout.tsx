@@ -7,7 +7,7 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 const navItems = [
   { href: '/feed', label: 'Photos', icon: Grid3X3 },
-  { href: '/library', label: 'Library', icon: Image },
+  { href: '/library', label: 'Shelf', icon: Image },
   { href: '/circle', label: 'Circle', icon: Users },
   { href: '/account', label: 'Account', icon: User },
 ];

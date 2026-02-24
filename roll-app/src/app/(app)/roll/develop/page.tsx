@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/stores/toastStore';
-import { ArrowLeft, Wand2, Cloud, Zap } from 'lucide-react';
+import { ArrowLeft, Wand2, Cloud, Zap, Sun, Moon } from 'lucide-react';
 import { track } from '@/lib/analytics';
 import type { Roll } from '@/types/roll';
 import type { Photo } from '@/types/photo';
@@ -48,6 +48,7 @@ function DevelopPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [developing, setDeveloping] = useState(false);
+  const [processMode, setProcessMode] = useState<'color' | 'bw'>('color');
 
   useEffect(() => {
     if (!rollId) {
@@ -80,10 +81,11 @@ function DevelopPageContent() {
 
     setDeveloping(true);
     try {
+      const filmProfileId = processMode === 'bw' ? 'classic' : 'warmth';
       const response = await fetch('/api/process/develop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rollId, filmProfileId: 'warmth' }),
+        body: JSON.stringify({ rollId, filmProfileId, processMode }),
       });
 
       if (!response.ok) {
@@ -161,6 +163,89 @@ function DevelopPageContent() {
         </div>
       )}
 
+      {/* Processing mode — Color vs B&W */}
+      <div className="flex flex-col gap-[var(--space-element)]">
+        <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+          Choose your look
+        </h2>
+        <div className="grid grid-cols-2 gap-[var(--space-element)]">
+          {/* Color option */}
+          <button
+            type="button"
+            onClick={() => setProcessMode('color')}
+            className={`relative flex flex-col items-center gap-[var(--space-element)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 transition-all ${
+              processMode === 'color'
+                ? 'border-[var(--color-action)] bg-[var(--color-action-subtle)]'
+                : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-ink-tertiary)]'
+            }`}
+          >
+            {/* Preview thumbnails with color tint */}
+            <div className="grid grid-cols-2 gap-0.5 w-full rounded-[var(--radius-sharp)] overflow-hidden">
+              {samplePhotos.slice(0, 4).map((rp) => (
+                <img
+                  key={`color-${rp.id}`}
+                  src={rp.photos.thumbnail_url}
+                  alt=""
+                  className="w-full aspect-square object-cover"
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-[var(--space-tight)]">
+              <Sun size={18} className={processMode === 'color' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-secondary)]'} />
+              <span className={`text-[length:var(--text-label)] font-medium ${processMode === 'color' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+                Color
+              </span>
+            </div>
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center">
+              Warm tones, natural color correction
+            </p>
+            {processMode === 'color' && (
+              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[var(--color-action)] flex items-center justify-center">
+                <Zap size={12} className="text-white" />
+              </div>
+            )}
+          </button>
+
+          {/* B&W option */}
+          <button
+            type="button"
+            onClick={() => setProcessMode('bw')}
+            className={`relative flex flex-col items-center gap-[var(--space-element)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 transition-all ${
+              processMode === 'bw'
+                ? 'border-[var(--color-ink)] bg-[var(--color-surface-sunken)]'
+                : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-ink-tertiary)]'
+            }`}
+          >
+            {/* Preview thumbnails with grayscale filter */}
+            <div className="grid grid-cols-2 gap-0.5 w-full rounded-[var(--radius-sharp)] overflow-hidden">
+              {samplePhotos.slice(0, 4).map((rp) => (
+                <img
+                  key={`bw-${rp.id}`}
+                  src={rp.photos.thumbnail_url}
+                  alt=""
+                  className="w-full aspect-square object-cover grayscale contrast-110"
+                  style={{ filter: 'grayscale(100%) contrast(1.1)' }}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-[var(--space-tight)]">
+              <Moon size={18} className={processMode === 'bw' ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink-secondary)]'} />
+              <span className={`text-[length:var(--text-label)] font-medium ${processMode === 'bw' ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink)]'}`}>
+                Black & White
+              </span>
+            </div>
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center">
+              Classic B&W with rich tonal range
+            </p>
+            {processMode === 'bw' && (
+              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[var(--color-ink)] flex items-center justify-center">
+                <Moon size={12} className="text-white" />
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* AI development info card */}
       <div className="flex flex-col gap-[var(--space-component)] bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)]">
         <div className="flex items-center gap-[var(--space-element)]">
@@ -169,7 +254,7 @@ function DevelopPageContent() {
           </div>
           <div>
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
-              AI Color Correction
+              {processMode === 'bw' ? 'AI B&W Conversion' : 'AI Color Correction'}
             </h2>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
               Cloud-powered per-photo AI
@@ -178,8 +263,9 @@ function DevelopPageContent() {
         </div>
 
         <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-relaxed">
-          Your photos are sent to the cloud where AI analyzes each image individually — correcting
-          exposure, white balance, color, and tone. Developed JPGs are delivered to your library.
+          {processMode === 'bw'
+            ? 'Your photos are converted to black & white with AI-optimized tonal adjustments — enhancing contrast, highlights, and shadow detail for a classic film look.'
+            : 'Your photos are sent to the cloud where AI analyzes each image individually — correcting exposure, white balance, color, and tone. Developed JPGs are delivered to your shelf.'}
         </p>
 
         <div className="flex flex-wrap gap-[var(--space-element)]">
@@ -190,6 +276,13 @@ function DevelopPageContent() {
           <Badge variant="developed">
             <Zap size={12} className="mr-0.5 inline" />
             Per-photo AI
+          </Badge>
+          <Badge variant={processMode === 'bw' ? 'processing' : 'action'}>
+            {processMode === 'bw' ? (
+              <><Moon size={12} className="mr-0.5 inline" /> Black & White</>
+            ) : (
+              <><Sun size={12} className="mr-0.5 inline" /> Color</>
+            )}
           </Badge>
         </div>
       </div>
@@ -202,11 +295,13 @@ function DevelopPageContent() {
         disabled={developing}
         onClick={handleDevelop}
       >
-        {developing ? 'Developing...' : `Develop ${roll.photo_count} Photos`}
+        {developing
+          ? 'Developing...'
+          : `Develop ${roll.photo_count} Photos in ${processMode === 'bw' ? 'B&W' : 'Color'}`}
       </Button>
 
       <p className="text-center text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-        Color-corrected JPGs will appear in your library
+        {processMode === 'bw' ? 'B&W' : 'Color-corrected'} JPGs will appear in your shelf
       </p>
     </div>
   );
