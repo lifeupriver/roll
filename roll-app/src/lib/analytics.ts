@@ -42,6 +42,9 @@ export type AnalyticsEvent =
   | { event: 'roll_develop_started'; properties: { rollId: string; photoCount: number } }
   | { event: 'roll_develop_completed'; properties: { rollId: string; durationMs: number } }
   | { event: 'roll_autofill'; properties: { rollId: string; count: number } }
+  // Clips (Reels)
+  | { event: 'clip_added'; properties: { reelId: string; clipCount: number } }
+  | { event: 'clip_removed'; properties: { reelId: string } }
   // Favorites
   | { event: 'photo_hearted'; properties: { photoId: string; rollId: string } }
   | { event: 'photo_unhearted'; properties: { photoId: string } }
