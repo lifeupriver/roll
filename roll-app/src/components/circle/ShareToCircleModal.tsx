@@ -148,8 +148,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
     }
   };
 
-  const canShare =
-    shareMode === 'photos' ? selectedKeys.size > 0 : selectedReelId !== null;
+  const canShare = shareMode === 'photos' ? selectedKeys.size > 0 : selectedReelId !== null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -177,7 +176,8 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
           <>
             {favorites.length === 0 && (
               <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center py-[var(--space-section)]">
-                No favorites to share. Develop a roll and favorite some photos first.
+                No favorites to share yet. Develop a roll with eyeQ, then heart your favorite
+                color-corrected photos.
               </p>
             )}
 
@@ -218,7 +218,9 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
                               : 'bg-[var(--color-surface-overlay)]/40 border border-white/60 scale-90 opacity-0 group-hover:opacity-100'
                           }`}
                         >
-                          {isSelected && <Check size={14} strokeWidth={2.5} className="text-white" />}
+                          {isSelected && (
+                            <Check size={14} strokeWidth={2.5} className="text-white" />
+                          )}
                         </div>
                       </button>
                     );
@@ -269,7 +271,12 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
                           <img src={posterUrl} alt="" className="w-full h-full object-cover" />
                         )}
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Play size={16} className="text-white/80" fill="white" fillOpacity={0.6} />
+                          <Play
+                            size={16}
+                            className="text-white/80"
+                            fill="white"
+                            fillOpacity={0.6}
+                          />
                         </div>
                       </div>
 
@@ -279,7 +286,8 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
                         </p>
                         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
                           {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
-                          {reel.assembled_duration_ms && ` \u00B7 ${formatDuration(reel.assembled_duration_ms)}`}
+                          {reel.assembled_duration_ms &&
+                            ` \u00B7 ${formatDuration(reel.assembled_duration_ms)}`}
                         </p>
                       </div>
 
@@ -306,7 +314,11 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
           <>
             <Input
               label="Caption"
-              placeholder={shareMode === 'reel' ? 'Say something about this reel...' : 'Say something about these photos...'}
+              placeholder={
+                shareMode === 'reel'
+                  ? 'Say something about this reel...'
+                  : 'Say something about these photos...'
+              }
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
             />

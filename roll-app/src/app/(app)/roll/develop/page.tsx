@@ -4,13 +4,11 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { FilmProfileSelector } from '@/components/roll/FilmProfileSelector';
-import { FILM_PROFILES } from '@/types/roll';
-import { useUserStore } from '@/stores/userStore';
+import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/stores/toastStore';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Wand2, Cloud, Zap } from 'lucide-react';
 import { track } from '@/lib/analytics';
-import type { Roll, FilmProfileId } from '@/types/roll';
+import type { Roll } from '@/types/roll';
 import type { Photo } from '@/types/photo';
 
 interface RollPhotoWithPhoto {
@@ -26,7 +24,13 @@ interface RollPhotoWithPhoto {
 
 export default function DevelopPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><Spinner size="lg" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
       <DevelopPageContent />
     </Suspense>
   );
@@ -38,17 +42,13 @@ function DevelopPageContent() {
   const { toast } = useToast();
 
   const rollId = searchParams.get('rollId');
-  const user = useUserStore((state) => state.user);
-  const userTier = user?.tier ?? 'free';
 
   const [roll, setRoll] = useState<Roll | null>(null);
   const [photos, setPhotos] = useState<RollPhotoWithPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedProfileId, setSelectedProfileId] = useState<FilmProfileId>('warmth');
   const [developing, setDeveloping] = useState(false);
 
-  // Fetch roll data on mount
   useEffect(() => {
     if (!rollId) {
       setError('No roll ID provided');
@@ -75,17 +75,6 @@ function DevelopPageContent() {
     fetchRoll();
   }, [rollId]);
 
-  // Handle profile selection with locked profile check
-  function handleProfileChange(profileId: string) {
-    const profile = FILM_PROFILES.find((p) => p.id === profileId);
-    if (profile?.tier === 'plus' && userTier === 'free') {
-      toast('Upgrade to Roll+ to unlock all film profiles', 'info');
-      return;
-    }
-    setSelectedProfileId(profileId as FilmProfileId);
-  }
-
-  // Handle develop action
   async function handleDevelop() {
     if (!rollId || developing) return;
 
@@ -94,31 +83,27 @@ function DevelopPageContent() {
       const response = await fetch('/api/process/develop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rollId, filmProfileId: selectedProfileId }),
+        body: JSON.stringify({ rollId, filmProfileId: 'warmth' }),
       });
 
       if (!response.ok) {
         throw new Error('Failed to start development');
       }
 
-      track({ event: 'roll_develop_started', properties: { rollId, filmProfile: selectedProfileId, photoCount: roll?.photo_count ?? 0 } });
+      track({
+        event: 'roll_develop_started',
+        properties: { rollId, photoCount: roll?.photo_count ?? 0 },
+      });
       router.push(`/roll/${rollId}`);
     } catch (err) {
-      toast(
-        err instanceof Error ? err.message : 'Failed to start development',
-        'error',
-      );
+      toast(err instanceof Error ? err.message : 'Failed to start development', 'error');
       setDeveloping(false);
     }
   }
 
-  // Get the first photo thumbnail for preview
-  const samplePhotoUrl = photos.length > 0 ? photos[0].photos.thumbnail_url : '';
+  // Show up to 4 sample thumbnails
+  const samplePhotos = photos.slice(0, 4);
 
-  // Get selected profile's CSS filter class
-  const selectedProfile = FILM_PROFILES.find((p) => p.id === selectedProfileId);
-
-  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
@@ -127,7 +112,6 @@ function DevelopPageContent() {
     );
   }
 
-  // Error state
   if (error || !roll) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-[var(--space-component)]">
@@ -143,7 +127,7 @@ function DevelopPageContent() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      {/* Header: Back button, roll name, photo count */}
+      {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
         <button
           type="button"
@@ -155,7 +139,7 @@ function DevelopPageContent() {
         </button>
         <div className="flex items-baseline gap-[var(--space-element)]">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
-            {roll.name || 'Untitled Roll'}
+            Develop Roll
           </h1>
           <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
             {roll.photo_count} photos
@@ -163,33 +147,51 @@ function DevelopPageContent() {
         </div>
       </div>
 
-      {/* Sample photo preview with selected film profile filter */}
-      {samplePhotoUrl && (
-        <div className="flex justify-center">
-          <img
-            src={samplePhotoUrl}
-            alt="Sample photo preview"
-            className={[
-              'max-h-[400px] w-full object-contain rounded-[var(--radius-card)]',
-              'shadow-[var(--shadow-floating)]',
-              selectedProfile?.cssFilterClass ?? '',
-            ].join(' ')}
-          />
+      {/* Photo grid preview */}
+      {samplePhotos.length > 0 && (
+        <div className="grid grid-cols-2 gap-1 rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-floating)]">
+          {samplePhotos.map((rp) => (
+            <img
+              key={rp.id}
+              src={rp.photos.thumbnail_url}
+              alt=""
+              className="w-full aspect-[4/3] object-cover"
+            />
+          ))}
         </div>
       )}
 
-      {/* Film profile selector */}
-      <div>
-        <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] mb-[var(--space-element)]">
-          Choose Film Stock
-        </h2>
-        <FilmProfileSelector
-          profiles={FILM_PROFILES}
-          selectedId={selectedProfileId}
-          onChange={handleProfileChange}
-          samplePhotoUrl={samplePhotoUrl}
-          userTier={userTier}
-        />
+      {/* AI development info card */}
+      <div className="flex flex-col gap-[var(--space-component)] bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)]">
+        <div className="flex items-center gap-[var(--space-element)]">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-action)]/10">
+            <Wand2 size={20} className="text-[var(--color-action)]" />
+          </div>
+          <div>
+            <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+              AI Color Correction
+            </h2>
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              Powered by eyeQ
+            </p>
+          </div>
+        </div>
+
+        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-relaxed">
+          Your photos are sent to the cloud where AI analyzes each image individually — correcting
+          exposure, white balance, color, and tone. Developed JPGs are delivered to your library.
+        </p>
+
+        <div className="flex flex-wrap gap-[var(--space-element)]">
+          <Badge variant="action">
+            <Cloud size={12} className="mr-0.5 inline" />
+            Cloud processed
+          </Badge>
+          <Badge variant="developed">
+            <Zap size={12} className="mr-0.5 inline" />
+            Per-photo AI
+          </Badge>
+        </div>
       </div>
 
       {/* Develop CTA */}
@@ -200,12 +202,11 @@ function DevelopPageContent() {
         disabled={developing}
         onClick={handleDevelop}
       >
-        {developing ? 'Developing...' : 'Develop This Roll'}
+        {developing ? 'Sending to eyeQ...' : `Develop ${roll.photo_count} Photos`}
       </Button>
 
-      {/* Processing time estimate */}
       <p className="text-center text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-        ~2 minutes for {roll.photo_count} photos
+        Color-corrected JPGs will appear in your library
       </p>
     </div>
   );

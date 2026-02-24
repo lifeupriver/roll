@@ -21,8 +21,8 @@ const MOCK_AUTH_USER = {
 
 // ── Mock data per table ──────────────────────────────────────────────
 
-function picsum(id: number, w = 600, h = 400) {
-  return `https://picsum.photos/id/${id}/${w}/${h}`;
+function picsum(seed: string, w = 600, h = 400) {
+  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
 }
 
 function uuid(n: number) {
@@ -32,51 +32,165 @@ function uuid(n: number) {
 const now = new Date().toISOString();
 const yesterday = new Date(Date.now() - 86400000).toISOString();
 const lastWeek = new Date(Date.now() - 7 * 86400000).toISOString();
+const twoWeeksAgo = new Date(Date.now() - 14 * 86400000).toISOString();
 
 const MOCK_PROFILE = {
   id: MOCK_USER_ID,
   email: 'preview@roll.photos',
-  display_name: 'Preview User',
-  avatar_url: picsum(64, 200, 200),
+  display_name: 'Alex Rivera',
+  avatar_url: picsum('avatar-alex', 200, 200),
   tier: 'plus' as const,
   onboarding_complete: true,
   photo_count: 84,
-  storage_used_bytes: 524288000,
+  storage_used_bytes: 2_400_000_000,
   stripe_customer_id: null,
   stripe_subscription_id: null,
+  referral_code: 'ROLLPREV',
   created_at: '2025-01-01T00:00:00.000Z',
   updated_at: now,
 };
 
+// Photo seeds — curated for a realistic camera roll feel
+// Using descriptive seed names for variety
+const PHOTO_SEEDS = [
+  // People (face_count > 0)
+  { seed: 'friends-dinner', faces: 3, scene: ['indoor', 'restaurant'] },
+  { seed: 'park-portrait', faces: 1, scene: ['outdoor', 'portrait'] },
+  { seed: 'birthday-group', faces: 4, scene: ['indoor', 'event'] },
+  { seed: 'coffee-date', faces: 2, scene: ['indoor', 'restaurant'] },
+  { seed: 'beach-selfie', faces: 2, scene: ['outdoor', 'portrait'] },
+  { seed: 'morning-portrait', faces: 1, scene: ['indoor', 'portrait'] },
+  { seed: 'family-kitchen', faces: 3, scene: ['indoor', 'home'] },
+  { seed: 'street-smile', faces: 1, scene: ['urban', 'street'] },
+  { seed: 'picnic-friends', faces: 4, scene: ['outdoor', 'group'] },
+  { seed: 'rooftop-party', faces: 3, scene: ['urban', 'event'] },
+  { seed: 'cafe-candid', faces: 1, scene: ['indoor', 'portrait'] },
+  { seed: 'dog-walk-selfie', faces: 1, scene: ['outdoor', 'pet'] },
+  { seed: 'brunch-crew', faces: 4, scene: ['indoor', 'group'] },
+  { seed: 'sunset-couple', faces: 2, scene: ['outdoor', 'portrait'] },
+  { seed: 'bookshop-candid', faces: 1, scene: ['indoor', 'portrait'] },
+  { seed: 'christmas-family', faces: 5, scene: ['indoor', 'event'] },
+  { seed: 'market-faces', faces: 2, scene: ['outdoor', 'travel'] },
+  { seed: 'garden-portrait', faces: 1, scene: ['outdoor', 'portrait'] },
+  { seed: 'studio-headshot', faces: 1, scene: ['indoor', 'portrait'] },
+  { seed: 'concert-friends', faces: 3, scene: ['indoor', 'event'] },
+  // Landscapes (face_count = 0, has 'landscape' tag)
+  { seed: 'mountain-golden-hour', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'ocean-cliff-sunset', faces: 0, scene: ['landscape', 'beach'] },
+  { seed: 'misty-forest-trail', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'desert-road-horizon', faces: 0, scene: ['landscape', 'travel'] },
+  { seed: 'lake-reflection-dawn', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'autumn-park-path', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'city-skyline-dusk', faces: 0, scene: ['landscape', 'urban'] },
+  { seed: 'vineyard-hills', faces: 0, scene: ['landscape', 'travel'] },
+  { seed: 'snowy-cabin-morning', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'coastal-rocks-blue', faces: 0, scene: ['landscape', 'beach'] },
+  { seed: 'meadow-wildflowers', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'canyon-layers', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'river-bend-green', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'sunset-wheat-field', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'foggy-bridge-morning', faces: 0, scene: ['landscape', 'urban'] },
+  // Other scenes (food, architecture, pets, indoor)
+  { seed: 'pasta-dinner-plate', faces: 0, scene: ['food', 'indoor'] },
+  { seed: 'latte-art-morning', faces: 0, scene: ['food', 'indoor'] },
+  { seed: 'sushi-spread', faces: 0, scene: ['food', 'restaurant'] },
+  { seed: 'cat-sleeping-couch', faces: 0, scene: ['pet', 'indoor'] },
+  { seed: 'golden-retriever-park', faces: 0, scene: ['pet', 'outdoor'] },
+  { seed: 'architecture-glass', faces: 0, scene: ['urban', 'architecture'] },
+  { seed: 'street-neon-rain', faces: 0, scene: ['urban', 'street'] },
+  { seed: 'bookshelf-home', faces: 0, scene: ['indoor', 'home'] },
+  { seed: 'flowers-windowsill', faces: 0, scene: ['indoor', 'home'] },
+  { seed: 'vintage-car-detail', faces: 0, scene: ['urban', 'street'] },
+  { seed: 'rainy-window-cafe', faces: 0, scene: ['indoor', 'restaurant'] },
+  { seed: 'guitar-cozy-room', faces: 0, scene: ['indoor', 'home'] },
+  { seed: 'bike-brooklyn-bridge', faces: 0, scene: ['urban', 'travel'] },
+  { seed: 'farmers-market-produce', faces: 0, scene: ['outdoor', 'food'] },
+  { seed: 'museum-gallery-wide', faces: 0, scene: ['indoor', 'architecture'] },
+  // More people for better People filter
+  { seed: 'wedding-toast', faces: 2, scene: ['indoor', 'event'] },
+  { seed: 'playground-kids', faces: 3, scene: ['outdoor', 'group'] },
+  { seed: 'thanksgiving-table', faces: 5, scene: ['indoor', 'event'] },
+  { seed: 'yoga-park-session', faces: 1, scene: ['outdoor', 'portrait'] },
+  { seed: 'study-library', faces: 1, scene: ['indoor', 'portrait'] },
+  // More landscapes
+  { seed: 'volcano-clouds', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'waterfall-moss', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'starry-campsite', faces: 0, scene: ['landscape', 'nature'] },
+  // Mixed remaining
+  { seed: 'marketplace-color', faces: 0, scene: ['travel', 'urban'] },
+  { seed: 'old-door-texture', faces: 0, scene: ['urban', 'architecture'] },
+  { seed: 'metro-platform', faces: 0, scene: ['urban', 'street'] },
+  { seed: 'tennis-court-aerial', faces: 0, scene: ['outdoor', 'sport'] },
+  { seed: 'record-store-vinyl', faces: 0, scene: ['indoor', 'urban'] },
+  { seed: 'pier-foggy-morning', faces: 0, scene: ['landscape', 'urban'] },
+  { seed: 'pottery-hands', faces: 0, scene: ['indoor', 'portrait'] },
+  { seed: 'bakery-counter', faces: 0, scene: ['indoor', 'food'] },
+  { seed: 'train-window-blur', faces: 0, scene: ['travel', 'urban'] },
+  { seed: 'night-market-glow', faces: 0, scene: ['travel', 'food'] },
+  { seed: 'cherry-blossom-path', faces: 0, scene: ['landscape', 'nature'] },
+  { seed: 'skatepark-action', faces: 1, scene: ['outdoor', 'sport'] },
+  { seed: 'cozy-fireplace', faces: 0, scene: ['indoor', 'home'] },
+  { seed: 'tide-pool-macro', faces: 0, scene: ['outdoor', 'nature'] },
+  { seed: 'graffiti-alley', faces: 0, scene: ['urban', 'street'] },
+  { seed: 'rowing-lake-early', faces: 2, scene: ['outdoor', 'sport'] },
+  { seed: 'artisan-coffee-pour', faces: 0, scene: ['food', 'indoor'] },
+  { seed: 'baby-first-steps', faces: 1, scene: ['indoor', 'portrait'] },
+  { seed: 'holiday-lights-street', faces: 0, scene: ['urban', 'event'] },
+  { seed: 'campfire-marshmallows', faces: 3, scene: ['outdoor', 'event'] },
+  { seed: 'sunrise-balcony', faces: 0, scene: ['landscape', 'home'] },
+  { seed: 'staircase-spiral', faces: 0, scene: ['indoor', 'architecture'] },
+  { seed: 'sidewalk-chalk-kids', faces: 2, scene: ['outdoor', 'group'] },
+  { seed: 'tailgate-bbq', faces: 4, scene: ['outdoor', 'event'] },
+];
+
+const CAMERAS = [
+  { make: 'Apple', model: 'iPhone 15 Pro' },
+  { make: 'Apple', model: 'iPhone 14' },
+  { make: 'Apple', model: 'iPhone 13 Pro Max' },
+  { make: 'Samsung', model: 'Galaxy S24 Ultra' },
+  { make: 'Google', model: 'Pixel 8 Pro' },
+];
+
 function generatePhotos(count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: uuid(100 + i),
-    user_id: MOCK_USER_ID,
-    storage_key: `originals/${MOCK_USER_ID}/photo_${i}.jpg`,
-    thumbnail_url: picsum(10 + i, 400, 300),
-    content_type: 'image/jpeg',
-    media_type: i % 8 === 0 ? 'video' : 'photo',
-    width: 3024,
-    height: 4032,
-    file_size_bytes: 3500000,
-    content_hash: `hash_${i}`,
-    camera_make: 'Apple',
-    camera_model: 'iPhone 15 Pro',
-    date_taken: new Date(Date.now() - i * 3600000).toISOString(),
-    filter_status: 'visible',
-    filter_reason: null,
-    aesthetic_score: 0.6 + Math.random() * 0.3,
-    face_count: i % 3 === 0 ? 2 : i % 5 === 0 ? 1 : 0,
-    scene_classification:
-      i % 4 === 0 ? ['landscape', 'nature'] : i % 3 === 0 ? ['indoor', 'warm'] : ['outdoor'],
-    phash: `phash_${i}`,
-    duration_ms: i % 8 === 0 ? 5000 + i * 1000 : null,
-    duration_category: i % 8 === 0 ? 'moment' : null,
-    audio_classification: i % 8 === 0 ? 'ambient' : null,
-    stabilization_score: i % 8 === 0 ? 0.75 : null,
-    created_at: new Date(Date.now() - i * 3600000).toISOString(),
-    updated_at: now,
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const config = PHOTO_SEEDS[i % PHOTO_SEEDS.length];
+    const camera = CAMERAS[i % CAMERAS.length];
+    // Every 10th photo is a video clip
+    const isVideo = i % 10 === 7;
+
+    return {
+      id: uuid(100 + i),
+      user_id: MOCK_USER_ID,
+      storage_key: `originals/${MOCK_USER_ID}/photo_${i}.jpg`,
+      thumbnail_url: picsum(config.seed, 400, 530),
+      lqip_base64: null,
+      content_type: isVideo ? 'video/mp4' : 'image/jpeg',
+      media_type: isVideo ? 'video' : 'photo',
+      filename: `IMG_${(1000 + i).toString()}.${isVideo ? 'mp4' : 'jpg'}`,
+      width: 3024,
+      height: 4032,
+      size_bytes: 3500000 + i * 50000,
+      file_size_bytes: 3500000 + i * 50000,
+      content_hash: `hash_${i}`,
+      camera_make: camera.make,
+      camera_model: camera.model,
+      date_taken: new Date(Date.now() - i * 3600000 - i * 1800000).toISOString(),
+      latitude: i % 5 === 0 ? 40.7128 + i * 0.001 : null,
+      longitude: i % 5 === 0 ? -74.006 + i * 0.001 : null,
+      filter_status: 'visible',
+      filter_reason: null,
+      aesthetic_score: 0.6 + (i % 10) * 0.035,
+      face_count: config.faces,
+      scene_classification: config.scene,
+      phash: `phash_${i}`,
+      duration_ms: isVideo ? 5000 + i * 800 : null,
+      duration_category: isVideo ? 'moment' : null,
+      audio_classification: isVideo ? 'ambient' : null,
+      stabilization_score: isVideo ? 0.75 : null,
+      created_at: new Date(Date.now() - i * 3600000 - i * 1800000).toISOString(),
+      updated_at: now,
+    };
+  });
 }
 
 const MOCK_PHOTOS = generatePhotos(84);
@@ -87,7 +201,7 @@ const MOCK_ROLLS = [
     user_id: MOCK_USER_ID,
     name: 'Weekend at the Park',
     status: 'developed',
-    film_profile: 'warmth',
+    film_profile: null,
     photo_count: 24,
     max_photos: 36,
     processing_started_at: yesterday,
@@ -103,16 +217,16 @@ const MOCK_ROLLS = [
     user_id: MOCK_USER_ID,
     name: 'Birthday Party',
     status: 'developed',
-    film_profile: 'golden',
+    film_profile: null,
     photo_count: 36,
     max_photos: 36,
-    processing_started_at: lastWeek,
-    processing_completed_at: lastWeek,
+    processing_started_at: twoWeeksAgo,
+    processing_completed_at: twoWeeksAgo,
     processing_error: null,
     photos_processed: 36,
     correction_skipped_count: 0,
-    created_at: lastWeek,
-    updated_at: lastWeek,
+    created_at: twoWeeksAgo,
+    updated_at: twoWeeksAgo,
   },
   {
     id: uuid(202),
@@ -132,16 +246,22 @@ const MOCK_ROLLS = [
   },
 ];
 
-function generateRollPhotos(rollId: string, count: number) {
-  return Array.from({ length: count }, (_, i) => ({
-    id: uuid(300 + i),
-    roll_id: rollId,
-    photo_id: MOCK_PHOTOS[i]?.id ?? uuid(100 + i),
-    position: i,
-    processed_storage_key: `processed/${MOCK_USER_ID}/${rollId}/${i}_warmth.jpg`,
-    correction_applied: true,
-    created_at: now,
-  }));
+function generateRollPhotos(rollId: string, count: number, offset: number = 0) {
+  return Array.from({ length: count }, (_, i) => {
+    const photoIndex = offset + i;
+    const photo = MOCK_PHOTOS[photoIndex % MOCK_PHOTOS.length];
+    return {
+      id: uuid(300 + offset + i),
+      roll_id: rollId,
+      photo_id: photo?.id ?? uuid(100 + photoIndex),
+      position: i + 1,
+      // Use a different picsum seed for processed photos (simulates eyeQ color correction)
+      processed_storage_key: picsum(`corrected-${photoIndex}`, 400, 530),
+      correction_applied: true,
+      created_at: now,
+      photos: photo ?? null,
+    };
+  });
 }
 
 const MOCK_REELS = [
@@ -150,7 +270,7 @@ const MOCK_REELS = [
     user_id: MOCK_USER_ID,
     name: 'Summer Highlights',
     status: 'developed',
-    film_profile: 'vivid',
+    film_profile: null,
     audio_mood: 'quiet_film',
     reel_size: 'standard',
     target_duration_ms: 180000,
@@ -161,8 +281,8 @@ const MOCK_REELS = [
     processing_error: null,
     clips_processed: 8,
     correction_skipped_count: 0,
-    assembled_storage_key: `reels/${MOCK_USER_ID}/${uuid(400)}/assembled_vivid.mp4`,
-    poster_storage_key: `reels/${MOCK_USER_ID}/${uuid(400)}/poster.webp`,
+    assembled_storage_key: `reels/${MOCK_USER_ID}/${uuid(400)}/assembled.mp4`,
+    poster_storage_key: picsum('reel-poster-summer', 400, 300),
     assembled_duration_ms: 147000,
     created_at: lastWeek,
     updated_at: yesterday,
@@ -191,26 +311,292 @@ const MOCK_REELS = [
   },
 ];
 
-const MOCK_CIRCLES = [
+// Fake circle members
+const FAKE_MEMBER_IDS = [uuid(900), uuid(901), uuid(902), uuid(903)];
+
+const FAKE_MEMBER_PROFILES = [
   {
-    id: uuid(500),
-    name: 'Family',
-    created_by: MOCK_USER_ID,
-    member_count: 4,
-    invite_token: 'abc123',
+    id: FAKE_MEMBER_IDS[0],
+    email: 'jordan@example.com',
+    display_name: 'Jordan Lee',
+    avatar_url: picsum('jordan-avatar', 200, 200),
+    tier: 'plus',
+    onboarding_complete: true,
+    photo_count: 42,
+    storage_used_bytes: 800_000_000,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+    created_at: twoWeeksAgo,
+    updated_at: now,
+  },
+  {
+    id: FAKE_MEMBER_IDS[1],
+    email: 'sam@example.com',
+    display_name: 'Sam Chen',
+    avatar_url: picsum('sam-avatar', 200, 200),
+    tier: 'free',
+    onboarding_complete: true,
+    photo_count: 18,
+    storage_used_bytes: 200_000_000,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+    created_at: twoWeeksAgo,
+    updated_at: now,
+  },
+  {
+    id: FAKE_MEMBER_IDS[2],
+    email: 'riley@example.com',
+    display_name: 'Riley Park',
+    avatar_url: picsum('riley-avatar', 200, 200),
+    tier: 'plus',
+    onboarding_complete: true,
+    photo_count: 67,
+    storage_used_bytes: 1_200_000_000,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+    created_at: lastWeek,
+    updated_at: now,
+  },
+  {
+    id: FAKE_MEMBER_IDS[3],
+    email: 'morgan@example.com',
+    display_name: 'Morgan Taylor',
+    avatar_url: picsum('morgan-avatar', 200, 200),
+    tier: 'free',
+    onboarding_complete: true,
+    photo_count: 9,
+    storage_used_bytes: 100_000_000,
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
     created_at: lastWeek,
     updated_at: now,
   },
 ];
 
-const MOCK_FAVORITES = MOCK_PHOTOS.slice(0, 6).map((p, i) => ({
+const MOCK_CIRCLES = [
+  {
+    id: uuid(500),
+    creator_id: MOCK_USER_ID,
+    name: 'Family Photos',
+    cover_photo_url: null,
+    member_count: 4,
+    invite_token: 'abc123',
+    created_at: twoWeeksAgo,
+    updated_at: now,
+  },
+  {
+    id: uuid(501),
+    creator_id: MOCK_USER_ID,
+    name: 'NYC Weekend Crew',
+    cover_photo_url: null,
+    member_count: 3,
+    invite_token: 'def456',
+    created_at: lastWeek,
+    updated_at: now,
+  },
+];
+
+const MOCK_CIRCLE_MEMBERS = [
+  // Family Photos circle
+  {
+    id: uuid(550),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: MOCK_USER_ID,
+    role: 'creator',
+    joined_at: twoWeeksAgo,
+  },
+  {
+    id: uuid(551),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: FAKE_MEMBER_IDS[0],
+    role: 'member',
+    joined_at: twoWeeksAgo,
+  },
+  {
+    id: uuid(552),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: FAKE_MEMBER_IDS[1],
+    role: 'member',
+    joined_at: lastWeek,
+  },
+  {
+    id: uuid(553),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: FAKE_MEMBER_IDS[2],
+    role: 'member',
+    joined_at: lastWeek,
+  },
+  // NYC Weekend Crew
+  {
+    id: uuid(554),
+    circle_id: MOCK_CIRCLES[1].id,
+    user_id: MOCK_USER_ID,
+    role: 'creator',
+    joined_at: lastWeek,
+  },
+  {
+    id: uuid(555),
+    circle_id: MOCK_CIRCLES[1].id,
+    user_id: FAKE_MEMBER_IDS[1],
+    role: 'member',
+    joined_at: lastWeek,
+  },
+  {
+    id: uuid(556),
+    circle_id: MOCK_CIRCLES[1].id,
+    user_id: FAKE_MEMBER_IDS[3],
+    role: 'member',
+    joined_at: yesterday,
+  },
+];
+
+// Circle posts — individual photos shared to circles
+const MOCK_CIRCLE_POSTS = [
+  {
+    id: uuid(560),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: MOCK_USER_ID,
+    caption: 'Golden hour never disappoints',
+    created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+  {
+    id: uuid(561),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: FAKE_MEMBER_IDS[0],
+    caption: 'Missing this place already',
+    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+  },
+  {
+    id: uuid(562),
+    circle_id: MOCK_CIRCLES[0].id,
+    user_id: FAKE_MEMBER_IDS[1],
+    caption: null,
+    created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+  },
+  {
+    id: uuid(563),
+    circle_id: MOCK_CIRCLES[1].id,
+    user_id: MOCK_USER_ID,
+    caption: 'This roll came out so good',
+    created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+  },
+  {
+    id: uuid(564),
+    circle_id: MOCK_CIRCLES[1].id,
+    user_id: FAKE_MEMBER_IDS[3],
+    caption: 'The colors are perfect',
+    created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
+  },
+];
+
+const MOCK_CIRCLE_POST_PHOTOS = [
+  {
+    id: uuid(570),
+    post_id: uuid(560),
+    storage_key: picsum('share-sunset-beach', 400, 530),
+    position: 1,
+  },
+  {
+    id: uuid(571),
+    post_id: uuid(561),
+    storage_key: picsum('share-mountain-view', 400, 530),
+    position: 1,
+  },
+  {
+    id: uuid(572),
+    post_id: uuid(561),
+    storage_key: picsum('share-cabin-fire', 400, 530),
+    position: 2,
+  },
+  {
+    id: uuid(573),
+    post_id: uuid(562),
+    storage_key: picsum('share-family-garden', 400, 530),
+    position: 1,
+  },
+  {
+    id: uuid(574),
+    post_id: uuid(563),
+    storage_key: picsum('share-brooklyn-bridge', 400, 530),
+    position: 1,
+  },
+  {
+    id: uuid(575),
+    post_id: uuid(563),
+    storage_key: picsum('share-central-park', 400, 530),
+    position: 2,
+  },
+  {
+    id: uuid(576),
+    post_id: uuid(564),
+    storage_key: picsum('share-rooftop-sunset', 400, 530),
+    position: 1,
+  },
+];
+
+const MOCK_CIRCLE_REACTIONS = [
+  {
+    id: uuid(580),
+    post_id: uuid(560),
+    user_id: FAKE_MEMBER_IDS[0],
+    reaction_type: 'heart',
+    created_at: yesterday,
+  },
+  {
+    id: uuid(581),
+    post_id: uuid(560),
+    user_id: FAKE_MEMBER_IDS[1],
+    reaction_type: 'wow',
+    created_at: yesterday,
+  },
+  {
+    id: uuid(582),
+    post_id: uuid(561),
+    user_id: MOCK_USER_ID,
+    reaction_type: 'heart',
+    created_at: lastWeek,
+  },
+  {
+    id: uuid(583),
+    post_id: uuid(563),
+    user_id: FAKE_MEMBER_IDS[3],
+    reaction_type: 'smile',
+    created_at: yesterday,
+  },
+];
+
+const MOCK_CIRCLE_COMMENTS = [
+  {
+    id: uuid(590),
+    post_id: uuid(560),
+    user_id: FAKE_MEMBER_IDS[0],
+    body: 'Incredible shot!',
+    created_at: yesterday,
+  },
+  {
+    id: uuid(591),
+    post_id: uuid(561),
+    user_id: MOCK_USER_ID,
+    body: 'Where is this?',
+    created_at: lastWeek,
+  },
+  {
+    id: uuid(592),
+    post_id: uuid(563),
+    user_id: FAKE_MEMBER_IDS[3],
+    body: 'Frame-worthy',
+    created_at: yesterday,
+  },
+];
+
+const MOCK_FAVORITES = MOCK_PHOTOS.slice(0, 8).map((p, i) => ({
   id: uuid(600 + i),
   user_id: MOCK_USER_ID,
   photo_id: p.id,
   roll_id: MOCK_ROLLS[0].id,
-  created_at: now,
+  created_at: new Date(Date.now() - i * 3600000).toISOString(),
   photos: p,
-  rolls: { name: MOCK_ROLLS[0].name, film_profile: MOCK_ROLLS[0].film_profile },
+  rolls: { name: MOCK_ROLLS[0].name },
 }));
 
 const MOCK_ORDERS = [
@@ -218,14 +604,51 @@ const MOCK_ORDERS = [
     id: uuid(700),
     user_id: MOCK_USER_ID,
     roll_id: MOCK_ROLLS[0].id,
+    product: 'roll_prints',
+    print_size: '4x6',
+    photo_count: 24,
+    is_free_first_roll: true,
+    shipping_name: 'Alex Rivera',
+    shipping_line1: '123 Film Street',
+    shipping_line2: 'Apt 4B',
+    shipping_city: 'Brooklyn',
+    shipping_state: 'NY',
+    shipping_postal_code: '11201',
+    shipping_country: 'US',
     status: 'delivered',
-    product_type: '4x6_prints',
-    quantity: 24,
-    total_cents: 2400,
     prodigi_order_id: 'ord_preview_001',
-    tracking_url: null,
+    tracking_url: 'https://track.example.com/RL123456789',
+    estimated_delivery: null,
+    subtotal_cents: 0,
+    shipping_cents: 0,
+    total_cents: 0,
+    created_at: twoWeeksAgo,
+    updated_at: lastWeek,
+  },
+  {
+    id: uuid(701),
+    user_id: MOCK_USER_ID,
+    roll_id: MOCK_ROLLS[1].id,
+    product: 'roll_prints',
+    print_size: '4x6',
+    photo_count: 36,
+    is_free_first_roll: false,
+    shipping_name: 'Alex Rivera',
+    shipping_line1: '123 Film Street',
+    shipping_line2: 'Apt 4B',
+    shipping_city: 'Brooklyn',
+    shipping_state: 'NY',
+    shipping_postal_code: '11201',
+    shipping_country: 'US',
+    status: 'shipped',
+    prodigi_order_id: 'ord_preview_002',
+    tracking_url: 'https://track.example.com/RL987654321',
+    estimated_delivery: new Date(Date.now() + 5 * 86400000).toISOString(),
+    subtotal_cents: 1080,
+    shipping_cents: 499,
+    total_cents: 1579,
     created_at: lastWeek,
-    updated_at: now,
+    updated_at: yesterday,
   },
 ];
 
@@ -233,9 +656,35 @@ const MOCK_REFERRALS = [
   {
     id: uuid(800),
     referrer_id: MOCK_USER_ID,
-    referred_email: 'friend@example.com',
-    status: 'accepted',
+    referred_email: 'friend1@example.com',
+    referred_user_id: uuid(810),
+    referral_code: 'ROLLPREV',
+    status: 'converted',
+    reward_granted: true,
+    created_at: twoWeeksAgo,
+    converted_at: lastWeek,
+  },
+  {
+    id: uuid(801),
+    referrer_id: MOCK_USER_ID,
+    referred_email: 'friend2@example.com',
+    referred_user_id: uuid(811),
+    referral_code: 'ROLLPREV',
+    status: 'signed_up',
+    reward_granted: false,
     created_at: lastWeek,
+    converted_at: null,
+  },
+  {
+    id: uuid(802),
+    referrer_id: MOCK_USER_ID,
+    referred_email: 'friend3@example.com',
+    referred_user_id: null,
+    referral_code: 'ROLLPREV',
+    status: 'pending',
+    reward_granted: false,
+    created_at: yesterday,
+    converted_at: null,
   },
 ];
 
@@ -243,26 +692,22 @@ const MOCK_REFERRALS = [
 
 const TABLE_DATA: Record<string, unknown[]> = {
   photos: MOCK_PHOTOS,
-  profiles: [MOCK_PROFILE],
-  users: [MOCK_PROFILE],
+  profiles: [MOCK_PROFILE, ...FAKE_MEMBER_PROFILES],
+  users: [MOCK_PROFILE, ...FAKE_MEMBER_PROFILES],
   rolls: MOCK_ROLLS,
   roll_photos: [
-    ...generateRollPhotos(MOCK_ROLLS[0].id, 24),
-    ...generateRollPhotos(MOCK_ROLLS[1].id, 36),
+    ...generateRollPhotos(MOCK_ROLLS[0].id, 24, 0),
+    ...generateRollPhotos(MOCK_ROLLS[1].id, 36, 24),
   ],
   reels: MOCK_REELS,
   reel_clips: [],
   circles: MOCK_CIRCLES,
-  circle_members: [
-    {
-      id: uuid(550),
-      circle_id: MOCK_CIRCLES[0].id,
-      user_id: MOCK_USER_ID,
-      role: 'owner',
-      created_at: lastWeek,
-    },
-  ],
-  circle_posts: [],
+  circle_members: MOCK_CIRCLE_MEMBERS,
+  circle_posts: MOCK_CIRCLE_POSTS,
+  circle_post_photos: MOCK_CIRCLE_POST_PHOTOS,
+  circle_reactions: MOCK_CIRCLE_REACTIONS,
+  circle_comments: MOCK_CIRCLE_COMMENTS,
+  circle_invites: [],
   favorites: MOCK_FAVORITES,
   orders: MOCK_ORDERS,
   print_orders: MOCK_ORDERS,
@@ -384,6 +829,10 @@ class MockQueryBuilder {
   }
 
   ilike(_column: string, _pattern: string) {
+    return this;
+  }
+
+  like(_column: string, _pattern: string) {
     return this;
   }
 
