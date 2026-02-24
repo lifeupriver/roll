@@ -21,14 +21,31 @@ const MOCK_AUTH_USER = {
 
 // ── Mock data per table ──────────────────────────────────────────────
 
-// Generate deterministic color from seed string
+// Generate deterministic hex color from seed string
+function hue2rgb(p: number, q: number, t: number): number {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const r = Math.round(hue2rgb(p, q, h + 1 / 3) * 255);
+  const g = Math.round(hue2rgb(p, q, h) * 255);
+  const b = Math.round(hue2rgb(p, q, h - 1 / 3) * 255);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
 function seedColor(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
   }
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h}, 55%, 60%)`;
+  return hslToHex((Math.abs(hash) % 360) / 360, 0.55, 0.6);
 }
 
 function seedColor2(seed: string): string {
@@ -36,23 +53,18 @@ function seedColor2(seed: string): string {
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 7) - hash + seed.charCodeAt(i)) | 0;
   }
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h}, 40%, 45%)`;
+  return hslToHex((Math.abs(hash) % 360) / 360, 0.4, 0.45);
 }
 
 // SVG data URI placeholder — renders instantly, no network needed
+// Uses base64 encoding for maximum browser compatibility
 function placeholderSvg(seed: string, w = 400, h = 530): string {
   const bg = seedColor(seed);
   const fg = seedColor2(seed);
-  // Create a nice abstract photo placeholder with shapes
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
-    <rect width="${w}" height="${h}" fill="${bg}"/>
-    <circle cx="${w * 0.35}" cy="${h * 0.3}" r="${w * 0.12}" fill="${fg}" opacity="0.3"/>
-    <rect x="0" y="${h * 0.55}" width="${w}" height="${h * 0.45}" fill="${fg}" opacity="0.2"/>
-    <polygon points="${w * 0.1},${h * 0.7} ${w * 0.4},${h * 0.4} ${w * 0.7},${h * 0.65}" fill="${fg}" opacity="0.15"/>
-    <polygon points="${w * 0.5},${h * 0.55} ${w * 0.8},${h * 0.35} ${w},${h * 0.6} ${w},${h} 0,${h} 0,${h * 0.75}" fill="${fg}" opacity="0.2"/>
-  </svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect width="${w}" height="${h}" fill="${bg}"/><circle cx="${Math.round(w * 0.35)}" cy="${Math.round(h * 0.3)}" r="${Math.round(w * 0.12)}" fill="${fg}" opacity=".3"/><rect y="${Math.round(h * 0.55)}" width="${w}" height="${Math.round(h * 0.45)}" fill="${fg}" opacity=".2"/><polygon points="${Math.round(w * 0.1)},${Math.round(h * 0.7)} ${Math.round(w * 0.4)},${Math.round(h * 0.4)} ${Math.round(w * 0.7)},${Math.round(h * 0.65)}" fill="${fg}" opacity=".15"/></svg>`;
+  // Use base64 to avoid encoding issues with special characters
+  const b64 = typeof btoa === 'function' ? btoa(svg) : Buffer.from(svg).toString('base64');
+  return `data:image/svg+xml;base64,${b64}`;
 }
 
 function picsum(seed: string, w = 600, h = 400) {

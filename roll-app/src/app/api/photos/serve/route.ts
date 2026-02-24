@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
 
   // Handle data: URIs (inline SVG placeholders from mock data)
   if (key.startsWith('data:')) {
-    // Extract the SVG content and serve it directly
-    const match = key.match(/^data:image\/svg\+xml,(.+)$/);
-    if (match) {
-      const svgContent = decodeURIComponent(match[1]);
+    // Handle base64-encoded SVG
+    const b64Match = key.match(/^data:image\/svg\+xml;base64,(.+)$/);
+    if (b64Match) {
+      const svgContent = Buffer.from(b64Match[1], 'base64').toString('utf-8');
       return new NextResponse(svgContent, {
         headers: {
           'Content-Type': 'image/svg+xml',
@@ -45,8 +45,22 @@ export async function GET(request: NextRequest) {
         },
       });
     }
-    // For other data URIs, redirect
-    return NextResponse.redirect(key);
+    // Handle URL-encoded SVG
+    const urlMatch = key.match(/^data:image\/svg\+xml,(.+)$/);
+    if (urlMatch) {
+      const svgContent = decodeURIComponent(urlMatch[1]);
+      return new NextResponse(svgContent, {
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+      });
+    }
+    // For other data URIs, return a fallback
+    const svg = fallbackSvg(key);
+    return new NextResponse(svg, {
+      headers: { 'Content-Type': 'image/svg+xml' },
+    });
   }
 
   // If the key is already an absolute URL (mock data), validate the host before redirecting
