@@ -108,3 +108,29 @@ export function getStorageKey(userId: string, contentHash: string, ext: string):
 export function getThumbnailKey(userId: string, contentHash: string): string {
   return `thumbnails/${userId}/${contentHash}_thumb.webp`;
 }
+
+// Video-specific storage keys
+export function getProxyKey(userId: string, contentHash: string): string {
+  return `proxies/${userId}/${contentHash}_preview.mp4`;
+}
+
+export function getProxyUrl(userId: string, contentHash: string): string {
+  const publicUrl = process.env.R2_PUBLIC_URL || 'https://photos.roll.photos';
+  return `${publicUrl}/proxies/${userId}/${contentHash}_preview.mp4`;
+}
+
+export function getReelClipKey(userId: string, reelId: string, position: number, profile: string): string {
+  return `reels/${userId}/${reelId}/clips/${position}_${profile}.mp4`;
+}
+
+export function getAssembledReelKey(userId: string, reelId: string, profile: string): string {
+  return `reels/${userId}/${reelId}/assembled_${profile}.mp4`;
+}
+
+export function getReelPosterKey(userId: string, reelId: string): string {
+  return `reels/${userId}/${reelId}/poster.webp`;
+}
+
+export function getCircleReelKey(circleId: string, postId: string): string {
+  return `circle/${circleId}/${postId}/reel.mp4`;
+}

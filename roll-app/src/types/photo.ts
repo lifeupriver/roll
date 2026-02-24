@@ -1,3 +1,9 @@
+export type MediaType = 'photo' | 'video';
+
+export type DurationCategory = 'flash' | 'moment' | 'scene';
+
+export type AudioClassification = 'speech' | 'music' | 'ambient' | 'silent';
+
 export interface Photo {
   id: string;
   user_id: string;
@@ -23,13 +29,20 @@ export interface Photo {
   scene_classification: string[];
   created_at: string;
   updated_at: string;
+  // Video-specific fields (null for photos)
+  media_type: MediaType;
+  duration_ms: number | null;
+  duration_category: DurationCategory | null;
+  preview_storage_key: string | null;
+  audio_classification: AudioClassification | null;
+  stabilization_score: number | null;
 }
 
 export type FilterStatus = 'pending' | 'visible' | 'filtered_auto' | 'hidden_manual';
 
-export type FilterReason = 'blur' | 'screenshot' | 'duplicate' | 'exposure' | 'document' | null;
+export type FilterReason = 'blur' | 'screenshot' | 'duplicate' | 'exposure' | 'document' | 'accidental' | 'screen_recording' | 'too_shaky' | null;
 
-export type ContentMode = 'all' | 'people' | 'landscapes';
+export type ContentMode = 'all' | 'people' | 'landscapes' | 'clips';
 
 export interface UploadProgress {
   file: File;
