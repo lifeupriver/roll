@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Sparkles, Smartphone } from 'lucide-react';
+import { Sparkles, Smartphone, Grid2x2, Grid3x3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -38,6 +38,7 @@ export default function FeedPage() {
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [gridColumns, setGridColumns] = useState(3);
 
   // Determine if we're in clip mode (building a reel)
   const isClipMode = contentMode === 'clips';
@@ -360,8 +361,8 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {/* Content mode pills */}
-      <div className="mb-[var(--space-section)]">
+      {/* Content mode pills + grid size slider */}
+      <div className="flex items-center justify-between mb-[var(--space-section)]">
         <ContentModePills
           activeMode={contentMode}
           onChange={(mode) => {
@@ -370,6 +371,19 @@ export default function FeedPage() {
           }}
           options={contentModeOptions}
         />
+        <div className="flex items-center gap-[var(--space-tight)]">
+          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+          <input
+            type="range"
+            min={2}
+            max={6}
+            value={gridColumns}
+            onChange={(e) => setGridColumns(Number(e.target.value))}
+            className="w-20 accent-[var(--color-action)]"
+            aria-label="Grid columns"
+          />
+          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        </div>
       </div>
 
       {/* Photo/clip grid — the contact sheet */}
@@ -383,6 +397,7 @@ export default function FeedPage() {
         hasMore={hasMore}
         onLoadMore={loadMore}
         isLoading={loading}
+        columns={gridColumns}
       />
 
       {/* Film strip progress bar — for photo rolls */}
