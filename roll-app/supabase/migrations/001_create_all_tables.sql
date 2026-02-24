@@ -214,8 +214,6 @@ CREATE TABLE IF NOT EXISTS circles (
 );
 
 ALTER TABLE circles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Circle members can read" ON circles FOR SELECT
-  USING (EXISTS (SELECT 1 FROM circle_members WHERE circle_members.circle_id = circles.id AND circle_members.user_id = auth.uid()));
 CREATE POLICY "Creators can update" ON circles FOR UPDATE USING (auth.uid() = creator_id);
 CREATE POLICY "Roll+ users can create" ON circles FOR INSERT WITH CHECK (auth.uid() = creator_id);
 
@@ -242,6 +240,10 @@ ALTER TABLE circle_members ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Members can read circle membership" ON circle_members FOR SELECT
   USING (EXISTS (SELECT 1 FROM circle_members cm WHERE cm.circle_id = circle_members.circle_id AND cm.user_id = auth.uid()));
 CREATE POLICY "Users can insert self" ON circle_members FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Deferred from circles section: this policy references circle_members
+CREATE POLICY "Circle members can read" ON circles FOR SELECT
+  USING (EXISTS (SELECT 1 FROM circle_members WHERE circle_members.circle_id = circles.id AND circle_members.user_id = auth.uid()));
 
 -- ============================================
 -- 8. CIRCLE_INVITES
