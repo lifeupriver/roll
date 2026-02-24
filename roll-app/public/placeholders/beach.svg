@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="530" viewBox="0 0 400 530">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e88050"/>
+      <stop offset="30%" stop-color="#e8a060"/>
+      <stop offset="55%" stop-color="#f0c890"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a8aaa"/>
+      <stop offset="100%" stop-color="#3a7a9a"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e0d0b0"/>
+      <stop offset="100%" stop-color="#c8b890"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.4" r="0.25">
+      <stop offset="0%" stop-color="#fff0d0" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#f0c890" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#e8a060" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+  <rect width="400" height="530" fill="url(#sky)"/>
+  <ellipse cx="200" cy="210" rx="80" ry="70" fill="url(#sun)" filter="url(#soft)"/>
+  <rect y="260" width="400" height="100" fill="url(#water)"/>
+  <rect y="260" width="400" height="5" fill="#7aaac0" opacity="0.4"/>
+  <rect y="280" width="400" height="3" fill="#6a9ab0" opacity="0.3"/>
+  <rect y="310" width="400" height="2" fill="#5a8aa0" opacity="0.2"/>
+  <path d="M0 350 Q100 340 200 348 Q300 338 400 350 L400 530 L0 530Z" fill="url(#sand)"/>
+  <path d="M0 355 Q60 348 120 353 Q180 346 240 352 Q300 345 360 351 Q380 347 400 355 L400 360 L0 360Z" fill="#d0c0a0" opacity="0.4"/>
+  <ellipse cx="150" cy="420" rx="60" ry="3" fill="#b0a080" opacity="0.3"/>
+  <ellipse cx="300" cy="450" rx="40" ry="2" fill="#b0a080" opacity="0.2"/>
+</svg>

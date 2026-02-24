@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="530" viewBox="0 0 400 530">
+  <defs>
+    <linearGradient id="table" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8a7060"/>
+      <stop offset="100%" stop-color="#6a5040"/>
+    </linearGradient>
+    <radialGradient id="plate" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#f0ece8"/>
+      <stop offset="80%" stop-color="#e0dcd5"/>
+      <stop offset="100%" stop-color="#d0ccc0"/>
+    </radialGradient>
+    <radialGradient id="food" cx="0.45" cy="0.45" r="0.4">
+      <stop offset="0%" stop-color="#c87840"/>
+      <stop offset="50%" stop-color="#a06030"/>
+      <stop offset="100%" stop-color="#804820"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+  </defs>
+  <rect width="400" height="530" fill="url(#table)"/>
+  <rect x="10" y="10" width="120" height="60" rx="4" fill="#f0ece0" opacity="0.15"/>
+  <ellipse cx="200" cy="280" rx="150" ry="140" fill="url(#plate)"/>
+  <ellipse cx="200" cy="280" rx="145" ry="135" fill="none" stroke="#c8c4b8" stroke-width="1" opacity="0.4"/>
+  <ellipse cx="195" cy="265" rx="95" ry="88" fill="url(#food)" filter="url(#soft)"/>
+  <ellipse cx="180" cy="250" rx="30" ry="25" fill="#d09050" opacity="0.5"/>
+  <ellipse cx="220" cy="270" rx="25" ry="20" fill="#b07030" opacity="0.4"/>
+  <circle cx="160" cy="285" r="12" fill="#80a060" opacity="0.5"/>
+  <circle cx="230" cy="245" r="8" fill="#90b070" opacity="0.4"/>
+  <rect x="310" y="200" width="8" height="180" rx="4" fill="#c0b8a8" opacity="0.3" transform="rotate(15, 314, 290)"/>
+  <rect x="320" y="210" width="8" height="170" rx="4" fill="#b0a898" opacity="0.25" transform="rotate(25, 324, 295)"/>
+</svg>
