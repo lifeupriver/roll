@@ -21,8 +21,42 @@ const MOCK_AUTH_USER = {
 
 // ── Mock data per table ──────────────────────────────────────────────
 
+// Generate deterministic color from seed string
+function seedColor(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h}, 55%, 60%)`;
+}
+
+function seedColor2(seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 7) - hash + seed.charCodeAt(i)) | 0;
+  }
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h}, 40%, 45%)`;
+}
+
+// SVG data URI placeholder — renders instantly, no network needed
+function placeholderSvg(seed: string, w = 400, h = 530): string {
+  const bg = seedColor(seed);
+  const fg = seedColor2(seed);
+  // Create a nice abstract photo placeholder with shapes
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <rect width="${w}" height="${h}" fill="${bg}"/>
+    <circle cx="${w * 0.35}" cy="${h * 0.3}" r="${w * 0.12}" fill="${fg}" opacity="0.3"/>
+    <rect x="0" y="${h * 0.55}" width="${w}" height="${h * 0.45}" fill="${fg}" opacity="0.2"/>
+    <polygon points="${w * 0.1},${h * 0.7} ${w * 0.4},${h * 0.4} ${w * 0.7},${h * 0.65}" fill="${fg}" opacity="0.15"/>
+    <polygon points="${w * 0.5},${h * 0.55} ${w * 0.8},${h * 0.35} ${w},${h * 0.6} ${w},${h} 0,${h} 0,${h * 0.75}" fill="${fg}" opacity="0.2"/>
+  </svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 function picsum(seed: string, w = 600, h = 400) {
-  return `https://picsum.photos/seed/${seed}/${w}/${h}`;
+  return placeholderSvg(seed, w, h);
 }
 
 function uuid(n: number) {
