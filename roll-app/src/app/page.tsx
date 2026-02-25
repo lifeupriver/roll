@@ -1,68 +1,63 @@
 import { EmailCaptureForm } from '@/components/landing/EmailCaptureForm';
 import { FilmProfileShowcase } from '@/components/landing/FilmProfileShowcase';
+import { HeroVisual } from '@/components/landing/HeroVisual';
+import { FeedVisual, RollVisual, DevelopVisual, PrintsVisual } from '@/components/landing/FeatureVisuals';
 import Link from 'next/link';
 
 export const dynamic = 'force-static';
 
-const FEATURES = [
+const PRIMARY_FEATURES = [
   {
-    title: 'Feed',
-    desc: 'Your camera roll, cleaned up. Roll filters out screenshots, duplicates, and blurry shots — so you only see the photos that matter.',
+    title: 'AI-Filtered Feed',
+    subtitle: 'Your best photos, surfaced automatically',
+    desc: 'Roll filters out screenshots, duplicates, and blurry shots — so you only see the photos that matter. Smart content modes let you browse by people, places, or moments.',
+    Visual: FeedVisual,
   },
   {
-    title: 'Rolls',
-    desc: 'Pick your best 36 photos to fill a roll. Choose a film stock. Hit develop. Every shot is color-corrected to match real analog film.',
+    title: 'Roll Building',
+    subtitle: 'Pick your 36 favorites, like loading a roll of film',
+    desc: 'Browse your feed and checkmark the shots you love. Fill a roll of 36 photos — like loading a real roll of film. The film strip fills frame by frame until it clicks.',
+    Visual: RollVisual,
   },
   {
-    title: 'Develop',
-    desc: 'Six film stocks inspired by real analog film. Warmth, Golden, Vivid, Classic, Gentle, Modern — each one transforms your photos.',
+    title: 'Film Profiles',
+    subtitle: 'Six film stocks that make your photos beautiful',
+    desc: 'Choose a film stock. Hit develop. Every photo is color-corrected, then processed through a film profile inspired by real analog film. Warmth, Golden, Vivid, Classic, Gentle, Modern.',
+    Visual: DevelopVisual,
   },
   {
-    title: 'Favorites',
-    desc: 'Heart the shots you love. Your favorites become the source for prints, books, and shares — the photos you actually want to keep.',
+    title: 'Prints Delivered',
+    subtitle: 'Real prints, mailed to your door',
+    desc: 'High-quality 4×6 prints of your developed roll, shipped to your door. Your first roll of prints is free. No subscription required.',
+    Visual: PrintsVisual,
   },
-  {
-    title: 'Books',
-    desc: 'Turn your favorites into a hardcover photo book. Flip through pages in the app, then order a printed copy delivered to your door.',
-  },
-  {
-    title: 'Circle',
-    desc: 'Share your best photos with family and friends in a private feed. No ads, no algorithm — just the people you choose.',
-  },
-  {
-    title: 'Stories & Captions',
-    desc: 'Write the story behind a roll. Caption individual photos. Turn a collection of images into a narrative you can look back on.',
-  },
-  {
-    title: 'Photo Map',
-    desc: 'See where your photos were taken on a world map. Every geotagged shot appears as a dot — your life, geographically.',
-  },
-  {
-    title: 'Backup',
-    desc: 'Every photo you upload is backed up in the cloud. Encrypted. Safe. If you lose your phone tomorrow, your memories survive.',
-  },
-  {
-    title: 'Video',
-    desc: 'Roll corrects your videos with the same film stock as your photos. Same beautiful look. No editing software. No timeline. No color wheels.',
-  },
+];
+
+const SECONDARY_FEATURES = [
+  { title: 'Circle', desc: 'Share your best photos with family and friends in a private feed. No ads, no algorithm.' },
+  { title: 'Books', desc: 'Turn your favorites into a hardcover photo book. Flip through pages in the app, then order a printed copy.' },
+  { title: 'Video', desc: 'Roll corrects your videos with the same film stock as your photos. Same beautiful look. No editing required.' },
+  { title: 'Stories & Captions', desc: 'Write the story behind a roll. Caption individual photos. Turn images into a narrative.' },
+  { title: 'Photo Map', desc: 'See where your photos were taken on a world map. Your life, geographically.' },
+  { title: 'Backup', desc: 'Every photo you upload is backed up in the cloud. Encrypted. Safe.' },
 ];
 
 export default function LandingPage() {
   return (
     <main className="flex flex-col items-center">
       {/* ================================================
-          Section 1: Hero
+          Section 1: Hero — Split layout with visual
           ================================================ */}
       <section className="flex flex-col items-center justify-center min-h-[90vh] w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-hero)]">
-        <div className="flex flex-col items-center gap-[var(--space-section)] max-w-[800px] w-full text-center">
+        <div className="flex flex-col items-center gap-[var(--space-region)] max-w-[900px] w-full">
           {/* Logotype */}
-          <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-logotype)] tracking-[0.15em] text-[var(--color-ink)]">
+          <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-logotype)] tracking-[0.15em] text-[var(--color-ink)] text-center">
             ROLL
           </h1>
 
           {/* Tagline */}
           <p
-            className="font-[family-name:var(--font-display)] font-light italic text-[var(--color-ink)] leading-[1.3] max-w-[32ch]"
+            className="font-[family-name:var(--font-display)] font-light italic text-[var(--color-ink)] leading-[1.3] max-w-[32ch] text-center"
             style={{ fontSize: 'clamp(1.25rem, 3vw + 0.5rem, 1.875rem)' }}
           >
             Your phone captures thousands of photos.
@@ -70,23 +65,26 @@ export default function LandingPage() {
             Roll turns them into something worth keeping.
           </p>
 
-          {/* CTA buttons */}
+          {/* Hero Visual — camera roll transformation mockup */}
+          <HeroVisual />
+
+          {/* CTA buttons — primary: Get Started Free, secondary: See a Demo */}
           <div className="flex flex-col sm:flex-row items-center gap-[var(--space-element)] mt-[var(--space-component)]">
-            <Link
-              href="/feed"
-              className="inline-flex items-center justify-center h-14 px-[var(--space-region)] bg-[var(--color-action)] text-[var(--color-ink-inverse)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] font-semibold text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:bg-[var(--color-action-hover)] active:scale-[0.98] shadow-[var(--shadow-floating)]"
-            >
-              See a Demo
-            </Link>
             <a
               href="#signup"
-              className="inline-flex items-center justify-center h-14 px-[var(--space-region)] border border-[var(--color-border-strong)] text-[var(--color-ink)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:bg-[var(--color-surface-raised)] active:scale-[0.98]"
+              className="inline-flex items-center justify-center h-14 px-8 py-4 bg-[var(--color-action)] text-[var(--color-ink-inverse)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] font-semibold text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:bg-[var(--color-action-hover)] active:scale-[0.98] shadow-[var(--shadow-floating)]"
             >
               Get Started Free
             </a>
+            <Link
+              href="/feed"
+              className="inline-flex items-center justify-center h-14 px-6 text-[var(--color-action)] font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:underline"
+            >
+              See a Demo
+            </Link>
           </div>
 
-          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)] font-light">
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)] font-light text-center">
             No credit card required. Your first roll of prints is free.
           </p>
         </div>
@@ -125,7 +123,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-[var(--space-section)]">
             {[
               { step: '1', title: 'Upload', body: 'Drop in your camera roll. Roll automatically filters out the noise — screenshots, duplicates, blurry shots.' },
-              { step: '2', title: 'Curate', body: 'Browse your feed. Heart your favorites. Fill a roll of 36 photos — like loading a real roll of film.' },
+              { step: '2', title: 'Curate', body: 'Browse your feed. Checkmark your favorites. Fill a roll of 36 photos — like loading a real roll of film.' },
               { step: '3', title: 'Develop', body: 'Choose a film stock. Hit develop. We color-correct every photo to match the look of real analog film.' },
               { step: '4', title: 'Keep', body: 'Order prints, create photo books, share to your Circle, or write the story behind each roll.' },
             ].map(({ step, title, body }) => (
@@ -146,7 +144,7 @@ export default function LandingPage() {
       </section>
 
       {/* ================================================
-          Section 4: Feature Showcase
+          Section 4: Primary Features (4 cards with hierarchy)
           ================================================ */}
       <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
         <div className="max-w-[900px] mx-auto">
@@ -154,27 +152,78 @@ export default function LandingPage() {
             Everything you need for the photos that matter
           </h2>
           <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center max-w-[50ch] mx-auto mb-[var(--space-region)]">
-            Roll is a complete photo platform — from upload to print, from personal curation to sharing with the people you love.
+            From messy camera roll to beautiful prints — four steps, one app.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-section)]">
-            {FEATURES.map(({ title, desc }) => (
-              <div key={title} className="flex flex-col gap-[var(--space-tight)]">
-                {/* Screenshot placeholder */}
-                <div className="w-full aspect-[16/10] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] tracking-wide uppercase">
-                    {title} screenshot
-                  </span>
+          {/* Top 2 features: full-width hero-sized cards */}
+          <div className="flex flex-col gap-[var(--space-section)]">
+            {PRIMARY_FEATURES.slice(0, 2).map(({ title, subtitle, desc, Visual }) => (
+              <div
+                key={title}
+                className="flex flex-col md:flex-row gap-[var(--space-section)] items-center rounded-[var(--radius-card)] bg-[var(--color-surface-raised)] p-[var(--space-section)] shadow-[var(--shadow-raised)]"
+              >
+                <div className="w-full md:w-1/2">
+                  <Visual />
                 </div>
-                <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
-                  {title}
-                </h3>
-                <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
-                  {desc}
-                </p>
+                <div className="w-full md:w-1/2 flex flex-col gap-[var(--space-tight)]">
+                  <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                    {title}
+                  </h3>
+                  <p className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-action)]">
+                    {subtitle}
+                  </p>
+                  <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
+                    {desc}
+                  </p>
+                </div>
               </div>
             ))}
+
+            {/* Bottom 2 features: 2-column row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-section)]">
+              {PRIMARY_FEATURES.slice(2).map(({ title, subtitle, desc, Visual }) => (
+                <div
+                  key={title}
+                  className="flex flex-col gap-[var(--space-tight)] rounded-[var(--radius-card)] bg-[var(--color-surface-raised)] p-[var(--space-section)] shadow-[var(--shadow-raised)]"
+                >
+                  <Visual />
+                  <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] mt-[var(--space-tight)]">
+                    {title}
+                  </h3>
+                  <p className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-action)]">
+                    {subtitle}
+                  </p>
+                  <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* "And more..." collapsed section */}
+          <details className="mt-[var(--space-region)]">
+            <summary className="cursor-pointer font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)] text-center list-none">
+              <span className="inline-flex items-center gap-[var(--space-tight)] hover:text-[var(--color-action)] transition-colors">
+                And more...
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </summary>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--space-component)] mt-[var(--space-section)]">
+              {SECONDARY_FEATURES.map(({ title, desc }) => (
+                <div key={title} className="flex flex-col gap-[var(--space-micro)] p-[var(--space-component)] rounded-[var(--radius-card)] bg-[var(--color-surface-raised)]">
+                  <h4 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+                    {title}
+                  </h4>
+                  <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] leading-[1.5]">
+                    {desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       </section>
 
