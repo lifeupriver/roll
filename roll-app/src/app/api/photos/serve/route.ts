@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Handle local static paths (mock/preview data)
-  if (key.startsWith('/placeholders/') || key.startsWith('/photos/')) {
+  if (key.startsWith('/placeholders/') || key.startsWith('/photos/') || key.startsWith('/corrected/')) {
     const origin = request.nextUrl.origin;
     return NextResponse.redirect(`${origin}${key}`);
   }

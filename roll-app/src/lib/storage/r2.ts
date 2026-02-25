@@ -5,14 +5,25 @@ import {
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import { join, dirname } from 'path';
 
 const isPreview = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
 
+// In preview mode, use the local public/ directory for storage
+function getPublicDir(): string {
+  return join(process.cwd(), 'public');
+}
+
 let _r2Client: S3Client | null = null;
 
+function hasR2Credentials(): boolean {
+  return !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY);
+}
+
 function getR2Client(): S3Client {
-  if (isPreview) {
-    throw new Error('R2 is not available in preview mode');
+  if (isPreview && !hasR2Credentials()) {
+    throw new Error('R2 is not available in preview mode without credentials');
   }
 
   if (!_r2Client) {
@@ -66,6 +77,13 @@ export async function getPresignedDownloadUrl(
 }
 
 export async function uploadObject(key: string, body: Buffer, contentType: string): Promise<void> {
+  if (isPreview && !hasR2Credentials()) {
+    // No R2 in preview — write to local filesystem as fallback
+    const filePath = join(getPublicDir(), key);
+    await mkdir(dirname(filePath), { recursive: true });
+    await writeFile(filePath, body);
+    return;
+  }
   const client = getR2Client();
   await client.send(
     new PutObjectCommand({
@@ -88,6 +106,17 @@ export async function deleteObject(key: string): Promise<void> {
 }
 
 export async function getObject(key: string): Promise<Buffer> {
+  if (isPreview) {
+    // In preview mode, try reading from the local public/ directory first
+    try {
+      const decodedKey = decodeURIComponent(key);
+      const filePath = join(getPublicDir(), decodedKey);
+      return await readFile(filePath);
+    } catch {
+      // Not on local filesystem — fall through to R2 if available
+      if (!hasR2Credentials()) throw new Error(`File not found locally: ${key}`);
+    }
+  }
   const client = getR2Client();
   const response = await client.send(
     new GetObjectCommand({
