@@ -67,6 +67,7 @@ const SKU_MAP: Record<PrintSize, string> = {
   '5x7': 'GLOBAL-PHO-5x7-GLOSSY',
   '8x10': 'GLOBAL-PHO-8x10-GLOSSY',
   '6x6': 'GLOBAL-PHO-6x6-SOFTCOVER',
+  '6x9': 'GLOBAL-MAG-6x9-SILK',
   '8x8': 'GLOBAL-PHO-8x8-SOFTCOVER',
   '10x10': 'GLOBAL-PHO-10x10-SOFTCOVER',
 };
