@@ -15,7 +15,7 @@ import type { Photo } from '@/types/photo';
 type ProjectSection = 'albums' | 'reels';
 
 const SECTION_OPTIONS = [
-  { value: 'albums', label: 'Albums' },
+  { value: 'albums', label: 'Books' },
   { value: 'reels', label: 'Reels' },
 ];
 
@@ -87,7 +87,7 @@ function ProjectsContent() {
             .filter((a: Album) => !apiIds.has(a.id))
             .map((a: Record<string, unknown>) => ({
               id: a.id as string,
-              name: (a.name as string) || 'Untitled Album',
+              name: (a.name as string) || 'Untitled Book',
               cover_url: (a.cover_url as string) || null,
               photo_count: (a.photo_count as number) || 0,
               created_at: (a.created_at as string) || new Date().toISOString(),
@@ -99,7 +99,7 @@ function ProjectsContent() {
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
           setAlbums(stored.map((a: Record<string, unknown>) => ({
             id: a.id as string,
-            name: (a.name as string) || 'Untitled Album',
+            name: (a.name as string) || 'Untitled Book',
             cover_url: (a.cover_url as string) || null,
             photo_count: (a.photo_count as number) || 0,
             created_at: (a.created_at as string) || new Date().toISOString(),
@@ -111,7 +111,7 @@ function ProjectsContent() {
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
           setAlbums(stored.map((a: Record<string, unknown>) => ({
             id: a.id as string,
-            name: (a.name as string) || 'Untitled Album',
+            name: (a.name as string) || 'Untitled Book',
             cover_url: (a.cover_url as string) || null,
             photo_count: (a.photo_count as number) || 0,
             created_at: (a.created_at as string) || new Date().toISOString(),
@@ -208,7 +208,7 @@ function ProjectsContent() {
     setCreating(true);
     try {
       if (createType === 'album') {
-        const albumName = projectName.trim() || 'Untitled Album';
+        const albumName = projectName.trim() || 'Untitled Book';
         const photoIds = Array.from(selectedPhotoIds);
 
         // Create album via API
@@ -249,7 +249,7 @@ function ProjectsContent() {
           created_at: albumData!.created_at as string,
         }, ...prev]);
 
-        toast('Album created!', 'success');
+        toast('Book created!', 'success');
         setShowCreateModal(false);
         router.push(`/projects/albums/${albumData.id}`);
       } else {
@@ -278,7 +278,7 @@ function ProjectsContent() {
           onClick={() => handleOpenCreate(activeSection === 'albums' ? 'album' : 'reel')}
         >
           <Plus size={16} className="mr-1" />
-          New {activeSection === 'albums' ? 'Album' : 'Reel'}
+          New {activeSection === 'albums' ? 'Book' : 'Reel'}
         </Button>
       </div>
 
@@ -316,8 +316,8 @@ function ProjectsContent() {
           {albums.length === 0 ? (
             <Empty
               icon={BookOpen}
-              title="No albums yet"
-              description="Create your first album from your favorite photos. Each album is a simple book with one photo per page. Use the + New Album button above to get started."
+              title="No books yet"
+              description="Create your first book from your favorite photos. Each book has one photo per page. Use the + New Book button above to get started."
             />
           ) : (
             <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
@@ -368,13 +368,7 @@ function ProjectsContent() {
             <Empty
               icon={Film}
               title="No reels yet"
-              description="Create a reel from your favorite clips. Reels are chronological — the only editing is trimming clip length."
-              action={
-                <Button variant="primary" size="md" onClick={() => handleOpenCreate('reel')}>
-                  <Plus size={16} className="mr-1" />
-                  New Reel
-                </Button>
-              }
+              description="Create a reel from your favorite clips. Reels are chronological — the only editing is trimming clip length. Use the + New Reel button above to get started."
             />
           ) : (
             <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
@@ -418,19 +412,19 @@ function ProjectsContent() {
         <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)}>
           <div className="flex flex-col gap-[var(--space-component)]">
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
-              New {createType === 'album' ? 'Album' : 'Reel'}
+              New {createType === 'album' ? 'Book' : 'Reel'}
             </h2>
 
             <Input
               label="Name"
-              placeholder={createType === 'album' ? 'My Photo Book' : 'My Reel'}
+              placeholder={createType === 'album' ? 'My Book' : 'My Reel'}
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
             />
 
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
               {createType === 'album'
-                ? 'Select your favorite photos. Each will be one page in the book.'
+                ? 'Select your favorite photos. Each will be one page in your book.'
                 : 'Select clips to include. They will play in chronological order.'}
             </p>
 
@@ -498,7 +492,7 @@ function ProjectsContent() {
                 isLoading={creating}
                 disabled={selectedPhotoIds.size === 0}
               >
-                Create {createType === 'album' ? 'Album' : 'Reel'}
+                Create {createType === 'album' ? 'Book' : 'Reel'}
               </Button>
             </div>
           </div>

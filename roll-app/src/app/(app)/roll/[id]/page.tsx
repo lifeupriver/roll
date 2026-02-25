@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3 } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen } from 'lucide-react';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
+import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
+import type { Circle } from '@/types/circle';
 import Link from 'next/link';
 
 interface Photo {
@@ -67,6 +70,17 @@ export default function RollDetailPage() {
   // Lightbox state
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
+
+  // Circle picker state for sharing
+  const [showCirclePicker, setShowCirclePicker] = useState(false);
+  const [circles, setCircles] = useState<Circle[]>([]);
+  const [circlesLoading, setCirclesLoading] = useState(false);
+  const [shareCircleId, setShareCircleId] = useState<string | null>(null);
+
+  // Story modal state
+  const [showStoryModal, setShowStoryModal] = useState(false);
+  const [storyText, setStoryText] = useState('');
+  const [savedStory, setSavedStory] = useState('');
 
   const rollId = params.id;
 
@@ -343,6 +357,73 @@ export default function RollDetailPage() {
   }, [roll, rollId, toast, router]);
 
   // ------------------------------------------------------------------
+  // Share to Circle — open circle picker
+  // ------------------------------------------------------------------
+  const handleOpenCirclePicker = useCallback(async () => {
+    setShowCirclePicker(true);
+    setCirclesLoading(true);
+    try {
+      const res = await fetch('/api/circles');
+      if (res.ok) {
+        const json = await res.json();
+        setCircles(json.data ?? []);
+      }
+    } catch {
+      toast('Failed to load circles', 'error');
+    } finally {
+      setCirclesLoading(false);
+    }
+  }, [toast]);
+
+  const handleSelectCircle = useCallback((circleId: string) => {
+    setShowCirclePicker(false);
+    setShareCircleId(circleId);
+  }, []);
+
+  // ------------------------------------------------------------------
+  // Save story
+  // ------------------------------------------------------------------
+  const handleSaveStory = useCallback(async () => {
+    const trimmed = storyText.trim();
+    setSavedStory(trimmed);
+    setShowStoryModal(false);
+    if (trimmed) {
+      try {
+        await fetch(`/api/rolls/${rollId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ story: trimmed }),
+        });
+        toast('Story saved', 'success');
+      } catch {
+        // Non-critical
+      }
+    }
+  }, [storyText, rollId, toast]);
+
+  // ------------------------------------------------------------------
+  // Caption handler for lightbox
+  // ------------------------------------------------------------------
+  const handleLightboxCaption = useCallback((photoId: string, caption: string) => {
+    setPhotoCaptions((prev) => {
+      const next = new Map(prev);
+      if (caption) next.set(photoId, caption);
+      else next.delete(photoId);
+      return next;
+    });
+    // Persist to backend
+    fetch(`/api/photos/${photoId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caption: caption || null }),
+    }).catch(() => {});
+  }, []);
+
+  const getLightboxCaption = useCallback((photoId: string) => {
+    return photoCaptions.get(photoId) || '';
+  }, [photoCaptions]);
+
+  // ------------------------------------------------------------------
   // Helpers
   // ------------------------------------------------------------------
   const photoCount = photos.length;
@@ -531,11 +612,26 @@ export default function RollDetailPage() {
           </div>
         </Link>
 
-        {/* Share to circle */}
-        <Button variant="secondary" size="md" onClick={() => router.push('/circle')}>
-          <Share2 size={18} className="mr-2" />
-          Share to Circle
-        </Button>
+        {/* Share to circle + Add a story */}
+        <div className="flex items-center gap-[var(--space-element)]">
+          <Button variant="secondary" size="md" onClick={handleOpenCirclePicker}>
+            <Share2 size={18} className="mr-2" />
+            Share to Circle
+          </Button>
+          <Button variant="secondary" size="md" onClick={() => { setStoryText(savedStory); setShowStoryModal(true); }}>
+            <BookOpen size={18} className="mr-2" />
+            {savedStory ? 'Edit Story' : 'Add a Story'}
+          </Button>
+        </div>
+
+        {/* Display saved story */}
+        {savedStory && (
+          <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)]">
+            <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-[family-name:var(--font-body)] italic leading-relaxed">
+              &ldquo;{savedStory}&rdquo;
+            </p>
+          </div>
+        )}
 
         {/* Favorites summary */}
         {favoriteCount > 0 && (
@@ -637,7 +733,108 @@ export default function RollDetailPage() {
               handleHeartToggle(photoId, !isFav);
             }}
             isHearted={(photoId) => favoritedIds.has(photoId)}
+            onCaption={handleLightboxCaption}
+            getCaption={getLightboxCaption}
           />
+        )}
+
+        {/* Circle picker modal */}
+        {showCirclePicker && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowCirclePicker(false)}>
+            <div className="bg-[var(--color-surface)] rounded-[var(--radius-modal)] shadow-[var(--shadow-overlay)] w-[min(90vw,380px)] max-h-[60vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+                  Share to Circle
+                </h2>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mt-1">
+                  Choose which circle to share this roll to
+                </p>
+              </div>
+              <div className="p-[var(--space-element)] overflow-y-auto max-h-[40vh]">
+                {circlesLoading ? (
+                  <div className="flex items-center justify-center py-[var(--space-section)]">
+                    <Spinner size="sm" />
+                  </div>
+                ) : circles.length === 0 ? (
+                  <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center py-[var(--space-section)]">
+                    No circles yet. Create or join a circle first.
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-[var(--space-tight)]">
+                    {circles.map((circle) => (
+                      <button
+                        key={circle.id}
+                        type="button"
+                        onClick={() => handleSelectCircle(circle.id)}
+                        className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] text-left hover:bg-[var(--color-surface-raised)] transition-colors"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[var(--color-surface-sunken)] flex items-center justify-center shrink-0">
+                          <Users size={18} className="text-[var(--color-ink-tertiary)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
+                            {circle.name}
+                          </p>
+                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                            {circle.member_count} member{circle.member_count !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                        <ChevronRight size={16} className="text-[var(--color-ink-tertiary)] shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="p-[var(--space-element)] border-t border-[var(--color-border)]">
+                <Button variant="ghost" size="sm" onClick={() => setShowCirclePicker(false)} className="w-full">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Share to Circle modal (after selecting a circle) */}
+        {shareCircleId && (
+          <ShareToCircleModal
+            isOpen={true}
+            onClose={() => setShareCircleId(null)}
+            circleId={shareCircleId}
+          />
+        )}
+
+        {/* Story modal */}
+        {showStoryModal && (
+          <Modal isOpen={showStoryModal} onClose={() => setShowStoryModal(false)}>
+            <div className="flex flex-col gap-[var(--space-component)]">
+              <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+                {savedStory ? 'Edit Your Story' : 'Add a Story'}
+              </h2>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                Write a brief paragraph about this roll — the moment, the memory, the feeling.
+              </p>
+              <textarea
+                autoFocus
+                value={storyText}
+                onChange={(e) => setStoryText(e.target.value)}
+                placeholder="Tell the story behind these photos..."
+                maxLength={1000}
+                rows={5}
+                className="w-full bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-card)] p-[var(--space-element)] text-[length:var(--text-body)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] focus:outline-none focus:border-[var(--color-action)] resize-none"
+              />
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-right">
+                {storyText.length}/1000
+              </p>
+              <div className="flex items-center justify-end gap-[var(--space-element)]">
+                <Button variant="ghost" onClick={() => setShowStoryModal(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onClick={handleSaveStory}>
+                  Save Story
+                </Button>
+              </div>
+            </div>
+          </Modal>
         )}
       </div>
     );
