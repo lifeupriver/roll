@@ -18,6 +18,8 @@ interface PhotoCardProps {
     duration_ms?: number | null;
   };
   isChecked: boolean;
+  /** The selection order number (1-based) when checked, used instead of a checkmark */
+  selectionNumber?: number;
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
   selectMode?: boolean;
   onCheck?: () => void;
@@ -25,7 +27,7 @@ interface PhotoCardProps {
   onTap?: () => void;
 }
 
-export function PhotoCard({ photo, isChecked, mode, selectMode, onCheck, onHide, onTap }: PhotoCardProps) {
+export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode, onCheck, onHide, onTap }: PhotoCardProps) {
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -95,7 +97,7 @@ export function PhotoCard({ photo, isChecked, mode, selectMode, onCheck, onHide,
         </>
       )}
 
-      {/* Checkmark indicator (feed mode, select mode only) — always visible when checked */}
+      {/* Selection number indicator (feed mode, select mode only) */}
       {mode === 'feed' && selectMode && onCheck && (
         <div
           className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 z-10 pointer-events-none ${
@@ -104,11 +106,17 @@ export function PhotoCard({ photo, isChecked, mode, selectMode, onCheck, onHide,
               : 'bg-[var(--color-surface-overlay)]/40 border border-white/60 scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100'
           }`}
         >
-          <Check
-            size={16}
-            strokeWidth={2.5}
-            className={isChecked ? 'text-white' : 'text-white/80'}
-          />
+          {isChecked && selectionNumber ? (
+            <span className="text-white text-[11px] font-bold font-[family-name:var(--font-mono)] tabular-nums leading-none">
+              {selectionNumber}
+            </span>
+          ) : (
+            <Check
+              size={16}
+              strokeWidth={2.5}
+              className="text-white/80"
+            />
+          )}
         </div>
       )}
 

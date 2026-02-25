@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X, Grid3X3 } from 'lucide-react';
+import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X, Grid3X3, Grid2x2, Users, ChevronRight } from 'lucide-react';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { Empty } from '@/components/ui/Empty';
@@ -10,17 +10,19 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll } from '@/types/roll';
 import type { Reel } from '@/types/reel';
 import type { Photo } from '@/types/photo';
+import type { Circle } from '@/types/circle';
 
 type LibrarySection = 'all' | 'rolls' | 'reels' | 'favorites';
 
 const SECTION_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'all', label: 'All Photos' },
   { value: 'rolls', label: 'Rolls' },
-  { value: 'reels', label: 'Reels' },
+  { value: 'reels', label: 'Bins' },
   { value: 'favorites', label: 'Favorites' },
 ];
 
@@ -271,6 +273,34 @@ export default function LibraryPage() {
   }, []);
 
   const [showArchived, setShowArchived] = useState(false);
+  const [gridColumns, setGridColumns] = useState(3);
+
+  // Circle picker state for sharing
+  const [showCirclePicker, setShowCirclePicker] = useState(false);
+  const [circles, setCircles] = useState<Circle[]>([]);
+  const [circlesLoading, setCirclesLoading] = useState(false);
+  const [shareCircleId, setShareCircleId] = useState<string | null>(null);
+
+  const handleOpenCirclePicker = useCallback(async () => {
+    setShowCirclePicker(true);
+    setCirclesLoading(true);
+    try {
+      const res = await fetch('/api/circles');
+      if (res.ok) {
+        const json = await res.json();
+        setCircles(json.data ?? []);
+      }
+    } catch {
+      toast('Failed to load circles', 'error');
+    } finally {
+      setCirclesLoading(false);
+    }
+  }, [toast]);
+
+  const handleSelectCircle = useCallback((circleId: string) => {
+    setShowCirclePicker(false);
+    setShareCircleId(circleId);
+  }, []);
 
   // Separate rolls by state
   const archivedRolls = rolls.filter((r) => r.status === 'archived');
@@ -283,15 +313,30 @@ export default function LibraryPage() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Page title */}
       <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
-        Shelf
+        Gallery
       </h1>
 
-      {/* Section toggle */}
-      <ContentModePills
-        activeMode={activeSection}
-        onChange={(mode) => setActiveSection(mode as LibrarySection)}
-        options={SECTION_OPTIONS}
-      />
+      {/* Section toggle + grid slider */}
+      <div className="flex items-center justify-between">
+        <ContentModePills
+          activeMode={activeSection}
+          onChange={(mode) => setActiveSection(mode as LibrarySection)}
+          options={SECTION_OPTIONS}
+        />
+        <div className="flex items-center gap-[var(--space-tight)]">
+          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+          <input
+            type="range"
+            min={2}
+            max={6}
+            value={gridColumns}
+            onChange={(e) => setGridColumns(Number(e.target.value))}
+            className="w-20 accent-[var(--color-action)]"
+            aria-label="Grid columns"
+          />
+          <Grid3X3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        </div>
+      </div>
 
       {/* All Photos section — continuous grid from all rolls */}
       {activeSection === 'all' && (
@@ -305,7 +350,7 @@ export default function LibraryPage() {
           {!allPhotosLoading && allPhotos.length === 0 && (
             <Empty
               icon={Grid3X3}
-              title="No photos on the shelf yet"
+              title="No photos in the gallery yet"
               description="Build a roll from your feed, develop it, and all your photos will appear here."
               action={
                 <Link href="/feed">
@@ -322,7 +367,7 @@ export default function LibraryPage() {
               <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
                 {allPhotos.length} photos across all rolls
               </p>
-              <div className="grid grid-cols-3 md:grid-cols-4 gap-[var(--space-micro)]">
+              <div className="grid gap-[var(--space-micro)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
                 {allPhotos.map((item, i) => (
                   <button
                     key={`${item.rollId}-${item.photo.id}-${i}`}
@@ -555,8 +600,8 @@ export default function LibraryPage() {
           {!reelsLoading && !error && activeReels.length === 0 && reels.length === 0 && (
             <Empty
               icon={Film}
-              title="No reels yet"
-              description="Build your first reel by selecting clips from your feed."
+              title="No bins yet"
+              description="Build your first bin by selecting clips from your feed."
               action={
                 <Link href="/feed">
                   <Button variant="primary" size="md">
@@ -607,7 +652,7 @@ export default function LibraryPage() {
                       </span>
                     </div>
                     <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                      {reel.name || 'Untitled Reel'}
+                      {reel.name || 'Untitled Bin'}
                     </p>
                     <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
                       {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
@@ -639,8 +684,8 @@ export default function LibraryPage() {
                 </span>
               </div>
               <div className="flex items-center gap-[var(--space-element)]">
-                <Button variant="secondary" size="sm" onClick={() => router.push('/circle')}>
-                  <Share2 size={14} className="mr-1" /> Share
+                <Button variant="secondary" size="sm" onClick={handleOpenCirclePicker}>
+                  <Share2 size={14} className="mr-1" /> Share to Circle
                 </Button>
               </div>
             </div>
@@ -667,7 +712,7 @@ export default function LibraryPage() {
           )}
 
           {!favoritesLoading && favorites.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-micro)]">
+            <div className="grid gap-[var(--space-micro)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
               {favorites.map((fav) => (
                 <div
                   key={fav.id}
@@ -743,6 +788,75 @@ export default function LibraryPage() {
             </div>
           )}
         </section>
+      )}
+
+      {/* Circle picker modal */}
+      {showCirclePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowCirclePicker(false)}>
+          <div className="bg-[var(--color-surface)] rounded-[var(--radius-modal)] shadow-[var(--shadow-overlay)] w-[min(90vw,380px)] max-h-[60vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+              <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
+                Share to Circle
+              </h2>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mt-1">
+                Choose which circle to share {selectedFavIds.size} photo{selectedFavIds.size !== 1 ? 's' : ''} to
+              </p>
+            </div>
+            <div className="p-[var(--space-element)] overflow-y-auto max-h-[40vh]">
+              {circlesLoading ? (
+                <div className="flex items-center justify-center py-[var(--space-section)]">
+                  <Spinner size="sm" />
+                </div>
+              ) : circles.length === 0 ? (
+                <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center py-[var(--space-section)]">
+                  No circles yet. Create or join a circle first.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-[var(--space-tight)]">
+                  {circles.map((circle) => (
+                    <button
+                      key={circle.id}
+                      type="button"
+                      onClick={() => handleSelectCircle(circle.id)}
+                      className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] text-left hover:bg-[var(--color-surface-raised)] transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-[var(--color-surface-sunken)] flex items-center justify-center shrink-0">
+                        {circle.cover_photo_url ? (
+                          <img src={circle.cover_photo_url} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <Users size={18} className="text-[var(--color-ink-tertiary)]" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
+                          {circle.name}
+                        </p>
+                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {circle.member_count} member{circle.member_count !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <ChevronRight size={16} className="text-[var(--color-ink-tertiary)] shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="p-[var(--space-element)] border-t border-[var(--color-border)]">
+              <Button variant="ghost" size="sm" onClick={() => setShowCirclePicker(false)} className="w-full">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share to Circle modal (opened after selecting a circle) */}
+      {shareCircleId && (
+        <ShareToCircleModal
+          isOpen={true}
+          onClose={() => setShareCircleId(null)}
+          circleId={shareCircleId}
+        />
       )}
     </div>
   );

@@ -9,6 +9,8 @@ interface PhotoGridProps {
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
   selectMode?: boolean;
   checkedIds?: Set<string>;
+  /** Ordered list of checked IDs for showing selection numbers */
+  checkedOrder?: string[];
   onCheck?: (photoId: string) => void;
   onHide?: (photoId: string) => void;
   onPhotoTap?: (photoId: string) => void;
@@ -25,6 +27,7 @@ export function PhotoGrid({
   mode,
   selectMode,
   checkedIds,
+  checkedOrder,
   onCheck,
   onHide,
   onPhotoTap,
@@ -73,6 +76,7 @@ export function PhotoGrid({
               key={photo.id}
               photo={photo}
               isChecked={checkedIds?.has(photo.id) ?? false}
+              selectionNumber={checkedOrder ? checkedOrder.indexOf(photo.id) + 1 || undefined : undefined}
               mode={mode}
               selectMode={selectMode}
               onCheck={onCheck ? () => onCheck(photo.id) : undefined}
