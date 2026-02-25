@@ -122,39 +122,46 @@
     --shadow-overlay: 0 0 0 1px oklch(0.30 0.02 50 / 0.5), 0 12px 32px oklch(0 0 0 / 0.5);
   }
 
-  /* Darkroom mode — very dark charcoal + pure red accents */
+  /* Darkroom mode — neutral charcoal + dark red text + dark orange accents */
   .darkroom {
-    --color-surface: oklch(0.14 0.012 25);
-    --color-surface-raised: oklch(0.19 0.012 25);
-    --color-surface-sunken: oklch(0.11 0.010 25);
-    --color-surface-overlay: oklch(0.09 0.010 25);
+    /* Backgrounds: pure neutral charcoal, no color tint */
+    --color-surface: oklch(0.14 0 0);
+    --color-surface-raised: oklch(0.19 0 0);
+    --color-surface-sunken: oklch(0.11 0 0);
+    --color-surface-overlay: oklch(0.09 0 0);
 
-    --color-ink: oklch(0.75 0.16 25);
-    --color-ink-secondary: oklch(0.58 0.12 25);
-    --color-ink-tertiary: oklch(0.42 0.08 25);
-    --color-ink-inverse: oklch(0.14 0.012 25);
+    /* Text: vibrant dark red for primary, neutral greys for the rest */
+    --color-ink: oklch(0.62 0.20 25);
+    --color-ink-secondary: oklch(0.48 0 0);
+    --color-ink-tertiary: oklch(0.35 0 0);
+    --color-ink-inverse: oklch(0.14 0 0);
 
-    --color-action: oklch(0.58 0.22 25);
-    --color-action-hover: oklch(0.50 0.20 25);
-    --color-action-subtle: oklch(0.20 0.06 25);
+    /* Action: dark orange for buttons, badges, small accents */
+    --color-action: oklch(0.52 0.14 50);
+    --color-action-hover: oklch(0.46 0.12 50);
+    --color-action-subtle: oklch(0.19 0.04 50);
 
-    --color-border: oklch(0.24 0.04 25 / 0.6);
-    --color-border-strong: oklch(0.35 0.06 25 / 0.7);
-    --color-border-focus: oklch(0.58 0.22 25);
+    /* Borders: neutral grey */
+    --color-border: oklch(0.24 0 0 / 0.6);
+    --color-border-strong: oklch(0.35 0 0 / 0.7);
+    --color-border-focus: oklch(0.52 0.14 50);
 
-    --color-safelight: oklch(0.58 0.22 25);
-    --color-safelight-dim: oklch(0.48 0.18 25);
-    --color-safelight-glow: oklch(0.25 0.08 25);
+    /* Safelight mapped to the dark red */
+    --color-safelight: oklch(0.55 0.20 25);
+    --color-safelight-dim: oklch(0.45 0.16 25);
+    --color-safelight-glow: oklch(0.22 0.06 25);
 
-    --color-heart: oklch(0.55 0.22 25);
-    --color-heart-hover: oklch(0.48 0.20 25);
-    --color-developed: oklch(0.55 0.16 25);
-    --color-processing: oklch(0.58 0.14 25);
-    --color-error: oklch(0.55 0.22 25);
+    /* Status: red for heart/error, orange for processing */
+    --color-heart: oklch(0.55 0.20 25);
+    --color-heart-hover: oklch(0.48 0.18 25);
+    --color-developed: oklch(0.55 0.20 25);
+    --color-processing: oklch(0.52 0.14 50);
+    --color-error: oklch(0.55 0.20 25);
 
-    --shadow-raised: 0 0 0 1px oklch(0.24 0.03 25 / 0.4);
-    --shadow-floating: 0 0 0 1px oklch(0.24 0.03 25 / 0.5), 0 4px 16px oklch(0 0 0 / 0.4);
-    --shadow-overlay: 0 0 0 1px oklch(0.24 0.03 25 / 0.6), 0 12px 40px oklch(0 0 0 / 0.6);
+    /* Shadows: neutral, no color tint */
+    --shadow-raised: 0 0 0 1px oklch(0.24 0 0 / 0.4);
+    --shadow-floating: 0 0 0 1px oklch(0.24 0 0 / 0.5), 0 4px 16px oklch(0 0 0 / 0.4);
+    --shadow-overlay: 0 0 0 1px oklch(0.24 0 0 / 0.6), 0 12px 40px oklch(0 0 0 / 0.6);
   }
 
   body {
@@ -181,7 +188,7 @@
   height: 6px;
   background: var(--color-surface-raised);
   border-radius: 9999px;
-  border: 1px solid oklch(0.65 0.14 55);
+  border: 1px solid oklch(0.52 0.14 50);
 }
 .darkroom input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -190,21 +197,21 @@
   height: 16px;
   border-radius: 50%;
   background: var(--color-action);
-  border: 2px solid oklch(0.65 0.14 55);
+  border: 2px solid oklch(0.52 0.14 50);
   margin-top: -5px;
 }
 .darkroom input[type="range"]::-moz-range-track {
   height: 6px;
   background: var(--color-surface-raised);
   border-radius: 9999px;
-  border: 1px solid oklch(0.65 0.14 55);
+  border: 1px solid oklch(0.52 0.14 50);
 }
 .darkroom input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: var(--color-action);
-  border: 2px solid oklch(0.65 0.14 55);
+  border: 2px solid oklch(0.52 0.14 50);
 }
 
 /* Mobile-optimized range sliders — ensure 44px touch target */
@@ -254,25 +261,25 @@
   .darkroom input[type="range"]::-webkit-slider-runnable-track {
     height: 8px;
     background: var(--color-surface-raised);
-    border: 1px solid oklch(0.65 0.14 55);
+    border: 1px solid oklch(0.52 0.14 50);
   }
   .darkroom input[type="range"]::-webkit-slider-thumb {
     width: 28px;
     height: 28px;
     background: var(--color-action);
-    border: 2px solid oklch(0.65 0.14 55);
+    border: 2px solid oklch(0.52 0.14 50);
     margin-top: -10px;
   }
   .darkroom input[type="range"]::-moz-range-track {
     height: 8px;
     background: var(--color-surface-raised);
-    border: 1px solid oklch(0.65 0.14 55);
+    border: 1px solid oklch(0.52 0.14 50);
   }
   .darkroom input[type="range"]::-moz-range-thumb {
     width: 28px;
     height: 28px;
     background: var(--color-action);
-    border: 2px solid oklch(0.65 0.14 55);
+    border: 2px solid oklch(0.52 0.14 50);
   }
 }
 
