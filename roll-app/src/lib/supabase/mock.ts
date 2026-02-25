@@ -804,6 +804,8 @@ const TABLE_DATA: Record<string, unknown[]> = {
   print_orders: MOCK_ORDERS,
   referrals: MOCK_REFERRALS,
   collections: [],
+  magazines: [],
+  magazine_subscriptions: [],
   push_subscriptions: [],
   people: [],
   tags: [],
@@ -964,16 +966,36 @@ class MockQueryBuilder {
 
   execute(): { data: unknown; error: null } {
     if (this.isInsert || this.isUpsert) {
+      // Persist inserted data into the mock table so subsequent reads find it
+      if (!TABLE_DATA[this.tableName]) {
+        TABLE_DATA[this.tableName] = [];
+      }
+      for (const row of this.insertData) {
+        (TABLE_DATA[this.tableName] as Record<string, unknown>[]).push({ ...row });
+      }
+      // When .select().single() is chained, return the first item (not an array)
+      if (this.isSingle) {
+        return { data: this.insertData[0] ?? null, error: null };
+      }
       return { data: this.insertData, error: null };
     }
 
     if (this.isUpdate) {
       // Apply update to matching rows in-place so subsequent reads see the changes
+      const updated: Record<string, unknown>[] = [];
       for (const row of this.rows) {
         const matches = this.filters.every((filter) => filter(row));
         if (matches) {
           Object.assign(row, this.updateData);
+          updated.push(row);
         }
+      }
+      // When .select().single() is chained, return the first updated row
+      if (this.isSingle) {
+        return { data: updated[0] ?? null, error: null };
+      }
+      if (this.selectColumns !== '*' || updated.length > 0) {
+        return { data: updated, error: null };
       }
       return { data: null, error: null };
     }

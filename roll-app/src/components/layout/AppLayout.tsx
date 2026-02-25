@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3X3, Image, Users, User, FolderOpen, BookOpen, Menu, X } from 'lucide-react';
+import { Grid3X3, Film, Image, BookOpen, Users, User, Menu, X } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -34,8 +34,8 @@ function DarkroomBulbIcon({ active }: { active: boolean }) {
 
 const navItems = [
   { href: '/feed', label: 'Photos', icon: Grid3X3 },
+  { href: '/videos', label: 'Videos', icon: Film },
   { href: '/library', label: 'Gallery', icon: Image },
-  { href: '/projects', label: 'Projects', icon: FolderOpen },
   { href: '/projects/magazines', label: 'Magazines', icon: BookOpen },
   { href: '/circle', label: 'Circle', icon: Users },
   { href: '/account', label: 'Account', icon: User },
@@ -81,26 +81,31 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-[100dvh] bg-[var(--color-surface)] flex flex-col">
       <OfflineBanner />
 
-      {/* Desktop sidebar — unchanged */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="flex flex-col gap-[var(--space-section)] p-[var(--space-section)]">
-          <div className="flex items-center justify-between px-[var(--space-element)]">
-            <Link
-              href="/feed"
-              className="font-[family-name:var(--font-display)] font-bold text-[2.5rem] tracking-[0.15em] text-[var(--color-ink)]"
-            >
-              ROLL
-            </Link>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
-              className="p-1.5 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
-            >
-              <DarkroomBulbIcon active={theme === 'darkroom'} />
-            </button>
+      {/* Desktop sidebar — translucent, middle-aligned nav */}
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-xl">
+        <div className="flex flex-col h-full">
+          {/* Logo + theme toggle at top */}
+          <div className="p-[var(--space-section)] pb-0">
+            <div className="flex items-center justify-between px-[var(--space-element)]">
+              <Link
+                href="/feed"
+                className="font-[family-name:var(--font-display)] font-bold text-[2.5rem] tracking-[0.15em] text-[var(--color-ink)]"
+              >
+                ROLL
+              </Link>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
+                className="p-1.5 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
+              >
+                <DarkroomBulbIcon active={theme === 'darkroom'} />
+              </button>
+            </div>
           </div>
-          <nav className="flex flex-col gap-[var(--space-tight)]">
+
+          {/* Nav items — vertically centered */}
+          <nav className="flex-1 flex flex-col justify-center gap-[var(--space-tight)] px-[var(--space-section)]">
             {navItems.map((item) => {
               const isActive = pathname?.startsWith(item.href);
               return (
@@ -119,11 +124,18 @@ export function AppLayout({ children }: AppLayoutProps) {
               );
             })}
           </nav>
+
+          {/* Tagline at bottom */}
+          <div className="p-[var(--space-section)] pt-0">
+            <p className="px-[var(--space-element)] font-[family-name:var(--font-display)] font-light italic text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              Develop your roll.
+            </p>
+          </div>
         </div>
       </aside>
 
       {/* Mobile top bar with hamburger */}
-      <header className="lg:hidden sticky top-0 z-30 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+      <header className="lg:hidden sticky top-0 z-30 bg-[var(--color-surface)]/80 backdrop-blur-xl border-b border-[var(--color-border)]">
         <div className="flex items-center justify-between h-12 px-[var(--space-component)]">
           <button
             type="button"
@@ -150,7 +162,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </header>
 
-      {/* Mobile slide-out drawer */}
+      {/* Mobile slide-out drawer — translucent, middle-aligned */}
       {drawerOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           {/* Overlay */}
@@ -158,8 +170,8 @@ export function AppLayout({ children }: AppLayoutProps) {
             className="absolute inset-0 bg-black/50 animate-[fadeIn_150ms_ease-out]"
             onClick={closeDrawer}
           />
-          {/* Drawer panel */}
-          <div className="absolute inset-y-0 left-0 w-64 bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] flex flex-col animate-[slideInLeft_200ms_ease-out]">
+          {/* Drawer panel — translucent */}
+          <div className="absolute inset-y-0 left-0 w-64 bg-[var(--color-surface)]/85 backdrop-blur-xl shadow-[var(--shadow-overlay)] flex flex-col animate-[slideInLeft_200ms_ease-out]">
             {/* Drawer header */}
             <div className="flex items-center justify-between h-12 px-[var(--space-component)] border-b border-[var(--color-border)]">
               <Link
@@ -179,8 +191,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               </button>
             </div>
 
-            {/* Nav items */}
-            <nav className="flex flex-col gap-[var(--space-tight)] p-[var(--space-component)] flex-1">
+            {/* Nav items — vertically centered */}
+            <nav className="flex-1 flex flex-col justify-center gap-[var(--space-tight)] p-[var(--space-component)]">
               {navItems.map((item) => {
                 const isActive = pathname?.startsWith(item.href);
                 return (
