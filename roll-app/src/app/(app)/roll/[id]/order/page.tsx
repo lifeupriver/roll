@@ -82,7 +82,7 @@ export default function OrderPrintsPage() {
   const isFirstRoll = true; // In a real app, derive from user's order history
   const isFreeOrder = orderType === 'prints' && isFirstRoll && quantity === 1;
   const selectedSize = orderType === 'prints' ? printSize : magazineSize;
-  const selectedProduct: PrintProduct = orderType === 'prints' ? 'roll_prints' : 'photo_book';
+  const selectedProduct: PrintProduct = orderType === 'prints' ? 'roll_prints' : 'magazine';
   const pricePerUnit = orderType === 'prints' ? (PRINT_PRICES[printSize] ?? 30) : 0;
   const unitSubtotal = orderType === 'prints' ? photoCount * pricePerUnit : (MAGAZINE_PRICES[magazineSize] ?? 2499);
   const subtotalCents = unitSubtotal * quantity;
