@@ -123,6 +123,7 @@ export default function GalleryPage() {
           activeMode={activeSection}
           onChange={(mode) => setActiveSection(mode as GallerySection)}
           options={SECTION_OPTIONS}
+          variant="primary"
         />
         <div className="flex items-center gap-[var(--space-tight)]">
           <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />

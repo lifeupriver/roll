@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Play, Heart, Share2, MessageSquare, Wand2 } from 'lucide-react';
+import { Play, Heart, Share2, MessageSquare, Wand2 } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { ReelStoryboard } from '@/components/reel/ReelStoryboard';
 import { AudioMoodSelector } from '@/components/reel/AudioMoodSelector';
 import { ContentModePills } from '@/components/photo/ContentModePills';
@@ -227,14 +228,7 @@ export default function ReelDetailPage() {
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          type="button"
-          onClick={() => router.push('/library')}
-          className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors"
-          aria-label="Back to library"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton href="/library" label="Back to library" />
         <div className="flex-1 min-w-0">
           {isEditingName ? (
             <input

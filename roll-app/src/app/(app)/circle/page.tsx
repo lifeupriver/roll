@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Users, Plus, Image, Grid3X3, Grid2X2, ArrowLeft, ChevronLeft, ChevronRight,
+  Users, Plus, Image, Grid3X3, Grid2X2, ChevronLeft, ChevronRight,
   Send, Trash2, Settings, Bell, BellOff, Lock, Globe, UserPlus, UserMinus,
   Shield, Eye, EyeOff, X, ChevronDown,
 } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Empty } from '@/components/ui/Empty';
@@ -456,12 +457,7 @@ export default function CirclePage() {
           <div className="fixed inset-0 z-50 bg-[var(--color-surface)] flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-[var(--space-element)] px-[var(--space-component)] py-[var(--space-element)] border-b border-[var(--color-border)] shrink-0">
-              <button
-                onClick={() => setSelectedPost(null)}
-                className="p-[var(--space-tight)] -ml-[var(--space-tight)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
-              >
-                <ArrowLeft size={20} className="text-[var(--color-ink)]" />
-              </button>
+              <BackButton onClick={() => setSelectedPost(null)} />
               <div className="flex items-center gap-[var(--space-element)] flex-1 min-w-0">
                 {selectedPost.profiles?.avatar_url ? (
                   <img src={selectedPost.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-[var(--color-action)]/30" />

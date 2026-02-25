@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
-  ArrowLeft, BookOpen, ChevronLeft, ChevronRight, ShoppingBag,
+  BookOpen, ChevronLeft, ChevronRight, ShoppingBag,
   Pencil, Eye, Maximize2, X,
 } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { BookCover } from '@/components/book/BookCover';
@@ -382,13 +383,7 @@ function BookDetailContent() {
       <div className="flex flex-col gap-[var(--space-section)]">
         {/* Top bar */}
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.push('/projects')}
-            className="flex items-center gap-1.5 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors text-[length:var(--text-label)]"
-          >
-            <ArrowLeft size={18} />
-            <span>Projects</span>
-          </button>
+          <BackButton href="/projects" label="Back to projects" />
           <div className="flex items-center gap-[var(--space-tight)]">
             {hasUnsavedChanges && (
               <Button variant="primary" size="sm" onClick={saveChanges} isLoading={saving}>
@@ -537,16 +532,7 @@ function BookDetailContent() {
 
       {/* Top bar */}
       <div className="flex items-center justify-between">
-        <button
-          onClick={() => {
-            if (hasUnsavedChanges) saveChanges();
-            setView('cover');
-          }}
-          className="flex items-center gap-1.5 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors text-[length:var(--text-label)]"
-        >
-          <ArrowLeft size={18} />
-          <span className="truncate max-w-[120px]">{bookName}</span>
-        </button>
+        <BackButton onClick={() => { if (hasUnsavedChanges) saveChanges(); setView('cover'); }} />
 
         <div className="flex items-center gap-[var(--space-tight)]">
           {/* Layout toggle */}

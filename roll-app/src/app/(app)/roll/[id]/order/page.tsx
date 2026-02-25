@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Printer, Check, MapPin, BookOpen, Minus, Plus } from 'lucide-react';
+import { Printer, Check, MapPin, BookOpen, Minus, Plus } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -213,14 +214,7 @@ export default function OrderPrintsPage() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          type="button"
-          onClick={handleBack}
-          className="flex items-center justify-center w-10 h-10 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors duration-150 cursor-pointer bg-transparent border-none text-[var(--color-ink)]"
-          aria-label="Go back"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton onClick={handleBack} />
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
           Order This Roll
         </h1>

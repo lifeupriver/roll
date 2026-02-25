@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Eye, ShoppingCart, Trash2 } from 'lucide-react';
+import { Pencil, Eye, ShoppingCart, Trash2 } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { MagazinePreview } from '@/components/magazine/MagazinePreview';
@@ -130,13 +131,7 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[var(--space-element)]">
-          <button
-            type="button"
-            onClick={() => router.push('/projects/magazines')}
-            className="p-2 -ml-2 rounded-[var(--radius-sharp)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)]"
-          >
-            <ArrowLeft size={20} />
-          </button>
+          <BackButton href="/projects/magazines" />
           <div>
             <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] text-[var(--color-ink)]">
               {magazine.title}

@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Film, Play, Volume2, VolumeX, Scissors, Clock } from 'lucide-react';
+import { Film, Play, Volume2, VolumeX, Scissors, Clock } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
@@ -120,12 +121,7 @@ export default function ReelDetailPage() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          onClick={() => router.push('/projects')}
-          className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton href="/projects" label="Back to projects" />
         <div className="flex-1 min-w-0">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] truncate">
             {reel.name || 'Untitled Reel'}

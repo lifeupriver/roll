@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { BeforeAfterCompare } from '@/components/photo/BeforeAfterCompare';
 import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
@@ -488,9 +489,7 @@ export default function RollDetailPage() {
     return (
       <div className="flex flex-col gap-[var(--space-section)]">
         <div className="flex items-center gap-[var(--space-element)]">
-          <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
-            <ArrowLeft size={20} />
-          </button>
+          <BackButton href="/library" />
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
@@ -536,9 +535,7 @@ export default function RollDetailPage() {
     return (
       <div className="flex flex-col gap-[var(--space-section)]">
         <div className="flex items-center gap-[var(--space-element)]">
-          <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
-            <ArrowLeft size={20} />
-          </button>
+          <BackButton href="/library" />
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
@@ -582,9 +579,7 @@ export default function RollDetailPage() {
       <div className="flex flex-col gap-[var(--space-section)] pb-8">
         {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
-          <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
-            <ArrowLeft size={20} />
-          </button>
+          <BackButton href="/library" />
           <div className="flex-1 min-w-0">
             {isEditingName ? (
               <input
@@ -954,9 +949,7 @@ export default function RollDetailPage() {
 
       {/* Header: back + counter */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton href="/library" />
         <div className="flex-1 min-w-0">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             Your Roll

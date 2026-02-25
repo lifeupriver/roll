@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { ArrowLeft, Printer, ExternalLink, RotateCcw, CheckSquare, Square } from 'lucide-react';
+import { Printer, ExternalLink, RotateCcw, CheckSquare, Square } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -141,13 +142,7 @@ export default function OrderHistoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[var(--space-element)]">
-          <Link
-            href="/account"
-            className="flex items-center justify-center w-10 h-10 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors duration-150 text-[var(--color-ink)]"
-            aria-label="Back to account"
-          >
-            <ArrowLeft size={20} />
-          </Link>
+          <BackButton href="/account" label="Back to account" />
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             Print Orders
           </h1>

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
@@ -65,13 +66,7 @@ export default function CreateMagazinePage() {
     <div className="flex flex-col gap-[var(--space-section)] max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="p-2 -ml-2 rounded-[var(--radius-sharp)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)]"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton />
         <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] text-[var(--color-ink)]">
           New Magazine
         </h1>
