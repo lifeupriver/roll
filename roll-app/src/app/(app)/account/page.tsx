@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, Moon, Sun, Info } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, Moon, Sun, Info, Shield, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
@@ -227,14 +227,14 @@ export default function AccountPage() {
         </h2>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-[var(--space-element)]">
-            <Badge variant={user?.tier === 'plus' ? 'action' : 'processing'}>
-              {user?.tier === 'plus' ? 'Roll+' : 'Free'}
+            <Badge variant={user?.tier === 'free' ? 'processing' : 'action'}>
+              {user?.tier === 'pro' ? 'Roll Pro' : user?.tier === 'plus' ? 'Roll+' : 'Free'}
             </Badge>
             <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              {user?.tier === 'plus' ? 'All film profiles unlocked' : '1 film profile (Warmth)'}
+              {user?.tier === 'pro' ? 'Business features + all profiles' : user?.tier === 'plus' ? 'All film profiles unlocked' : '1 film profile (Warmth)'}
             </span>
           </div>
-          {user?.tier === 'plus' ? (
+          {user?.tier === 'plus' || user?.tier === 'pro' ? (
             <Button
               variant="ghost"
               size="sm"
@@ -256,7 +256,7 @@ export default function AccountPage() {
           )}
         </div>
 
-        {user?.tier !== 'plus' && (
+        {user?.tier === 'free' && (
           <p className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
             $4.99/month — all film profiles, unlimited processing, Circles, and more.
           </p>
@@ -266,11 +266,15 @@ export default function AccountPage() {
         <div className="mt-[var(--space-component)] border-t border-[var(--color-border)] pt-[var(--space-component)]">
           <div className="grid grid-cols-2 gap-[var(--space-tight)] text-[length:var(--text-caption)]">
             <div className="text-[var(--color-ink-secondary)]">Film profiles</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? 'All 6' : 'Warmth only'}</div>
+            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' || user?.tier === 'plus' ? 'All 6' : 'Warmth only'}</div>
             <div className="text-[var(--color-ink-secondary)]">Circle sharing</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? 'Unlimited circles' : '1 circle'}</div>
+            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' || user?.tier === 'plus' ? 'Unlimited circles' : '1 circle'}</div>
             <div className="text-[var(--color-ink-secondary)]">Print sizes</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? '4×6 and 5×7' : '4×6 only'}</div>
+            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' || user?.tier === 'plus' ? '4×6 and 5×7' : '4×6 only'}</div>
+            <div className="text-[var(--color-ink-secondary)]">Public galleries</div>
+            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' ? 'Unlimited' : '—'}</div>
+            <div className="text-[var(--color-ink-secondary)]">Business branding</div>
+            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' ? 'Custom logo & colors' : '—'}</div>
           </div>
         </div>
       </Card>
@@ -400,6 +404,28 @@ export default function AccountPage() {
           <ChevronRight size={18} className="text-[var(--color-ink-tertiary)]" />
         </Card>
       </Link>
+
+      {/* Privacy & Print Subscription */}
+      <div className="grid grid-cols-2 gap-[var(--space-element)]">
+        <Link href="/account/privacy">
+          <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+            <Shield size={18} className="text-[var(--color-action)] shrink-0" />
+            <div>
+              <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Privacy & Data</span>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Your data, your control</p>
+            </div>
+          </Card>
+        </Link>
+        <Link href="/account/print-subscription">
+          <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+            <Printer size={18} className="text-[var(--color-action)] shrink-0" />
+            <div>
+              <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Monthly Prints</span>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">$4.99/mo auto-prints</p>
+            </div>
+          </Card>
+        </Link>
+      </div>
 
       {/* Discover Section */}
       <div className="grid grid-cols-2 gap-[var(--space-element)]">

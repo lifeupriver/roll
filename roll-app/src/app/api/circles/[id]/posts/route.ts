@@ -185,6 +185,56 @@ export async function POST(
       return NextResponse.json({ error: fetchError.message }, { status: 500 });
     }
 
+    // Send push notifications to other circle members (Phase 3.8)
+    try {
+      const { data: members } = await supabase
+        .from('circle_members')
+        .select('user_id')
+        .eq('circle_id', id)
+        .neq('user_id', user.id);
+
+      const { data: circle } = await supabase
+        .from('circles')
+        .select('name')
+        .eq('id', id)
+        .single();
+
+      const { data: poster } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single();
+
+      if (members && members.length > 0 && circle) {
+        const memberIds = members.map((m: { user_id: string }) => m.user_id);
+        const { data: subscriptions } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .in('user_id', memberIds);
+
+        const photoCount = photoInserts?.length ?? 0;
+        const notifBody = `${poster?.display_name || 'Someone'} shared ${isReelPost ? 'a reel' : `${photoCount} new photo${photoCount !== 1 ? 's' : ''}`} to ${circle.name}`;
+
+        for (const sub of subscriptions ?? []) {
+          try {
+            const subData = typeof sub.subscription_data === 'string'
+              ? JSON.parse(sub.subscription_data)
+              : sub.subscription_data;
+            // Web Push API — fire and forget
+            await fetch(subData.endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: circle.name, body: notifBody, url: `/circles/${id}` }),
+            }).catch(() => {});
+          } catch {
+            // Push delivery failure is non-critical
+          }
+        }
+      }
+    } catch {
+      // Push notification failure is non-critical
+    }
+
     return NextResponse.json({ data: fullPost as CirclePost }, { status: 201 });
   } catch (err) {
     captureError(err, { context: 'circle-posts' });

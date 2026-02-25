@@ -17,6 +17,7 @@ export function getStripe(): Stripe {
 
 export const STRIPE_CONFIG = {
   priceIdPlus: process.env.STRIPE_PRICE_ID_PLUS || '',
+  priceIdPro: process.env.STRIPE_PRICE_ID_PRO || '',
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
 };
