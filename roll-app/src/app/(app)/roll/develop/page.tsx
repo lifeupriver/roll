@@ -140,7 +140,7 @@ function DevelopPageContent() {
           <ArrowLeft size={20} strokeWidth={2} />
         </button>
         <div className="flex items-baseline gap-[var(--space-element)]">
-          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
+          <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
             Develop Roll
           </h1>
           <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">

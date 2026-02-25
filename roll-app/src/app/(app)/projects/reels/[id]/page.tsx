@@ -127,7 +127,7 @@ export default function ReelDetailPage() {
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] truncate">
+          <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] truncate">
             {reel.name || 'Untitled Reel'}
           </h1>
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">

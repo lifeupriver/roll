@@ -65,7 +65,7 @@ export default function SeedPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] max-w-lg mx-auto">
-      <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
+      <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
         Mock Data
       </h1>
 

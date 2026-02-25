@@ -52,7 +52,7 @@ export default function CollectionsPage() {
   if (collections.length === 0) {
     return (
       <div>
-        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] mb-[var(--space-section)]">
+        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] mb-[var(--space-section)]">
           Collections
         </h1>
         <Empty
@@ -82,7 +82,7 @@ export default function CollectionsPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
+      <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
         Collections
       </h1>
 
