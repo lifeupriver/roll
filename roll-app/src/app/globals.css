@@ -122,49 +122,50 @@
     --shadow-overlay: 0 0 0 1px oklch(0.30 0.02 50 / 0.5), 0 12px 32px oklch(0 0 0 / 0.5);
   }
 
-  /* Darkroom mode — neutral charcoal + one red + warm cream */
+  /* Darkroom mode — deep charcoal + warm cream text + terracotta accents only */
   .darkroom {
-    /* Backgrounds: pure neutral charcoal, no color tint */
-    --color-surface: oklch(0.14 0 0);
-    --color-surface-raised: oklch(0.19 0 0);
-    --color-surface-sunken: oklch(0.11 0 0);
-    --color-surface-overlay: oklch(0.09 0 0);
+    /* Backgrounds: deep charcoal, not pure black — creates depth */
+    --color-surface: oklch(0.14 0.01 55);          /* #1A1614 — deep charcoal */
+    --color-surface-raised: oklch(0.20 0.01 50);   /* #2C2520 — lifted charcoal for cards */
+    --color-surface-sunken: oklch(0.11 0.01 55);
+    --color-surface-overlay: oklch(0.09 0.01 55);
 
-    /* Text: single red for all text — no grey */
-    --color-ink: oklch(0.62 0.20 25);
-    --color-ink-secondary: oklch(0.50 0.14 25);
-    --color-ink-tertiary: oklch(0.40 0.10 25);
-    --color-ink-inverse: oklch(0.14 0.01 60);
+    /* Text: warm cream hierarchy — NOT red/terracotta */
+    /* #FAF7F2 on #1A1614 → ~14:1 contrast ratio (WCAG AAA) */
+    --color-ink: oklch(0.97 0.01 80);              /* #FAF7F2 — warm cream, headings + primary text */
+    /* #C4B8A8 on #1A1614 → ~7.5:1 contrast ratio (WCAG AA+) */
+    --color-ink-secondary: oklch(0.76 0.02 70);    /* #C4B8A8 — muted warm gray, body text */
+    /* Tertiary for muted/less important text */
+    --color-ink-tertiary: oklch(0.58 0.02 60);     /* #8C8074 — fixer silver */
+    --color-ink-inverse: oklch(0.14 0.01 55);
 
-    /* Warm cream accent for muted UI where red would clash */
-    --color-cream: oklch(0.45 0.03 70);
+    /* Action: terracotta ONLY for CTAs, links, interactive highlights */
+    /* #C45D3E on #1A1614 → ~4.2:1 (passes WCAG AA for large text, 3:1 min) */
+    --color-action: oklch(0.62 0.15 45);           /* #C45D3E — terracotta accent */
+    --color-action-hover: oklch(0.68 0.16 48);
+    --color-action-subtle: oklch(0.20 0.04 45);
 
-    /* Action: unified with logomark red — one red only */
-    --color-action: oklch(0.62 0.20 25);
-    --color-action-hover: oklch(0.55 0.18 25);
-    --color-action-subtle: oklch(0.19 0.06 25);
+    /* Borders: subtle warm tint */
+    --color-border: oklch(0.26 0.01 55 / 0.6);
+    --color-border-strong: oklch(0.36 0.01 55 / 0.7);
+    --color-border-focus: oklch(0.62 0.15 45);
 
-    /* Borders: warm cream tint instead of neutral grey */
-    --color-border: oklch(0.24 0.02 60 / 0.6);
-    --color-border-strong: oklch(0.35 0.02 60 / 0.7);
-    --color-border-focus: oklch(0.62 0.20 25);
+    /* Safelight: still amber for the accent */
+    --color-safelight: oklch(0.62 0.15 45);
+    --color-safelight-dim: oklch(0.52 0.13 42);
+    --color-safelight-glow: oklch(0.22 0.04 45);
 
-    /* Safelight mapped to the single red */
-    --color-safelight: oklch(0.62 0.20 25);
-    --color-safelight-dim: oklch(0.50 0.14 25);
-    --color-safelight-glow: oklch(0.22 0.06 25);
+    /* Status colors: keep distinct for meaning */
+    --color-heart: oklch(0.55 0.20 25);
+    --color-heart-hover: oklch(0.48 0.18 25);
+    --color-developed: oklch(0.55 0.10 145);
+    --color-processing: oklch(0.73 0.12 85);
+    --color-error: oklch(0.62 0.15 45);
 
-    /* Status: all use the one red */
-    --color-heart: oklch(0.62 0.20 25);
-    --color-heart-hover: oklch(0.55 0.18 25);
-    --color-developed: oklch(0.62 0.20 25);
-    --color-processing: oklch(0.62 0.20 25);
-    --color-error: oklch(0.62 0.20 25);
-
-    /* Shadows: neutral, no color tint */
-    --shadow-raised: 0 0 0 1px oklch(0.24 0 0 / 0.4);
-    --shadow-floating: 0 0 0 1px oklch(0.24 0 0 / 0.5), 0 4px 16px oklch(0 0 0 / 0.4);
-    --shadow-overlay: 0 0 0 1px oklch(0.24 0 0 / 0.6), 0 12px 40px oklch(0 0 0 / 0.6);
+    /* Shadows: warm-tinted for depth */
+    --shadow-raised: 0 0 0 1px oklch(0.26 0.01 55 / 0.4);
+    --shadow-floating: 0 0 0 1px oklch(0.26 0.01 55 / 0.5), 0 4px 16px oklch(0 0 0 / 0.4);
+    --shadow-overlay: 0 0 0 1px oklch(0.26 0.01 55 / 0.6), 0 12px 40px oklch(0 0 0 / 0.6);
   }
 
   body {

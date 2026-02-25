@@ -205,6 +205,9 @@ export default function AccountPage() {
           </div>
           <button
             onClick={toggleTheme}
+            role="switch"
+            aria-checked={theme === 'darkroom'}
+            aria-label="Darkroom mode"
             className={`relative w-12 h-7 rounded-[var(--radius-pill)] transition-colors duration-200 ${
               theme === 'darkroom'
                 ? 'bg-[var(--color-action)]'
@@ -212,10 +215,16 @@ export default function AccountPage() {
             }`}
           >
             <span
-              className={`absolute top-[2px] left-[2px] w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              className={`absolute top-[2px] left-[2px] w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${
                 theme === 'darkroom' ? 'translate-x-[20px]' : 'translate-x-0'
               }`}
-            />
+            >
+              {theme === 'darkroom' ? (
+                <Moon size={12} className="text-[var(--color-darkroom)]" />
+              ) : (
+                <Sun size={12} className="text-[var(--color-safelight)]" />
+              )}
+            </span>
           </button>
         </div>
       </Card>

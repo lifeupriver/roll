@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  X,
   ChevronLeft,
   ChevronRight,
   Check,
@@ -81,12 +80,11 @@ export function PhotoLightbox({
   const isVideo = currentPhoto.media_type === 'video';
   const videoUrl = currentPhoto.preview_storage_key || (isVideo ? currentPhoto.storage_key : null);
 
-  // Mount portal on client only
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Opening animation trigger
+  // Opening animation
   useEffect(() => {
     requestAnimationFrame(() => {
       setIsOpen(true);
@@ -110,12 +108,12 @@ export function PhotoLightbox({
     }
   }, [currentIndex]);
 
-  // Show metadata after photo settles (200ms delay)
+  // Show metadata after photo settles
   useEffect(() => {
     setMetadataVisible(false);
     metadataTimerRef.current = setTimeout(() => {
       setMetadataVisible(true);
-    }, 200);
+    }, 150);
 
     return () => {
       if (metadataTimerRef.current) {
@@ -124,7 +122,7 @@ export function PhotoLightbox({
     };
   }, [currentIndex]);
 
-  // Clear transition direction after animation completes
+  // Clear transition direction
   useEffect(() => {
     if (transitionDirection) {
       const timer = setTimeout(() => {
@@ -155,7 +153,6 @@ export function PhotoLightbox({
     }
   }, [currentIndex, photos.length]);
 
-  // Keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
@@ -238,14 +235,13 @@ export function PhotoLightbox({
     setVideoProgress(fraction);
   }, []);
 
-  // Share current photo
+  // Share
   const handleShare = useCallback(async () => {
     const shareData: ShareData = {
       title: 'Photo from Roll',
       text: formattedDate ? `Photo from ${formattedDate}` : 'Photo from Roll',
     };
 
-    // If Web Share API supports URL sharing
     if (currentPhoto.thumbnail_url && !currentPhoto.thumbnail_url.startsWith('data:')) {
       shareData.url = currentPhoto.thumbnail_url;
     }
@@ -254,19 +250,18 @@ export function PhotoLightbox({
       try {
         await navigator.share(shareData);
       } catch {
-        // User cancelled or share failed
+        // User cancelled
       }
     } else {
-      // Fallback: copy image URL to clipboard
       try {
         await navigator.clipboard.writeText(currentPhoto.thumbnail_url || '');
       } catch {
-        // Clipboard API not available
+        // Clipboard unavailable
       }
     }
   }, [currentPhoto]);
 
-  // Format location info from GPS coordinates
+  // Format location
   const locationInfo = (() => {
     if (currentPhoto.latitude !== null && currentPhoto.longitude !== null) {
       const lat = currentPhoto.latitude;
@@ -299,344 +294,317 @@ export function PhotoLightbox({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       className={[
-        'fixed inset-0 z-50 flex flex-col items-center justify-center',
-        'bg-[var(--color-surface-overlay)] outline-none',
-        'transition-opacity duration-300',
+        'fixed inset-0 z-50 flex flex-col outline-none',
+        'bg-[var(--color-surface-overlay)]',
+        'transition-all duration-300',
         isOpen && !isClosing ? 'opacity-100' : 'opacity-0',
       ].join(' ')}
       style={{
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Top bar: back link */}
-      <div className="w-full px-[var(--space-component)] py-[var(--space-element)] flex items-center shrink-0 z-10">
+      {/* Back button — icon only, 44px touch target, top-left */}
+      <div className="absolute top-0 left-0 z-20 p-[var(--space-element)]">
         <button
           type="button"
           onClick={handleClose}
           aria-label="Back to grid"
-          className={[
-            'flex items-center gap-[var(--space-tight)]',
-            'text-[var(--color-ink-inverse)]',
-            'hover:text-[var(--color-ink-inverse)]/70',
-            'transition-colors duration-150 ease-out',
-            'cursor-pointer border-none bg-transparent',
-            'text-[length:var(--text-label)] font-medium',
-            'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-          ].join(' ')}
+          className="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/50 transition-colors duration-150 cursor-pointer border-none focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2"
         >
-          <ChevronLeft size={20} strokeWidth={1.5} />
-          Back
+          <ChevronLeft size={24} strokeWidth={2} />
         </button>
       </div>
 
-      {/* Media display area with nav arrows outside */}
-      <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
-        {/* Previous button — outside the photo */}
-        <div className="shrink-0 w-12 sm:w-16 flex items-center justify-center">
+      {/* Photo counter — top-right */}
+      <div className="absolute top-0 right-0 z-20 p-[var(--space-element)] flex items-center h-11">
+        <span className="text-[length:var(--text-caption)] text-white/60 font-[family-name:var(--font-mono)] tabular-nums bg-black/20 backdrop-blur-sm px-2 py-1 rounded-full">
+          {currentIndex + 1} / {photos.length}
+        </span>
+      </div>
+
+      {/* Main content area: photo + metadata + actions */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full px-[var(--space-element)] pb-[var(--space-component)]">
+        {/* Image container with overlay navigation arrows */}
+        <div className="relative flex items-center justify-center w-full max-w-[1200px]" style={{ maxHeight: '80vh' }}>
+          {/* Previous arrow — overlaid on left edge of photo */}
           {currentIndex > 0 && (
             <button
               type="button"
               onClick={goToPrevious}
               aria-label="Previous photo"
-              className={[
-                'flex items-center justify-center',
-                'w-10 h-10 min-w-[44px] min-h-[44px]',
-                'bg-transparent text-[var(--color-ink-inverse)]',
-                'hover:text-[var(--color-ink-inverse)]/70',
-                'transition-colors duration-150 ease-out',
-                'cursor-pointer border-none',
-                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-              ].join(' ')}
+              className="absolute left-1 sm:left-2 z-10 flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-black/30 backdrop-blur-sm text-white/80 hover:bg-black/50 hover:text-white transition-all duration-150 cursor-pointer border-none focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2"
             >
-              <ChevronLeft size={32} strokeWidth={1.5} />
+              <ChevronLeft size={28} strokeWidth={1.5} />
             </button>
           )}
-        </div>
 
-        {/* Photo/video content */}
-        <div className="flex-1 flex items-center justify-center overflow-hidden">
-        {isVideo && videoUrl ? (
+          {/* Photo/video */}
           <div
-            key={currentPhoto.id}
             className={[
-              'relative max-w-full max-h-full',
-              'transition-all duration-[250ms] ease-out',
-              transitionDirection ? 'scale-95 opacity-80' : 'scale-100 opacity-100',
+              'flex items-center justify-center transition-all duration-[250ms]',
+              isOpen && !isClosing ? 'scale-100 opacity-100' : 'scale-95 opacity-0',
             ].join(' ')}
+            style={{
+              transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
           >
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              poster={currentPhoto.thumbnail_url}
-              playsInline
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={handleVideoEnded}
-              onClick={togglePlayPause}
-              className="max-w-full max-h-[70vh] object-contain select-none cursor-pointer rounded-[var(--radius-card)]"
-            />
-            {/* Play/pause overlay */}
-            {!isPlaying && (
-              <button
-                type="button"
-                onClick={togglePlayPause}
-                aria-label="Play video"
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                  <Play size={32} className="text-white ml-1" fill="white" fillOpacity={0.9} />
-                </div>
-              </button>
-            )}
-            {/* Video controls bar */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 px-3 py-2 bg-gradient-to-t from-black/60 to-transparent">
-              <button
-                type="button"
-                onClick={togglePlayPause}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-                className="text-white/90 hover:text-white shrink-0"
-              >
-                {isPlaying ? (
-                  <Pause size={18} />
-                ) : (
-                  <Play size={18} fill="white" fillOpacity={0.9} />
-                )}
-              </button>
-              {/* Progress bar */}
+            {isVideo && videoUrl ? (
               <div
-                className="flex-1 h-1 bg-white/30 rounded-full cursor-pointer"
-                onClick={handleProgressClick}
+                key={currentPhoto.id}
+                className={[
+                  'relative',
+                  'transition-all duration-[250ms] ease-out',
+                  transitionDirection ? 'scale-[0.97] opacity-80' : 'scale-100 opacity-100',
+                ].join(' ')}
               >
-                <div
-                  className="h-full bg-white rounded-full transition-[width] duration-100"
-                  style={{ width: `${videoProgress * 100}%` }}
+                <video
+                  ref={videoRef}
+                  src={videoUrl}
+                  poster={currentPhoto.thumbnail_url}
+                  playsInline
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={handleVideoEnded}
+                  onClick={togglePlayPause}
+                  className="max-w-full object-contain select-none cursor-pointer rounded-[var(--radius-card)]"
+                  style={{ maxHeight: '80vh' }}
                 />
+                {!isPlaying && (
+                  <button
+                    type="button"
+                    onClick={togglePlayPause}
+                    aria-label="Play video"
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                      <Play size={32} className="text-white ml-1" fill="white" fillOpacity={0.9} />
+                    </div>
+                  </button>
+                )}
+                {/* Video controls bar */}
+                <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 px-3 py-2 bg-gradient-to-t from-black/60 to-transparent">
+                  <button
+                    type="button"
+                    onClick={togglePlayPause}
+                    aria-label={isPlaying ? 'Pause' : 'Play'}
+                    className="text-white/90 hover:text-white shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  >
+                    {isPlaying ? <Pause size={18} /> : <Play size={18} fill="white" fillOpacity={0.9} />}
+                  </button>
+                  <div
+                    className="flex-1 h-1 bg-white/30 rounded-full cursor-pointer"
+                    onClick={handleProgressClick}
+                  >
+                    <div
+                      className="h-full bg-white rounded-full transition-[width] duration-100"
+                      style={{ width: `${videoProgress * 100}%` }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    aria-label={isMuted ? 'Unmute' : 'Mute'}
+                    className="text-white/90 hover:text-white shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  >
+                    {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                  </button>
+                  {currentPhoto.duration_ms && (
+                    <span className="text-white/80 text-xs font-[family-name:var(--font-mono)] tabular-nums shrink-0">
+                      {formatDuration(currentPhoto.duration_ms)}
+                    </span>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={toggleMute}
-                aria-label={isMuted ? 'Unmute' : 'Mute'}
-                className="text-white/90 hover:text-white shrink-0"
-              >
-                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-              </button>
-              {currentPhoto.duration_ms && (
-                <span className="text-white/80 text-xs font-[family-name:var(--font-mono)] tabular-nums shrink-0">
-                  {formatDuration(currentPhoto.duration_ms)}
-                </span>
-              )}
-            </div>
+            ) : (
+              <img
+                key={currentPhoto.id}
+                src={currentPhoto.thumbnail_url}
+                alt={`Photo${formattedDate ? ` from ${formattedDate}` : ''}`}
+                draggable={false}
+                className={[
+                  'max-w-full object-contain select-none',
+                  'transition-all duration-[250ms] ease-out',
+                  transitionDirection ? 'scale-[0.97] opacity-80' : 'scale-100 opacity-100',
+                ].join(' ')}
+                style={{ maxHeight: '80vh' }}
+              />
+            )}
           </div>
-        ) : (
-          <img
-            key={currentPhoto.id}
-            src={currentPhoto.thumbnail_url}
-            alt={`Photo${formattedDate ? ` from ${formattedDate}` : ''}`}
-            draggable={false}
-            className={[
-              'max-w-full max-h-full object-contain select-none',
-              'transition-all duration-[250ms] ease-out',
-              transitionDirection ? 'scale-95 opacity-80' : 'scale-100 opacity-100',
-            ].join(' ')}
-          />
-        )}
-        </div>
 
-        {/* Next button — outside the photo */}
-        <div className="shrink-0 w-12 sm:w-16 flex items-center justify-center">
+          {/* Next arrow — overlaid on right edge of photo */}
           {currentIndex < photos.length - 1 && (
             <button
               type="button"
               onClick={goToNext}
               aria-label="Next photo"
-              className={[
-                'flex items-center justify-center',
-                'w-10 h-10 min-w-[44px] min-h-[44px]',
-                'bg-transparent text-[var(--color-ink-inverse)]',
-                'hover:text-[var(--color-ink-inverse)]/70',
-                'transition-colors duration-150 ease-out',
-                'cursor-pointer border-none',
-                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-              ].join(' ')}
+              className="absolute right-1 sm:right-2 z-10 flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-black/30 backdrop-blur-sm text-white/80 hover:bg-black/50 hover:text-white transition-all duration-150 cursor-pointer border-none focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2"
             >
-              <ChevronRight size={32} strokeWidth={1.5} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom bar: metadata + actions */}
-      <div
-        className={[
-          'w-full px-[var(--space-section)] pb-[var(--space-section)] pt-[var(--space-element)]',
-          'flex flex-col items-center gap-[var(--space-element)]',
-          'transition-opacity duration-200 ease-out',
-          metadataVisible ? 'opacity-100' : 'opacity-0',
-        ].join(' ')}
-      >
-        {/* Metadata bar + Add to Roll — all in one centered row */}
-        <div className="flex items-center justify-center gap-[var(--space-component)] flex-wrap">
-          {formattedDate && (
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide">
-              {formattedDate}
-            </p>
-          )}
-          {locationInfo && (
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide">
-              {locationInfo}
-            </p>
-          )}
-          {/* Feed mode: Add to Roll button inline with metadata */}
-          {mode === 'feed' && onAddToRoll && (
-            <button
-              type="button"
-              onClick={() => onAddToRoll(currentPhoto.id)}
-              aria-label={
-                isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'
-              }
-              className={[
-                'flex items-center gap-[var(--space-tight)]',
-                'px-4 h-9 rounded-full',
-                'transition-all duration-200 ease-out',
-                'cursor-pointer border-none',
-                'text-[length:var(--text-caption)] font-medium',
-                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-                isInRoll?.(currentPhoto.id)
-                  ? 'bg-[var(--color-action)] text-white'
-                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
-              ].join(' ')}
-            >
-              {isInRoll?.(currentPhoto.id) ? (
-                <>
-                  <Check size={16} strokeWidth={2.5} />
-                  In Roll
-                </>
-              ) : (
-                <>
-                  <Plus size={16} strokeWidth={2} />
-                  Add to Roll
-                </>
-              )}
+              <ChevronRight size={28} strokeWidth={1.5} />
             </button>
           )}
         </div>
 
-        {/* Caption prompt — roll mode */}
-        {(mode === 'roll' || mode === 'favorites') && onCaption && (
-          <div className="w-full max-w-md">
-            {isEditingCaption ? (
-              <input
-                autoFocus
-                type="text"
-                value={captionDraft}
-                onChange={(e) => setCaptionDraft(e.target.value)}
-                onBlur={() => {
-                  onCaption(currentPhoto.id, captionDraft.trim());
-                  setIsEditingCaption(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    onCaption(currentPhoto.id, captionDraft.trim());
-                    setIsEditingCaption(false);
-                  }
-                  if (e.key === 'Escape') setIsEditingCaption(false);
-                }}
-                placeholder="Write a caption..."
-                maxLength={200}
-                className="w-full bg-transparent border-b border-white/30 focus:border-white/60 text-[length:var(--text-label)] text-[var(--color-ink-inverse)] placeholder:text-white/40 focus:outline-none text-center pb-1"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setCaptionDraft(getCaption?.(currentPhoto.id) || '');
-                  setIsEditingCaption(true);
-                }}
-                className="w-full text-center text-[length:var(--text-label)] text-white/50 hover:text-white/70 transition-colors"
-              >
-                {getCaption?.(currentPhoto.id) || 'Add a caption'}
-              </button>
+        {/* Metadata + actions — tight spacing below the image */}
+        <div
+          className={[
+            'w-full max-w-[600px] mt-3 flex flex-col items-center gap-2',
+            'transition-opacity duration-200 ease-out',
+            metadataVisible ? 'opacity-100' : 'opacity-0',
+          ].join(' ')}
+        >
+          {/* Metadata: date, location */}
+          <div className="flex items-center justify-center gap-[var(--space-component)] flex-wrap">
+            {formattedDate && (
+              <p className="text-[length:var(--text-caption)] text-white/60 font-[family-name:var(--font-mono)] tracking-wide">
+                {formattedDate}
+              </p>
+            )}
+            {locationInfo && (
+              <p className="text-[length:var(--text-caption)] text-white/60 font-[family-name:var(--font-mono)] tracking-wide">
+                {locationInfo}
+              </p>
             )}
           </div>
-        )}
 
-        {/* Mode-specific action buttons */}
-        <div className="flex items-center justify-center gap-[var(--space-element)]">
-          {/* Feed mode (select mode): checkmark button */}
-          {mode === 'feed' && onCheck && !onAddToRoll && (
-            <button
-              type="button"
-              onClick={() => onCheck(currentPhoto.id)}
-              role="checkbox"
-              aria-checked={isChecked?.(currentPhoto.id) ?? false}
-              aria-label={
-                isChecked?.(currentPhoto.id) ? 'Remove photo from roll' : 'Select photo for roll'
-              }
-              className={[
-                'flex items-center justify-center',
-                'w-11 h-11 min-w-[44px] min-h-[44px] rounded-full',
-                'transition-all duration-200 ease-out',
-                'cursor-pointer border-none',
-                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-                isChecked?.(currentPhoto.id)
-                  ? 'bg-[var(--color-action)] text-[var(--color-ink-inverse)]'
-                  : 'bg-[var(--color-surface-overlay)]/40 border border-white/60 text-[var(--color-ink-inverse)]',
-              ].join(' ')}
-            >
-              <Check size={20} strokeWidth={2.5} />
-            </button>
+          {/* Caption (roll/favorites mode) */}
+          {(mode === 'roll' || mode === 'favorites') && onCaption && (
+            <div className="w-full max-w-md">
+              {isEditingCaption ? (
+                <input
+                  autoFocus
+                  type="text"
+                  value={captionDraft}
+                  onChange={(e) => setCaptionDraft(e.target.value)}
+                  onBlur={() => {
+                    onCaption(currentPhoto.id, captionDraft.trim());
+                    setIsEditingCaption(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onCaption(currentPhoto.id, captionDraft.trim());
+                      setIsEditingCaption(false);
+                    }
+                    if (e.key === 'Escape') setIsEditingCaption(false);
+                  }}
+                  placeholder="Write a caption..."
+                  maxLength={200}
+                  className="w-full bg-transparent border-b border-white/30 focus:border-white/60 text-[length:var(--text-label)] text-[var(--color-ink-inverse)] placeholder:text-white/40 focus:outline-none text-center pb-1"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCaptionDraft(getCaption?.(currentPhoto.id) || '');
+                    setIsEditingCaption(true);
+                  }}
+                  className="w-full text-center text-[length:var(--text-label)] text-white/50 hover:text-white/70 transition-colors"
+                >
+                  {getCaption?.(currentPhoto.id) || 'Add a caption'}
+                </button>
+              )}
+            </div>
           )}
 
-          {/* Roll / Favorites mode: heart button */}
-          {(mode === 'roll' || mode === 'favorites') && onHeart && (
+          {/* Action buttons row */}
+          <div className="flex items-center justify-center gap-[var(--space-tight)]">
+            {/* Feed mode: Add to Roll */}
+            {mode === 'feed' && onAddToRoll && (
+              <button
+                type="button"
+                onClick={() => onAddToRoll(currentPhoto.id)}
+                aria-label={
+                  isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'
+                }
+                className={[
+                  'flex items-center gap-[var(--space-tight)]',
+                  'px-4 h-9 rounded-full min-h-[44px]',
+                  'transition-all duration-200 ease-out',
+                  'cursor-pointer border-none',
+                  'text-[length:var(--text-caption)] font-medium',
+                  'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+                  isInRoll?.(currentPhoto.id)
+                    ? 'bg-[var(--color-action)] text-white'
+                    : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
+                ].join(' ')}
+              >
+                {isInRoll?.(currentPhoto.id) ? (
+                  <>
+                    <Check size={16} strokeWidth={2.5} />
+                    In Roll
+                  </>
+                ) : (
+                  <>
+                    <Plus size={16} strokeWidth={2} />
+                    Add to Roll
+                  </>
+                )}
+              </button>
+            )}
+
+            {/* Feed mode: checkmark (select mode) */}
+            {mode === 'feed' && onCheck && !onAddToRoll && (
+              <button
+                type="button"
+                onClick={() => onCheck(currentPhoto.id)}
+                role="checkbox"
+                aria-checked={isChecked?.(currentPhoto.id) ?? false}
+                aria-label={
+                  isChecked?.(currentPhoto.id) ? 'Remove photo from roll' : 'Select photo for roll'
+                }
+                className={[
+                  'flex items-center justify-center',
+                  'w-11 h-11 min-w-[44px] min-h-[44px] rounded-full',
+                  'transition-all duration-200 ease-out',
+                  'cursor-pointer border-none',
+                  'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+                  isChecked?.(currentPhoto.id)
+                    ? 'bg-[var(--color-action)] text-[var(--color-ink-inverse)]'
+                    : 'bg-white/20 backdrop-blur-sm border border-white/60 text-white',
+                ].join(' ')}
+              >
+                <Check size={20} strokeWidth={2.5} />
+              </button>
+            )}
+
+            {/* Heart button (roll/favorites mode) */}
+            {(mode === 'roll' || mode === 'favorites') && onHeart && (
+              <button
+                type="button"
+                onClick={() => onHeart(currentPhoto.id)}
+                role="checkbox"
+                aria-checked={isHearted?.(currentPhoto.id) ?? false}
+                aria-label={
+                  isHearted?.(currentPhoto.id) ? 'Remove from favorites' : 'Mark as favorite'
+                }
+                className={[
+                  'flex items-center justify-center',
+                  'w-11 h-11 min-w-[44px] min-h-[44px]',
+                  'bg-transparent border-none cursor-pointer',
+                  'transition-colors duration-150 ease-out',
+                  'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+                  isHearted?.(currentPhoto.id)
+                    ? 'text-[var(--color-heart)]'
+                    : 'text-white hover:text-[var(--color-heart)]',
+                ].join(' ')}
+              >
+                <Heart
+                  size={24}
+                  strokeWidth={1.5}
+                  fill={isHearted?.(currentPhoto.id) ? 'currentColor' : 'none'}
+                />
+              </button>
+            )}
+
+            {/* Share button */}
             <button
               type="button"
-              onClick={() => onHeart(currentPhoto.id)}
-              role="checkbox"
-              aria-checked={isHearted?.(currentPhoto.id) ?? false}
-              aria-label={
-                isHearted?.(currentPhoto.id) ? 'Remove from favorites' : 'Mark as favorite'
-              }
-              className={[
-                'flex items-center justify-center',
-                'w-11 h-11 min-w-[44px] min-h-[44px]',
-                'bg-transparent border-none cursor-pointer',
-                'transition-colors duration-150 ease-out',
-                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-                isHearted?.(currentPhoto.id)
-                  ? 'text-[var(--color-heart)]'
-                  : 'text-[var(--color-ink-inverse)] hover:text-[var(--color-heart)]',
-              ].join(' ')}
+              onClick={handleShare}
+              aria-label="Share this photo"
+              className="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] bg-transparent border-none cursor-pointer text-white/70 hover:text-white transition-colors duration-150 ease-out focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2"
             >
-              <Heart
-                size={24}
-                strokeWidth={1.5}
-                fill={isHearted?.(currentPhoto.id) ? 'currentColor' : 'none'}
-              />
+              <Share2 size={22} strokeWidth={1.5} />
             </button>
-          )}
-
-          {/* Share button — always available */}
-          <button
-            type="button"
-            onClick={handleShare}
-            aria-label="Share this photo"
-            className={[
-              'flex items-center justify-center',
-              'w-11 h-11 min-w-[44px] min-h-[44px]',
-              'bg-transparent border-none cursor-pointer',
-              'text-[var(--color-ink-inverse)] hover:text-[var(--color-ink-inverse)]/70',
-              'transition-colors duration-150 ease-out',
-              'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-            ].join(' ')}
-          >
-            <Share2 size={22} strokeWidth={1.5} />
-          </button>
+          </div>
         </div>
-
-        {/* Photo counter */}
-        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tabular-nums">
-          {currentIndex + 1} / {photos.length}
-        </p>
       </div>
     </div>
   );
