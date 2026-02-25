@@ -14,6 +14,7 @@ interface CirclePostCardProps {
   onRemoveReaction: (postId: string, reactionType: ReactionType) => void;
   onCommentAdded: (postId: string, comment: CircleComment) => void;
   onCommentDeleted: (postId: string, commentId: string) => void;
+  onClick?: () => void;
 }
 
 const REACTION_CONFIG: { type: ReactionType; icon: typeof Heart; emoji: string }[] = [
@@ -59,6 +60,7 @@ export function CirclePostCard({
   onRemoveReaction,
   onCommentAdded,
   onCommentDeleted,
+  onClick,
 }: CirclePostCardProps) {
   const [commentText, setCommentText] = useState('');
   const [commentSending, setCommentSending] = useState(false);
@@ -163,10 +165,10 @@ export function CirclePostCard({
           <img
             src={post.profiles.avatar_url}
             alt={getAuthorName(post)}
-            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+            className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-[var(--color-action)]/30"
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center flex-shrink-0 ring-2 ring-[var(--color-action)]/30">
             <span className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
               {getInitial(post.profiles)}
             </span>
@@ -222,12 +224,14 @@ export function CirclePostCard({
 
       {/* Photo grid */}
       {!isReelPost && photos.length > 0 && (
-        <div
-          className={`w-full ${
+        <button
+          type="button"
+          onClick={onClick}
+          className={`w-full text-left ${
             photos.length === 1
               ? ''
               : 'grid grid-cols-2 gap-0.5'
-          }`}
+          } ${onClick ? 'cursor-pointer' : ''}`}
         >
           {photos.slice(0, 4).map((photo) => (
             <div
@@ -246,7 +250,7 @@ export function CirclePostCard({
               />
             </div>
           ))}
-        </div>
+        </button>
       )}
 
       {/* Caption, reactions, and comments */}
@@ -310,7 +314,7 @@ export function CirclePostCard({
               const isOwn = c.user_id === currentUserId;
               return (
                 <div key={c.id} className="flex gap-[var(--space-tight)] group">
-                  <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden mt-0.5">
+                  <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden mt-0.5 ring-1 ring-[var(--color-action)]/20">
                     {c.profiles?.avatar_url ? (
                       <img src={c.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
