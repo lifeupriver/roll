@@ -609,22 +609,22 @@ export default function RollDetailPage() {
           </span>
         </div>
 
-        {/* Order Prints — prominent CTA at top */}
+        {/* Order This Roll — prominent CTA at top */}
         <Link href={`/roll/${rollId}/order`} className="block">
           <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
             <div className="flex items-center gap-[var(--space-element)]">
               <Printer size={24} />
               <div>
                 <p className="text-[length:var(--text-body)] font-medium">
-                  Order Prints
+                  Order This Roll
                 </p>
                 <p className="text-[length:var(--text-caption)] opacity-80">
-                  High-quality prints delivered to your door
+                  Prints or book delivered to your door
                 </p>
               </div>
             </div>
             <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
-              Print
+              Order
             </div>
           </div>
         </Link>

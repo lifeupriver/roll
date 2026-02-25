@@ -131,7 +131,7 @@ describe('createOrderSchema', () => {
   it('rejects invalid printSize', () => {
     expect(createOrderSchema.safeParse({
       ...validOrder,
-      printSize: '3x5',
+      printSize: '2x3',
     }).success).toBe(false);
   });
 
