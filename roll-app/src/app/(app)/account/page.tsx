@@ -10,12 +10,13 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, Moon, Sun } from 'lucide-react';
+import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, Moon, Sun, Info } from 'lucide-react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useTheme } from '@/hooks/useTheme';
+import { useStackStore } from '@/stores/stackStore';
 import type { PrintOrder } from '@/types/print';
 import type { ReferralStats } from '@/types/referral';
 
@@ -24,9 +25,9 @@ export default function AccountPage() {
   const { logout, loading: logoutLoading } = useAuth();
   const { toast } = useToast();
   const [showFiltered, setShowFiltered] = useState(false);
-  // Stack settings
-  const [stackMode, setStackMode] = useState<'auto' | 'manual' | 'off'>('auto');
-  const [stackSensitivity, setStackSensitivity] = useState(0.7);
+  // Stack settings (persisted via store)
+  const { mode: stackMode, sensitivity: stackSensitivity, setMode: setStackMode, setSensitivity: setStackSensitivity } = useStackStore();
+  const [showSensitivityInfo, setShowSensitivityInfo] = useState(false);
   const [orders, setOrders] = useState<PrintOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
@@ -335,30 +336,43 @@ export default function AccountPage() {
 
           {/* Sensitivity slider (only when auto mode) */}
           {stackMode === 'auto' && (
-            <div className="flex items-center justify-between">
-              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                Sensitivity
-              </span>
-              <div className="flex items-center gap-[var(--space-element)]">
-                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Low</span>
-                <input
-                  type="range"
-                  min={0.3}
-                  max={1}
-                  step={0.05}
-                  value={stackSensitivity}
-                  onChange={(e) => setStackSensitivity(Number(e.target.value))}
-                  className="w-24 accent-[var(--color-action)]"
-                />
-                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">High</span>
+            <div className="flex flex-col gap-[var(--space-tight)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-[var(--space-tight)]">
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                    Sensitivity
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowSensitivityInfo(!showSensitivityInfo)}
+                    className="text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)] transition-colors"
+                    aria-label="What is sensitivity?"
+                  >
+                    <Info size={14} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Low</span>
+                  <input
+                    type="range"
+                    min={0.3}
+                    max={1}
+                    step={0.05}
+                    value={stackSensitivity}
+                    onChange={(e) => setStackSensitivity(Number(e.target.value))}
+                    className="w-24 accent-[var(--color-action)]"
+                  />
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">High</span>
+                </div>
               </div>
+              {showSensitivityInfo && (
+                <div className="bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] p-[var(--space-element)]">
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] leading-relaxed">
+                    <strong>Low sensitivity</strong> only groups nearly identical photos (e.g. burst shots of the same moment). <strong>High sensitivity</strong> groups photos that are loosely similar (e.g. multiple shots from the same scene or angle). Adjust to control how aggressively photos are grouped — the best photo from each stack is automatically chosen for your roll.
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-
-          {stackMode === 'auto' && (
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              Higher sensitivity groups more loosely similar photos together.
-            </p>
           )}
           {stackMode === 'manual' && (
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
