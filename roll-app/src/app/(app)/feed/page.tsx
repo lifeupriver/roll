@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, MousePointerClick, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import { PhotoStack } from '@/components/photo/PhotoStack';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
 import { useReelStore } from '@/stores/reelStore';
+import { useStackStore } from '@/stores/stackStore';
+import { applyStacks } from '@/lib/stacking';
 import { track } from '@/lib/analytics';
 import type { ContentMode } from '@/types/photo';
 
@@ -33,12 +36,22 @@ export default function FeedPage() {
     setReel: setReelState,
   } = useReelStore();
 
+  const { mode: stackMode, sensitivity: stackSensitivity } = useStackStore();
+
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
   const [selectMode, setSelectMode] = useState(false);
 
   // Determine if we're in clip mode (building a reel)
   const isClipMode = contentMode === 'clips';
+
+  // Apply photo stacking when in auto mode
+  const { displayPhotos, stackMap } = useMemo(() => {
+    if (stackMode !== 'auto' || isClipMode) {
+      return { displayPhotos: photos, stackMap: new Map() };
+    }
+    return applyStacks(photos, stackSensitivity);
+  }, [photos, stackMode, stackSensitivity, isClipMode]);
 
   useEffect(() => {
     setContentMode('all');
@@ -253,10 +266,29 @@ export default function FeedPage() {
 
   const handlePhotoTap = useCallback(
     (photoId: string) => {
-      const index = photos.findIndex((p) => p.id === photoId);
+      const index = displayPhotos.findIndex((p) => p.id === photoId);
       if (index >= 0) setLightboxIndex(index);
     },
-    [photos]
+    [displayPhotos]
+  );
+
+  // Render override for stacked photos
+  const renderStackOverride = useCallback(
+    (photoId: string) => {
+      if (stackMode !== 'auto') return null;
+      const stack = stackMap.get(photoId);
+      if (!stack || stack.topPhoto.id !== photoId) return null;
+      return (
+        <PhotoStack
+          key={stack.id}
+          stack={stack}
+          isChecked={isClipMode ? isClipAdded : isChecked}
+          onCheck={isClipMode ? handleClipCheck : handleCheck}
+          onPhotoTap={handlePhotoTap}
+        />
+      );
+    },
+    [stackMode, stackMap, isClipMode, isClipAdded, isChecked, handleClipCheck, handleCheck, handlePhotoTap]
   );
 
   // Roll status helpers
@@ -534,7 +566,7 @@ export default function FeedPage() {
 
       {/* Photo/clip grid — the contact sheet */}
       <PhotoGrid
-        photos={photos}
+        photos={displayPhotos}
         mode="feed"
         selectMode={selectMode}
         checkedIds={isClipMode ? clipIds : checkedPhotoIds}
@@ -546,12 +578,13 @@ export default function FeedPage() {
         onLoadMore={loadMore}
         isLoading={loading}
         columns={gridColumns}
+        renderOverride={stackMode === 'auto' ? renderStackOverride : undefined}
       />
 
       {/* Lightbox for full-screen photo/video viewing */}
       {lightboxIndex !== null && (
         <PhotoLightbox
-          photos={photos}
+          photos={displayPhotos}
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           mode="feed"
