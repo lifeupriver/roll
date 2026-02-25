@@ -122,7 +122,7 @@
     --shadow-overlay: 0 0 0 1px oklch(0.30 0.02 50 / 0.5), 0 12px 32px oklch(0 0 0 / 0.5);
   }
 
-  /* Darkroom mode — neutral charcoal + dark red text + dark orange accents */
+  /* Darkroom mode — neutral charcoal + red only, no orange */
   .darkroom {
     /* Backgrounds: pure neutral charcoal, no color tint */
     --color-surface: oklch(0.14 0 0);
@@ -136,26 +136,26 @@
     --color-ink-tertiary: oklch(0.35 0 0);
     --color-ink-inverse: oklch(0.14 0 0);
 
-    /* Action: vibrant orange for buttons, badges, small accents */
-    --color-action: oklch(0.60 0.20 50);
-    --color-action-hover: oklch(0.53 0.18 50);
-    --color-action-subtle: oklch(0.19 0.06 50);
+    /* Action: red for buttons, badges, small accents — no orange */
+    --color-action: oklch(0.55 0.22 25);
+    --color-action-hover: oklch(0.48 0.20 25);
+    --color-action-subtle: oklch(0.19 0.06 25);
 
-    /* Borders: neutral grey */
+    /* Borders: neutral grey, red focus */
     --color-border: oklch(0.24 0 0 / 0.6);
     --color-border-strong: oklch(0.35 0 0 / 0.7);
-    --color-border-focus: oklch(0.60 0.20 50);
+    --color-border-focus: oklch(0.55 0.22 25);
 
     /* Safelight mapped to the dark red */
     --color-safelight: oklch(0.55 0.20 25);
     --color-safelight-dim: oklch(0.45 0.16 25);
     --color-safelight-glow: oklch(0.22 0.06 25);
 
-    /* Status: red for heart/error, orange for processing */
+    /* Status: all red, no orange */
     --color-heart: oklch(0.55 0.20 25);
     --color-heart-hover: oklch(0.48 0.18 25);
     --color-developed: oklch(0.55 0.20 25);
-    --color-processing: oklch(0.60 0.20 50);
+    --color-processing: oklch(0.55 0.20 25);
     --color-error: oklch(0.55 0.20 25);
 
     /* Shadows: neutral, no color tint */
@@ -188,7 +188,7 @@
   height: 6px;
   background: var(--color-surface-raised);
   border-radius: 9999px;
-  border: 1px solid oklch(0.60 0.20 50);
+  border: 1px solid var(--color-action);
 }
 .darkroom input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -197,21 +197,21 @@
   height: 16px;
   border-radius: 50%;
   background: var(--color-action);
-  border: 2px solid oklch(0.60 0.20 50);
+  border: 2px solid var(--color-action);
   margin-top: -5px;
 }
 .darkroom input[type="range"]::-moz-range-track {
   height: 6px;
   background: var(--color-surface-raised);
   border-radius: 9999px;
-  border: 1px solid oklch(0.60 0.20 50);
+  border: 1px solid var(--color-action);
 }
 .darkroom input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
   background: var(--color-action);
-  border: 2px solid oklch(0.60 0.20 50);
+  border: 2px solid var(--color-action);
 }
 
 /* Mobile-optimized range sliders — ensure 44px touch target */
@@ -261,25 +261,25 @@
   .darkroom input[type="range"]::-webkit-slider-runnable-track {
     height: 8px;
     background: var(--color-surface-raised);
-    border: 1px solid oklch(0.60 0.20 50);
+    border: 1px solid var(--color-action);
   }
   .darkroom input[type="range"]::-webkit-slider-thumb {
     width: 28px;
     height: 28px;
     background: var(--color-action);
-    border: 2px solid oklch(0.60 0.20 50);
+    border: 2px solid var(--color-action);
     margin-top: -10px;
   }
   .darkroom input[type="range"]::-moz-range-track {
     height: 8px;
     background: var(--color-surface-raised);
-    border: 1px solid oklch(0.60 0.20 50);
+    border: 1px solid var(--color-action);
   }
   .darkroom input[type="range"]::-moz-range-thumb {
     width: 28px;
     height: 28px;
     background: var(--color-action);
-    border: 2px solid oklch(0.60 0.20 50);
+    border: 2px solid var(--color-action);
   }
 }
 

@@ -266,12 +266,16 @@ export function PhotoLightbox({
     }
   }, [currentPhoto]);
 
-  // Format camera info
-  const cameraInfo = (() => {
-    const parts: string[] = [];
-    if (currentPhoto.camera_make) parts.push(currentPhoto.camera_make);
-    if (currentPhoto.camera_model) parts.push(currentPhoto.camera_model);
-    return parts.join(' ');
+  // Format location info from GPS coordinates
+  const locationInfo = (() => {
+    if (currentPhoto.latitude !== null && currentPhoto.longitude !== null) {
+      const lat = currentPhoto.latitude;
+      const lng = currentPhoto.longitude;
+      const latDir = lat >= 0 ? 'N' : 'S';
+      const lngDir = lng >= 0 ? 'E' : 'W';
+      return `${Math.abs(lat).toFixed(4)}\u00B0${latDir}, ${Math.abs(lng).toFixed(4)}\u00B0${lngDir}`;
+    }
+    return null;
   })();
 
   // Format date
@@ -304,71 +308,53 @@ export function PhotoLightbox({
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Close button */}
-      <button
-        type="button"
-        onClick={handleClose}
-        aria-label="Close photo viewer"
-        className={[
-          'absolute top-[var(--space-component)] right-[var(--space-component)] z-10',
-          'flex items-center justify-center',
-          'w-10 h-10 min-w-[44px] min-h-[44px]',
-          'bg-transparent text-[var(--color-ink-inverse)]',
-          'hover:text-[var(--color-ink-inverse)]/70',
-          'transition-colors duration-150 ease-out',
-          'cursor-pointer border-none',
-          'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-        ].join(' ')}
-      >
-        <X size={24} strokeWidth={1.5} />
-      </button>
-
-      {/* Previous button */}
-      {currentIndex > 0 && (
+      {/* Top bar: back link */}
+      <div className="w-full px-[var(--space-component)] py-[var(--space-element)] flex items-center shrink-0 z-10">
         <button
           type="button"
-          onClick={goToPrevious}
-          aria-label="Previous photo"
+          onClick={handleClose}
+          aria-label="Back to grid"
           className={[
-            'absolute left-[var(--space-element)] top-1/2 -translate-y-1/2 z-10',
-            'flex items-center justify-center',
-            'w-10 h-10 min-w-[44px] min-h-[44px]',
-            'bg-transparent text-[var(--color-ink-inverse)]',
+            'flex items-center gap-[var(--space-tight)]',
+            'text-[var(--color-ink-inverse)]',
             'hover:text-[var(--color-ink-inverse)]/70',
             'transition-colors duration-150 ease-out',
-            'cursor-pointer border-none',
+            'cursor-pointer border-none bg-transparent',
+            'text-[length:var(--text-label)] font-medium',
             'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-            'flex',
           ].join(' ')}
         >
-          <ChevronLeft size={32} strokeWidth={1.5} />
+          <ChevronLeft size={20} strokeWidth={1.5} />
+          Back
         </button>
-      )}
+      </div>
 
-      {/* Next button */}
-      {currentIndex < photos.length - 1 && (
-        <button
-          type="button"
-          onClick={goToNext}
-          aria-label="Next photo"
-          className={[
-            'absolute right-[var(--space-element)] top-1/2 -translate-y-1/2 z-10',
-            'flex items-center justify-center',
-            'w-10 h-10 min-w-[44px] min-h-[44px]',
-            'bg-transparent text-[var(--color-ink-inverse)]',
-            'hover:text-[var(--color-ink-inverse)]/70',
-            'transition-colors duration-150 ease-out',
-            'cursor-pointer border-none',
-            'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-            'flex',
-          ].join(' ')}
-        >
-          <ChevronRight size={32} strokeWidth={1.5} />
-        </button>
-      )}
+      {/* Media display area with nav arrows outside */}
+      <div className="flex-1 flex items-center justify-center w-full overflow-hidden">
+        {/* Previous button — outside the photo */}
+        <div className="shrink-0 w-12 sm:w-16 flex items-center justify-center">
+          {currentIndex > 0 && (
+            <button
+              type="button"
+              onClick={goToPrevious}
+              aria-label="Previous photo"
+              className={[
+                'flex items-center justify-center',
+                'w-10 h-10 min-w-[44px] min-h-[44px]',
+                'bg-transparent text-[var(--color-ink-inverse)]',
+                'hover:text-[var(--color-ink-inverse)]/70',
+                'transition-colors duration-150 ease-out',
+                'cursor-pointer border-none',
+                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+              ].join(' ')}
+            >
+              <ChevronLeft size={32} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
 
-      {/* Media display area */}
-      <div className="flex-1 flex items-center justify-center w-full px-[var(--space-section)] sm:px-[var(--space-hero)] overflow-hidden">
+        {/* Photo/video content */}
+        <div className="flex-1 flex items-center justify-center overflow-hidden">
         {isVideo && videoUrl ? (
           <div
             key={currentPhoto.id}
@@ -453,6 +439,29 @@ export function PhotoLightbox({
             ].join(' ')}
           />
         )}
+        </div>
+
+        {/* Next button — outside the photo */}
+        <div className="shrink-0 w-12 sm:w-16 flex items-center justify-center">
+          {currentIndex < photos.length - 1 && (
+            <button
+              type="button"
+              onClick={goToNext}
+              aria-label="Next photo"
+              className={[
+                'flex items-center justify-center',
+                'w-10 h-10 min-w-[44px] min-h-[44px]',
+                'bg-transparent text-[var(--color-ink-inverse)]',
+                'hover:text-[var(--color-ink-inverse)]/70',
+                'transition-colors duration-150 ease-out',
+                'cursor-pointer border-none',
+                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+              ].join(' ')}
+            >
+              <ChevronRight size={32} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Bottom bar: metadata + actions */}
@@ -464,17 +473,50 @@ export function PhotoLightbox({
           metadataVisible ? 'opacity-100' : 'opacity-0',
         ].join(' ')}
       >
-        {/* Metadata bar */}
-        <div className="flex flex-col items-center gap-[var(--space-micro)]">
+        {/* Metadata bar + Add to Roll — all in one centered row */}
+        <div className="flex items-center justify-center gap-[var(--space-component)] flex-wrap">
           {formattedDate && (
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide">
               {formattedDate}
             </p>
           )}
-          {cameraInfo && (
+          {locationInfo && (
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tracking-wide">
-              {cameraInfo}
+              {locationInfo}
             </p>
+          )}
+          {/* Feed mode: Add to Roll button inline with metadata */}
+          {mode === 'feed' && onAddToRoll && (
+            <button
+              type="button"
+              onClick={() => onAddToRoll(currentPhoto.id)}
+              aria-label={
+                isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'
+              }
+              className={[
+                'flex items-center gap-[var(--space-tight)]',
+                'px-4 h-9 rounded-full',
+                'transition-all duration-200 ease-out',
+                'cursor-pointer border-none',
+                'text-[length:var(--text-caption)] font-medium',
+                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+                isInRoll?.(currentPhoto.id)
+                  ? 'bg-[var(--color-action)] text-white'
+                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
+              ].join(' ')}
+            >
+              {isInRoll?.(currentPhoto.id) ? (
+                <>
+                  <Check size={16} strokeWidth={2.5} />
+                  In Roll
+                </>
+              ) : (
+                <>
+                  <Plus size={16} strokeWidth={2} />
+                  Add to Roll
+                </>
+              )}
+            </button>
           )}
         </div>
 
@@ -519,40 +561,6 @@ export function PhotoLightbox({
 
         {/* Mode-specific action buttons */}
         <div className="flex items-center justify-center gap-[var(--space-element)]">
-          {/* Feed mode: Add to Roll button (browse mode) */}
-          {mode === 'feed' && onAddToRoll && (
-            <button
-              type="button"
-              onClick={() => onAddToRoll(currentPhoto.id)}
-              aria-label={
-                isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'
-              }
-              className={[
-                'flex items-center gap-[var(--space-tight)]',
-                'px-4 h-11 min-h-[44px] rounded-full',
-                'transition-all duration-200 ease-out',
-                'cursor-pointer border-none',
-                'text-[length:var(--text-label)] font-medium',
-                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-                isInRoll?.(currentPhoto.id)
-                  ? 'bg-[var(--color-action)] text-white'
-                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
-              ].join(' ')}
-            >
-              {isInRoll?.(currentPhoto.id) ? (
-                <>
-                  <Check size={18} strokeWidth={2.5} />
-                  In Roll
-                </>
-              ) : (
-                <>
-                  <Plus size={18} strokeWidth={2} />
-                  Add to Roll
-                </>
-              )}
-            </button>
-          )}
-
           {/* Feed mode (select mode): checkmark button */}
           {mode === 'feed' && onCheck && !onAddToRoll && (
             <button
