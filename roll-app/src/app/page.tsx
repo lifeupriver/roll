@@ -1,5 +1,7 @@
 import { EmailCaptureForm } from '@/components/landing/EmailCaptureForm';
 import { FilmProfileShowcase } from '@/components/landing/FilmProfileShowcase';
+import { AnimatedCounter } from '@/components/landing/AnimatedCounter';
+import { FilmDevelopHero } from '@/components/landing/FilmDevelopHero';
 import Link from 'next/link';
 
 export const dynamic = 'force-static';
@@ -27,20 +29,8 @@ export default function LandingPage() {
             Roll turns them into something worth keeping.
           </p>
 
-          {/* Before/after transformation placeholder */}
-          <div className="w-full max-w-[600px] aspect-[16/9] rounded-[var(--radius-card)] overflow-hidden bg-[var(--color-surface-sunken)] border border-[var(--color-border)] flex items-center justify-center">
-            <div className="flex items-center gap-[var(--space-section)]">
-              <div className="flex flex-col items-center gap-[var(--space-tight)]">
-                <div className="w-16 h-16 rounded-[var(--radius-card)] bg-[var(--color-surface)] opacity-30" />
-                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Before</span>
-              </div>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-ink-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-              <div className="flex flex-col items-center gap-[var(--space-tight)]">
-                <div className="w-16 h-16 rounded-[var(--radius-card)] bg-[var(--color-action-subtle)] opacity-60" />
-                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">After</span>
-              </div>
-            </div>
-          </div>
+          {/* Film develop transition — grey thumbnails develop into warm tones */}
+          <FilmDevelopHero />
 
           {/* CTA */}
           <div className="flex flex-col sm:flex-row items-center gap-[var(--space-element)] mt-[var(--space-component)]">
@@ -77,7 +67,7 @@ export default function LandingPage() {
           </div>
           <div className="w-full md:w-1/2 text-center md:text-left">
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] mb-[var(--space-component)]">
-              <span className="font-[family-name:var(--font-mono)]">30,000</span> photos on your phone.
+              <AnimatedCounter from={30000} to={36} duration={2800} className="font-[family-name:var(--font-mono)]" /> photos on your phone.
               <br />
               Zero on your wall.
             </h2>

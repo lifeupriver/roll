@@ -53,7 +53,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
-  const { theme, toggle: toggleTheme } = useTheme();
+  const { theme, toggleWithReveal } = useTheme();
   const { user } = useUser();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -107,7 +107,10 @@ export function AppLayout({ children }: AppLayoutProps) {
               </Link>
               <button
                 type="button"
-                onClick={toggleTheme}
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  toggleWithReveal(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                }}
                 aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
                 className="p-1.5 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
               >
@@ -165,7 +168,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           </Link>
           <button
             type="button"
-            onClick={toggleTheme}
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              toggleWithReveal(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            }}
             aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
             className="p-2 -mr-2 touch-target"
           >

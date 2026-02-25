@@ -4,6 +4,14 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { PhotoCard } from './PhotoCard';
 import type { Photo } from '@/types/photo';
 
+/** Bounding rect for shared element transition to lightbox */
+export interface PhotoSourceRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
 interface PhotoGridProps {
   photos: Photo[];
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
@@ -13,7 +21,7 @@ interface PhotoGridProps {
   checkedOrder?: string[];
   onCheck?: (photoId: string) => void;
   onHide?: (photoId: string) => void;
-  onPhotoTap?: (photoId: string) => void;
+  onPhotoTap?: (photoId: string, sourceRect?: PhotoSourceRect) => void;
   onLoadMore?: () => void;
   hasMore?: boolean;
   isLoading?: boolean;
@@ -109,7 +117,7 @@ export function PhotoGrid({
                 selectMode={selectMode}
                 onCheck={onCheck ? () => onCheck(photo.id) : undefined}
                 onHide={onHide ? () => onHide(photo.id) : undefined}
-                onTap={onPhotoTap ? () => onPhotoTap(photo.id) : undefined}
+                onTap={onPhotoTap ? (sourceRect?: PhotoSourceRect) => onPhotoTap(photo.id, sourceRect) : undefined}
               />
             </div>
           );

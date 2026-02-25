@@ -24,10 +24,11 @@ interface PhotoCardProps {
   selectMode?: boolean;
   onCheck?: () => void;
   onHide?: () => void;
-  onTap?: () => void;
+  onTap?: (sourceRect?: { top: number; left: number; width: number; height: number }) => void;
 }
 
 export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode, onCheck, onHide, onTap }: PhotoCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -72,12 +73,15 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
     if (mode === 'feed' && selectMode && onCheck) {
       onCheck();
     } else if (onTap) {
-      onTap();
+      // Capture bounding rect for shared element transition
+      const rect = cardRef.current?.getBoundingClientRect();
+      onTap(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : undefined);
     }
   }, [mode, selectMode, onCheck, onTap]);
 
   return (
     <div
+      ref={cardRef}
       className={`relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer ${glowPulse ? 'selection-glow-pulse' : ''}`}
       onClick={handlePhotoClick}
       onContextMenu={handleContextMenu}

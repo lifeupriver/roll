@@ -5,6 +5,7 @@ import { Smartphone, Film, ChevronRight, MousePointerClick, X, Calendar } from '
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import type { LightboxSourceRect } from '@/components/photo/PhotoLightbox';
 import { PhotoStack } from '@/components/photo/PhotoStack';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Empty } from '@/components/ui/Empty';
@@ -15,12 +16,13 @@ import { useRollStore } from '@/stores/rollStore';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { useStackStore } from '@/stores/stackStore';
 import { applyStacks } from '@/lib/stacking';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { track } from '@/lib/analytics';
 import type { ContentMode } from '@/types/photo';
 
 export default function FeedPage() {
   const router = useRouter();
-  const { photos, contentMode, setContentMode, loading, hasMore, loadMore, hidePhoto } =
+  const { photos, contentMode, setContentMode, loading, hasMore, loadMore, hidePhoto, refresh } =
     usePhotos();
 
   const { currentRoll, checkedPhotoIds, rollCount, checkPhoto, uncheckPhoto, isChecked, setRoll } =
@@ -29,6 +31,7 @@ export default function FeedPage() {
   const { mode: stackMode, sensitivity: stackSensitivity } = useStackStore();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxSourceRect, setLightboxSourceRect] = useState<LightboxSourceRect | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
   const [selectMode, setSelectMode] = useState(false);
   const [clusters, setClusters] = useState<Array<{
@@ -183,9 +186,12 @@ export default function FeedPage() {
   );
 
   const handlePhotoTap = useCallback(
-    (photoId: string) => {
+    (photoId: string, sourceRect?: LightboxSourceRect) => {
       const index = displayPhotos.findIndex((p) => p.id === photoId);
-      if (index >= 0) setLightboxIndex(index);
+      if (index >= 0) {
+        setLightboxSourceRect(sourceRect || null);
+        setLightboxIndex(index);
+      }
     },
     [displayPhotos]
   );
@@ -227,6 +233,7 @@ export default function FeedPage() {
   }
 
   return (
+    <PullToRefresh onRefresh={refresh}>
     <div className="pb-4">
       {/* First-time user suggestion */}
       <StartHereCard />
@@ -420,7 +427,8 @@ export default function FeedPage() {
         <PhotoLightbox
           photos={displayPhotos}
           initialIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
+          sourceRect={lightboxSourceRect}
+          onClose={() => { setLightboxIndex(null); setLightboxSourceRect(null); }}
           mode="feed"
           onAddToRoll={!selectMode ? handleCheck : undefined}
           isInRoll={!selectMode ? isChecked : undefined}
@@ -429,5 +437,6 @@ export default function FeedPage() {
         />
       )}
     </div>
+    </PullToRefresh>
   );
 }
