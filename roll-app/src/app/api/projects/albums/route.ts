@@ -39,14 +39,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, photoIds } = body;
+    const { name, description, photoIds } = body;
 
     if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0) {
       return NextResponse.json({ error: 'At least one photo is required' }, { status: 400 });
     }
 
     const albumId = crypto.randomUUID();
-    const albumName = (name || 'Untitled Album').trim();
+    const albumName = (name || 'Untitled Book').trim();
+    const albumDescription = description ? String(description).trim() : null;
+    const now = new Date().toISOString();
 
     // Get first photo for cover
     const { data: coverPhoto } = await supabase
@@ -63,9 +65,13 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         type: 'album',
         name: albumName,
+        description: albumDescription,
         cover_url: coverPhoto?.thumbnail_url || null,
         photo_ids: photoIds,
         photo_count: photoIds.length,
+        captions: {},
+        created_at: now,
+        updated_at: now,
       })
       .select()
       .single();
@@ -75,10 +81,13 @@ export async function POST(request: NextRequest) {
       const virtualAlbum = {
         id: albumId,
         name: albumName,
+        description: albumDescription,
         cover_url: coverPhoto?.thumbnail_url || null,
         photo_count: photoIds.length,
         photo_ids: photoIds,
-        created_at: new Date().toISOString(),
+        captions: {},
+        created_at: now,
+        updated_at: now,
       };
       return NextResponse.json({ data: virtualAlbum }, { status: 201 });
     }
