@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, Share2 } from 'lucide-react';
+import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, Share2, MousePointerClick, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -36,6 +36,7 @@ export default function FeedPage() {
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
+  const [selectMode, setSelectMode] = useState(false);
 
   // Determine if we're in clip mode (building a reel)
   const isClipMode = contentMode === 'clips';
@@ -327,9 +328,11 @@ export default function FeedPage() {
           className={`mb-[var(--space-component)] rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
             rollIsFull
               ? 'bg-[var(--color-action)] text-white'
-              : rollCount > 0
-                ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
-                : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
+              : selectMode
+                ? 'bg-[var(--color-action-subtle)] border border-[var(--color-action)]'
+                : rollCount > 0
+                  ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
+                  : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
           }`}
         >
           {rollIsFull ? (
@@ -337,6 +340,7 @@ export default function FeedPage() {
             <button
               type="button"
               onClick={() => {
+                setSelectMode(false);
                 if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
               }}
               className="w-full flex items-center justify-between cursor-pointer"
@@ -357,49 +361,87 @@ export default function FeedPage() {
                 <ChevronRight size={18} />
               </div>
             </button>
+          ) : selectMode ? (
+            // Select mode active — show progress + done button
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-action)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
+                    Selecting for roll
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                    {rollCount > 0
+                      ? `${rollCount}/${maxPhotos} — choose ${maxPhotos - rollCount} more`
+                      : `Tap photos to add (up to ${maxPhotos})`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectMode(false)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                Done
+                <X size={14} />
+              </button>
+            </div>
           ) : rollCount > 0 ? (
-            // Building a roll — show progress
-            <button
-              type="button"
-              onClick={() => {
-                if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
-              }}
-              className="w-full cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-[var(--space-tight)]">
+            // Has photos in roll but browsing mode — show progress + select more button
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
+                }}
+                className="flex-1 cursor-pointer"
+              >
                 <div className="flex items-center gap-[var(--space-element)]">
                   <Film size={16} className="text-[var(--color-ink-secondary)]" />
-                  <span className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
-                    Choose {maxPhotos - rollCount} more for your roll
-                  </span>
+                  <div>
+                    <span className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
+                      {maxPhotos - rollCount} more for your roll
+                    </span>
+                    <div className="h-1.5 mt-1 rounded-[var(--radius-pill)] bg-[var(--color-surface-sunken)] overflow-hidden w-32">
+                      <div
+                        className="h-full rounded-[var(--radius-pill)] bg-[var(--color-action)] transition-[width] duration-300 ease-out"
+                        style={{ width: `${fillPercent}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-[var(--space-element)]">
-                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
-                    {rollCount}/{maxPhotos}
-                  </span>
-                  <ChevronRight size={16} className="text-[var(--color-ink-tertiary)]" />
-                </div>
-              </div>
-              {/* Progress bar */}
-              <div className="h-1.5 rounded-[var(--radius-pill)] bg-[var(--color-surface-sunken)] overflow-hidden">
-                <div
-                  className="h-full rounded-[var(--radius-pill)] bg-[var(--color-action)] transition-[width] duration-300 ease-out"
-                  style={{ width: `${fillPercent}%` }}
-                />
-              </div>
-            </button>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
+            </div>
           ) : (
             // No roll started — prompt to begin
-            <div className="flex flex-col gap-[var(--space-tight)] py-[var(--space-tight)]">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-[var(--space-element)]">
                 <Film size={16} className="text-[var(--color-ink-tertiary)]" />
-                <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                  Build your next roll
-                </p>
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    Build your next roll
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Browse your photos, then select up to 36 for your roll
+                  </p>
+                </div>
               </div>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] ml-7">
-                Tap on photos below to select up to 36 images. When your roll is full, you can name it and develop it.
-              </p>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
             </div>
           )}
         </div>
@@ -450,6 +492,7 @@ export default function FeedPage() {
       <PhotoGrid
         photos={photos}
         mode="feed"
+        selectMode={selectMode}
         checkedIds={isClipMode ? clipIds : checkedPhotoIds}
         onCheck={isClipMode ? handleClipCheck : handleCheck}
         onHide={hidePhoto}
@@ -467,8 +510,10 @@ export default function FeedPage() {
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           mode="feed"
-          onCheck={isClipMode ? handleClipCheck : handleCheck}
-          isChecked={isClipMode ? isClipAdded : isChecked}
+          onAddToRoll={!selectMode && !isClipMode ? handleCheck : undefined}
+          isInRoll={!selectMode && !isClipMode ? isChecked : undefined}
+          onCheck={selectMode ? (isClipMode ? handleClipCheck : handleCheck) : undefined}
+          isChecked={selectMode ? (isClipMode ? isClipAdded : isChecked) : undefined}
         />
       )}
     </div>

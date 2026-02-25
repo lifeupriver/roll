@@ -13,6 +13,7 @@ import {
   Volume2,
   VolumeX,
   Share2,
+  Plus,
 } from 'lucide-react';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 
@@ -35,8 +36,10 @@ interface PhotoLightboxProps {
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
   onCheck?: (photoId: string) => void;
   onHeart?: (photoId: string) => void;
+  onAddToRoll?: (photoId: string) => void;
   isChecked?: (photoId: string) => boolean;
   isHearted?: (photoId: string) => boolean;
+  isInRoll?: (photoId: string) => boolean;
 }
 
 export function PhotoLightbox({
@@ -46,8 +49,10 @@ export function PhotoLightbox({
   mode,
   onCheck,
   onHeart,
+  onAddToRoll,
   isChecked,
   isHearted,
+  isInRoll,
 }: PhotoLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isOpen, setIsOpen] = useState(false);
@@ -467,8 +472,42 @@ export function PhotoLightbox({
 
         {/* Mode-specific action buttons */}
         <div className="flex items-center gap-[var(--space-element)]">
-          {/* Feed mode: checkmark button */}
-          {mode === 'feed' && onCheck && (
+          {/* Feed mode: Add to Roll button (browse mode) */}
+          {mode === 'feed' && onAddToRoll && (
+            <button
+              type="button"
+              onClick={() => onAddToRoll(currentPhoto.id)}
+              aria-label={
+                isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'
+              }
+              className={[
+                'flex items-center gap-[var(--space-tight)]',
+                'px-4 h-11 min-h-[44px] rounded-full',
+                'transition-all duration-200 ease-out',
+                'cursor-pointer border-none',
+                'text-[length:var(--text-label)] font-medium',
+                'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+                isInRoll?.(currentPhoto.id)
+                  ? 'bg-[var(--color-action)] text-white'
+                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
+              ].join(' ')}
+            >
+              {isInRoll?.(currentPhoto.id) ? (
+                <>
+                  <Check size={18} strokeWidth={2.5} />
+                  In Roll
+                </>
+              ) : (
+                <>
+                  <Plus size={18} strokeWidth={2} />
+                  Add to Roll
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Feed mode (select mode): checkmark button */}
+          {mode === 'feed' && onCheck && !onAddToRoll && (
             <button
               type="button"
               onClick={() => onCheck(currentPhoto.id)}
