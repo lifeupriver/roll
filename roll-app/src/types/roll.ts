@@ -15,9 +15,12 @@ export interface Roll {
   processing_error: string | null;
   photos_processed: number;
   correction_skipped_count: number;
+  story: string | null;
   created_at: string;
   updated_at: string;
 }
+
+export type CaptionSource = 'manual' | 'voice' | 'auto_draft' | 'auto_accepted';
 
 export interface RollPhoto {
   id: string;
@@ -26,6 +29,9 @@ export interface RollPhoto {
   position: number;
   processed_storage_key: string | null;
   correction_applied: boolean;
+  caption: string | null;
+  caption_source: CaptionSource | null;
+  caption_updated_at: string | null;
   created_at: string;
 }
 

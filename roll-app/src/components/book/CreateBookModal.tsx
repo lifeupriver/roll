@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/stores/toastStore';
+import { TemplateCard } from '@/components/book/TemplateCard';
+import { BOOK_TEMPLATES, type BookTemplate } from '@/lib/book/templates';
 import type { Photo } from '@/types/photo';
 
 interface FavoriteWithPhoto {
@@ -15,7 +17,7 @@ interface FavoriteWithPhoto {
   photos: Photo;
 }
 
-type CreateStep = 'details' | 'photos' | 'review';
+type CreateStep = 'template' | 'details' | 'photos' | 'review';
 
 interface CreateBookModalProps {
   isOpen: boolean;
@@ -26,7 +28,8 @@ interface CreateBookModalProps {
 
 export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }: CreateBookModalProps) {
   const { toast } = useToast();
-  const [step, setStep] = useState<CreateStep>('details');
+  const [step, setStep] = useState<CreateStep>('template');
+  const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
@@ -48,7 +51,8 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
   // Reset when opening
   useEffect(() => {
     if (isOpen) {
-      setStep('details');
+      setStep('template');
+      setSelectedTemplate(null);
       setName('');
       setDescription('');
       setSelectedIds(initialPhotoIds ?? []);
@@ -134,12 +138,13 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
         {/* Header with step indicator */}
         <div className="flex items-center justify-between">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+            {step === 'template' && 'Choose a Template'}
             {step === 'details' && 'New Book'}
             {step === 'photos' && 'Select Photos'}
             {step === 'review' && 'Review Book'}
           </h2>
           <div className="flex items-center gap-1.5">
-            {(['details', 'photos', 'review'] as const).map((s, i) => (
+            {(['template', 'details', 'photos', 'review'] as const).map((s, i) => (
               <div
                 key={s}
                 className={`w-2 h-2 rounded-full transition-colors ${
@@ -149,6 +154,31 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
             ))}
           </div>
         </div>
+
+        {/* Step 0: Template Selection */}
+        {step === 'template' && (
+          <div className="flex flex-col gap-[var(--space-component)]">
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+              Start with a template or create a blank book. Templates auto-organize your photos by time period.
+            </p>
+            <div className="grid grid-cols-2 gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
+              {BOOK_TEMPLATES.map((tmpl) => (
+                <TemplateCard
+                  key={tmpl.id}
+                  template={tmpl}
+                  isSelected={selectedTemplate?.id === tmpl.id}
+                  onSelect={() => {
+                    setSelectedTemplate(tmpl);
+                    if (tmpl.id !== 'blank') {
+                      setName(tmpl.name);
+                      setDescription(tmpl.description);
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Step 1: Details */}
         {step === 'details' && (
@@ -337,11 +367,15 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
         {/* Navigation buttons */}
         <div className="flex items-center justify-between pt-[var(--space-tight)] border-t border-[var(--color-border)]">
           <div>
-            {step !== 'details' && (
+            {step !== 'template' && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setStep(step === 'review' ? 'photos' : 'details')}
+                onClick={() => setStep(
+                  step === 'review' ? 'photos' :
+                  step === 'photos' ? 'details' :
+                  'template'
+                )}
               >
                 <ChevronLeft size={16} className="mr-0.5" />
                 Back
@@ -352,6 +386,17 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
             <Button variant="ghost" size="sm" onClick={onClose}>
               Cancel
             </Button>
+            {step === 'template' && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setStep('details')}
+                disabled={!selectedTemplate}
+              >
+                Next
+                <ChevronRight size={16} className="ml-0.5" />
+              </Button>
+            )}
             {step === 'details' && (
               <Button variant="primary" size="sm" onClick={() => setStep('photos')}>
                 Select Photos

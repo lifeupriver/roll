@@ -21,8 +21,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    if (profile.tier === 'plus') {
-      return NextResponse.json({ error: 'Already subscribed to Roll+' }, { status: 400 });
+    const { successUrl, cancelUrl, tier: requestedTier } = await request.json();
+    const targetTier = requestedTier === 'pro' ? 'pro' : 'plus';
+
+    if (profile.tier === targetTier) {
+      return NextResponse.json({ error: `Already subscribed to Roll ${targetTier === 'pro' ? 'Pro' : '+'}` }, { status: 400 });
+    }
+
+    // Can't downgrade via checkout — use billing portal
+    if (profile.tier === 'pro' && targetTier === 'plus') {
+      return NextResponse.json({ error: 'Use billing portal to change your plan' }, { status: 400 });
     }
 
     const customerId = await getOrCreateCustomer(
@@ -39,14 +47,14 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id);
     }
 
-    const { successUrl, cancelUrl } = await request.json();
+    const priceId = targetTier === 'pro' ? STRIPE_CONFIG.priceIdPro : STRIPE_CONFIG.priceIdPlus;
 
     const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
       line_items: [
         {
-          price: STRIPE_CONFIG.priceIdPlus,
+          price: priceId,
           quantity: 1,
         },
       ],
@@ -54,6 +62,7 @@ export async function POST(request: NextRequest) {
       cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/account?subscription=cancelled`,
       metadata: {
         userId: user.id,
+        tier: targetTier,
       },
     });
 

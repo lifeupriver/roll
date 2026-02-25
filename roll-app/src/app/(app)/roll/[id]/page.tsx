@@ -8,6 +8,8 @@ import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import { BeforeAfterCompare } from '@/components/photo/BeforeAfterCompare';
+import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
@@ -564,7 +566,7 @@ export default function RollDetailPage() {
               Developing photo {processed} of {total}...
             </p>
             <p className="text-[length:var(--text-label)] text-[var(--color-ink-tertiary)]">
-              AI is color correcting your photos
+              Color correcting your photos
             </p>
           </div>
         </div>
@@ -647,6 +649,20 @@ export default function RollDetailPage() {
             <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-[family-name:var(--font-body)] italic leading-relaxed">
               &ldquo;{savedStory}&rdquo;
             </p>
+          </div>
+        )}
+
+        {/* Before/After comparison for first photo */}
+        {photos.length > 0 && photos[0].processed_storage_key && (
+          <div className="flex flex-col gap-[var(--space-tight)]">
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              Before &amp; after
+            </p>
+            <BeforeAfterCompare
+              originalUrl={photos[0].photos.thumbnail_url}
+              developedUrl={photos[0].processed_storage_key}
+              className="aspect-[3/4]"
+            />
           </div>
         )}
 
@@ -751,17 +767,22 @@ export default function RollDetailPage() {
               {/* Caption overlay — always visible when caption exists */}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent">
                 {editingCaptionId === rp.photo_id ? (
-                  <input
-                    autoFocus
-                    type="text"
-                    value={captionText}
-                    onChange={(e) => setCaptionText(e.target.value)}
-                    onBlur={handleSaveCaption}
-                    onKeyDown={handleCaptionKeyDown}
-                    placeholder="Write a caption..."
-                    maxLength={200}
-                    className="w-full px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
-                  />
+                  <div className="flex items-center gap-1">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={captionText}
+                      onChange={(e) => setCaptionText(e.target.value)}
+                      onBlur={handleSaveCaption}
+                      onKeyDown={handleCaptionKeyDown}
+                      placeholder="Write a caption..."
+                      maxLength={200}
+                      className="flex-1 px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
+                    />
+                    <VoiceCaptionButton
+                      onTranscript={(text) => setCaptionText((prev) => prev ? `${prev} ${text}` : text)}
+                    />
+                  </div>
                 ) : (
                   <button
                     type="button"

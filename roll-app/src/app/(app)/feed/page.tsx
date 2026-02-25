@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, MousePointerClick, X } from 'lucide-react';
+import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, MousePointerClick, X, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -9,6 +9,8 @@ import { PhotoStack } from '@/components/photo/PhotoStack';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
+import { StartHereCard } from '@/components/feed/StartHereCard';
+import { MomentClusterCard } from '@/components/feed/MomentClusterCard';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
 import { useReelStore } from '@/stores/reelStore';
@@ -41,6 +43,14 @@ export default function FeedPage() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
   const [selectMode, setSelectMode] = useState(false);
+  const [clusters, setClusters] = useState<Array<{
+    id: string;
+    cover_photo: { id: string; thumbnail_url: string };
+    date_range: string;
+    count: number;
+    location?: string;
+  }>>([]);
+  const [showMoments, setShowMoments] = useState(false);
 
   // Determine if we're in clip mode (building a reel)
   const isClipMode = contentMode === 'clips';
@@ -55,6 +65,24 @@ export default function FeedPage() {
 
   useEffect(() => {
     setContentMode('all');
+  }, []);
+
+  // Load photo clusters for Moments section
+  useEffect(() => {
+    async function loadClusters() {
+      try {
+        const res = await fetch('/api/photos/clusters');
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data?.clusters?.length > 0) {
+            setClusters(data.clusters);
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+    }
+    loadClusters();
   }, []);
 
   // Load active roll on mount
@@ -310,6 +338,40 @@ export default function FeedPage() {
 
   return (
     <div className="pb-4">
+      {/* First-time user suggestion */}
+      <StartHereCard />
+
+      {/* Moments clusters */}
+      {clusters.length > 0 && (
+        <div className="mb-[var(--space-component)]">
+          <button
+            type="button"
+            onClick={() => setShowMoments(!showMoments)}
+            className="flex items-center gap-[var(--space-tight)] mb-[var(--space-element)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)]"
+          >
+            <Calendar size={14} />
+            {clusters.length} moment{clusters.length !== 1 ? 's' : ''} this month
+            <ChevronRight size={14} className={`transition-transform ${showMoments ? 'rotate-90' : ''}`} />
+          </button>
+          {showMoments && (
+            <div className="flex flex-col gap-[var(--space-tight)]">
+              {clusters.slice(0, 5).map((cluster) => (
+                <MomentClusterCard
+                  key={cluster.id}
+                  coverPhoto={{ id: cluster.cover_photo.id, thumbnail_url: cluster.cover_photo.thumbnail_url } as import('@/types/photo').Photo}
+                  dateRange={cluster.date_range}
+                  locationName={cluster.location}
+                  photoCount={cluster.count}
+                  onExpand={() => {
+                    track({ event: 'moment_cluster_expanded', properties: { clusterId: cluster.id } });
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Content mode pills + grid size slider */}
       <div className="flex items-center justify-between mb-[var(--space-component)]">
         <ContentModePills

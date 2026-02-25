@@ -50,14 +50,21 @@ export async function POST(request: NextRequest) {
 
     const supabase = getServiceSupabase();
 
-    // Look up the order by its Prodigi ID
+    // Look up the order — could be a print_order or a magazine
     const { data: order, error: lookupError } = await supabase
       .from('print_orders')
       .select('id')
       .eq('prodigi_order_id', prodigiOrderId)
       .single();
 
-    if (lookupError || !order) {
+    // Check magazines table if not found in print_orders
+    const { data: magazine } = !order ? await supabase
+      .from('magazines')
+      .select('id')
+      .eq('prodigi_order_id', prodigiOrderId)
+      .single() : { data: null };
+
+    if (lookupError && !order && !magazine) {
       // We don't have this order — acknowledge anyway to stop retries
       return NextResponse.json({ received: true });
     }
@@ -89,13 +96,31 @@ export async function POST(request: NextRequest) {
 
     // Apply update if we have anything to change
     if (Object.keys(updateData).length > 0) {
-      const { error: updateError } = await supabase
-        .from('print_orders')
-        .update(updateData)
-        .eq('id', order.id);
+      if (order) {
+        const { error: updateError } = await supabase
+          .from('print_orders')
+          .update(updateData)
+          .eq('id', order.id);
 
-      if (updateError) {
-        return NextResponse.json({ error: updateError.message }, { status: 500 });
+        if (updateError) {
+          return NextResponse.json({ error: updateError.message }, { status: 500 });
+        }
+      }
+
+      // Update magazine status if this is a magazine order
+      if (magazine) {
+        const magazineStatusMap: Record<string, string> = {
+          shipped: 'shipped',
+          delivered: 'delivered',
+          in_production: 'ordered',
+        };
+        const magazineStatus = magazineStatusMap[updateData.status as string];
+        if (magazineStatus) {
+          await supabase
+            .from('magazines')
+            .update({ status: magazineStatus, updated_at: new Date().toISOString() })
+            .eq('id', magazine.id);
+        }
       }
     }
 

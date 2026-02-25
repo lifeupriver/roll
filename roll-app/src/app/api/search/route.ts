@@ -83,6 +83,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: searchError.message }, { status: 500 });
     }
 
+    // Phase 4.4: Also search roll_photos captions for the text query
+    let captionMatches: { photo_id: string; caption: string }[] = [];
+    if (q) {
+      const { data: rollPhotoMatches } = await supabase
+        .from('roll_photos')
+        .select('photo_id, caption')
+        .ilike('caption', `%${q}%`)
+        .limit(limit);
+
+      captionMatches = rollPhotoMatches ?? [];
+
+      // Merge caption matches with photo results (add any not already found)
+      const existingIds = new Set((photos ?? []).map((p: { id: string }) => p.id));
+      const additionalPhotoIds = captionMatches
+        .map((m) => m.photo_id)
+        .filter((id) => !existingIds.has(id));
+
+      if (additionalPhotoIds.length > 0) {
+        const { data: additionalPhotos } = await supabase
+          .from('photos')
+          .select('id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, caption, created_at')
+          .eq('user_id', user.id)
+          .eq('filter_status', 'visible')
+          .in('id', additionalPhotoIds);
+
+        if (additionalPhotos) {
+          photos?.push(...additionalPhotos);
+        }
+      }
+    }
+
     // Also get available filter options for the UI
     const { data: allPhotos } = await supabase
       .from('photos')

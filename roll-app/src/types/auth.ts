@@ -3,7 +3,7 @@ export interface User {
   email: string;
   display_name: string | null;
   avatar_url: string | null;
-  tier: 'free' | 'plus';
+  tier: 'free' | 'plus' | 'pro';
   onboarding_complete: boolean;
   photo_count: number;
   storage_used_bytes: number;

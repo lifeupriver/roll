@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Camera, Film, Printer, Heart, Users, Image, Calendar, Star } from 'lucide-react';
+import { ArrowLeft, Camera, Film, Printer, Heart, Users, Image, Calendar, Star, BookOpen } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import type { YearInReviewData } from '@/app/api/year-in-review/route';
@@ -212,6 +213,30 @@ export default function YearInReviewPage() {
               <p className="text-[length:var(--text-body)] text-[var(--color-ink)]">
                 You shared <strong>{data.photosSharedToCircles}</strong> post{data.photosSharedToCircles !== 1 ? 's' : ''} to your circles this year.
               </p>
+            </Card>
+          )}
+
+          {/* Turn your year into a book CTA (Phase 3.2.4) */}
+          {data.totalPhotosUploaded > 0 && data.favoriteCount > 0 && (
+            <Card className="bg-[var(--color-action)]/5 border border-[var(--color-action)]/20">
+              <div className="flex items-center gap-[var(--space-component)]">
+                <BookOpen size={24} className="text-[var(--color-action)] flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+                    Turn your {data.year} into a book
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mt-0.5">
+                    We'll auto-design a photo book from your {data.favoriteCount} favorites, organized by season.
+                  </p>
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => router.push('/projects?template=year_in_review&year=' + data.year)}
+                >
+                  Create Book
+                </Button>
+              </div>
             </Card>
           )}
 
