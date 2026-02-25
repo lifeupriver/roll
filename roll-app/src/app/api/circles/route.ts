@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check that user tier is 'plus'
+    // Check tier-based circle limits
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('tier')
@@ -66,11 +66,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    // Free users can create 1 circle, Roll+ users unlimited
     if (profile.tier !== 'plus') {
-      return NextResponse.json(
-        { error: 'Only Plus tier users can create circles' },
-        { status: 400 }
-      );
+      const { count, error: countError } = await supabase
+        .from('circles')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', user.id);
+
+      if (countError) {
+        return NextResponse.json({ error: countError.message }, { status: 500 });
+      }
+
+      if ((count ?? 0) >= 1) {
+        return NextResponse.json(
+          { error: 'Free users can create 1 circle. Upgrade to Roll+ for unlimited circles.' },
+          { status: 403 }
+        );
+      }
     }
 
     const parsed = await parseBody(request, createCircleSchema);

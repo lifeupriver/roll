@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { BackupStatusBadge } from '@/components/photo/BackupStatusBadge';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll } from '@/types/roll';
@@ -315,7 +316,10 @@ export default function LibraryPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      {/* Section toggle + grid slider */}
+      {/* Backup badge + Section toggle + grid slider */}
+      <div className="flex items-center justify-end mb-[var(--space-tight)]">
+        <BackupStatusBadge />
+      </div>
       <div className="flex items-center justify-between">
         <ContentModePills
           activeMode={activeSection}

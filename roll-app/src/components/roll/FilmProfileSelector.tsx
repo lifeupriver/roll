@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, Sparkles } from 'lucide-react';
 import type { FilmProfile } from '@/types/roll';
 
 interface FilmProfileSelectorProps {
@@ -10,6 +10,7 @@ interface FilmProfileSelectorProps {
   onChange: (profileId: string) => void;
   samplePhotoUrl: string;
   userTier: 'free' | 'plus';
+  recommendation?: { profileId: string; reason: string } | null;
 }
 
 export function FilmProfileSelector({
@@ -18,6 +19,7 @@ export function FilmProfileSelector({
   onChange,
   samplePhotoUrl,
   userTier,
+  recommendation,
 }: FilmProfileSelectorProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +34,30 @@ export function FilmProfileSelector({
   );
 
   return (
+    <div className="flex flex-col gap-[var(--space-element)]">
+      {/* Recommendation banner */}
+      {recommendation && userTier === 'plus' && (
+        <button
+          type="button"
+          onClick={() => onChange(recommendation.profileId)}
+          className={[
+            'flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] transition-all duration-150',
+            selectedId === recommendation.profileId
+              ? 'bg-[var(--color-action-subtle)] border-2 border-[var(--color-action)]'
+              : 'bg-[var(--color-surface-raised)] border-2 border-transparent hover:border-[var(--color-border-strong)]',
+          ].join(' ')}
+        >
+          <Sparkles size={16} className="text-[var(--color-action)] shrink-0" />
+          <div className="text-left">
+            <span className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
+              Recommended: {profiles.find((p) => p.id === recommendation.profileId)?.name}
+            </span>
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+              {recommendation.reason}
+            </p>
+          </div>
+        </button>
+      )}
     <div
       ref={scrollRef}
       role="listbox"
@@ -103,6 +129,7 @@ export function FilmProfileSelector({
           </button>
         );
       })}
+    </div>
     </div>
   );
 }

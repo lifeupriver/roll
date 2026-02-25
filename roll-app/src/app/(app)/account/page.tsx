@@ -268,7 +268,7 @@ export default function AccountPage() {
             <div className="text-[var(--color-ink-secondary)]">Film profiles</div>
             <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? 'All 6' : 'Warmth only'}</div>
             <div className="text-[var(--color-ink-secondary)]">Circle sharing</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? 'Create & share' : 'View only'}</div>
+            <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? 'Unlimited circles' : '1 circle'}</div>
             <div className="text-[var(--color-ink-secondary)]">Print sizes</div>
             <div className="text-[var(--color-ink)]">{user?.tier === 'plus' ? '4×6 and 5×7' : '4×6 only'}</div>
           </div>

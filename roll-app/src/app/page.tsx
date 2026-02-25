@@ -11,7 +11,7 @@ const FEATURES = [
   },
   {
     title: 'Rolls',
-    desc: 'Pick your best 36 photos to fill a roll. Choose a film stock. Hit develop. AI color-corrects every shot to match real film.',
+    desc: 'Pick your best 36 photos to fill a roll. Choose a film stock. Hit develop. Every shot is color-corrected to match real analog film.',
   },
   {
     title: 'Develop',
@@ -36,6 +36,14 @@ const FEATURES = [
   {
     title: 'Photo Map',
     desc: 'See where your photos were taken on a world map. Every geotagged shot appears as a dot — your life, geographically.',
+  },
+  {
+    title: 'Backup',
+    desc: 'Every photo you upload is backed up in the cloud. Encrypted. Safe. If you lose your phone tomorrow, your memories survive.',
+  },
+  {
+    title: 'Video',
+    desc: 'Roll corrects your videos with the same film stock as your photos. Same beautiful look. No editing software. No timeline. No color wheels.',
   },
 ];
 
@@ -99,6 +107,10 @@ export default function LandingPage() {
             blurry shots — they pile up alongside the ones that actually matter.
             The good ones get buried. Nothing gets printed. Nothing gets shared.
           </p>
+          <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-tertiary)] leading-[1.6] max-w-[55ch] mx-auto mt-[var(--space-component)]">
+            In 40 years, your grandkids will scroll through thousands of unnamed images
+            and have no idea who these people were or why the moment mattered.
+          </p>
         </div>
       </section>
 
@@ -114,7 +126,7 @@ export default function LandingPage() {
             {[
               { step: '1', title: 'Upload', body: 'Drop in your camera roll. Roll automatically filters out the noise — screenshots, duplicates, blurry shots.' },
               { step: '2', title: 'Curate', body: 'Browse your feed. Heart your favorites. Fill a roll of 36 photos — like loading a real roll of film.' },
-              { step: '3', title: 'Develop', body: 'Choose a film stock. Hit develop. AI color-corrects every photo to match the look of real analog film.' },
+              { step: '3', title: 'Develop', body: 'Choose a film stock. Hit develop. We color-correct every photo to match the look of real analog film.' },
               { step: '4', title: 'Keep', body: 'Order prints, create photo books, share to your Circle, or write the story behind each roll.' },
             ].map(({ step, title, body }) => (
               <div key={step} className="flex flex-col gap-[var(--space-tight)]">
@@ -272,6 +284,7 @@ export default function LandingPage() {
                 <li>Develop your first roll with Warmth</li>
                 <li>First <span className="font-[family-name:var(--font-mono)]">36</span> prints free</li>
                 <li>Heart favorites and add captions</li>
+                <li>1 private Circle for sharing</li>
                 <li>Photo map and search</li>
               </ul>
             </div>
@@ -284,7 +297,7 @@ export default function LandingPage() {
               <ul className="flex flex-col gap-[var(--space-tight)] font-[family-name:var(--font-body)] font-light text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
                 <li>All 6 film stocks</li>
                 <li>Unlimited rolls and cloud processing</li>
-                <li>Create and manage Circles</li>
+                <li>Unlimited Circles</li>
                 <li>Photo Books from your favorites</li>
                 <li>Stories and captions on rolls</li>
                 <li>Cloud backup for all your photos</li>
@@ -292,6 +305,53 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
+
+          <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center mt-[var(--space-section)]">
+            No ads. No tracking. No training on your photos. Your data is encrypted and never sold.
+          </p>
+        </div>
+      </section>
+
+      {/* ================================================
+          Section 8.5: Privacy Promise
+          ================================================ */}
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)] bg-[var(--color-surface-raised)]">
+        <div className="max-w-[800px] mx-auto text-center">
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] mb-[var(--space-section)]">
+            Your photos are private by default.
+          </h2>
+          <ul className="flex flex-col gap-[var(--space-element)] font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6] max-w-[45ch] mx-auto text-left">
+            <li className="flex items-start gap-[var(--space-element)]">
+              <span className="shrink-0 mt-1 w-5 h-5 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              Encrypted in transit and at rest (AES-256)
+            </li>
+            <li className="flex items-start gap-[var(--space-element)]">
+              <span className="shrink-0 mt-1 w-5 h-5 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              No ads. No tracking pixels. No data brokers.
+            </li>
+            <li className="flex items-start gap-[var(--space-element)]">
+              <span className="shrink-0 mt-1 w-5 h-5 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              Your photos are never used to train models
+            </li>
+            <li className="flex items-start gap-[var(--space-element)]">
+              <span className="shrink-0 mt-1 w-5 h-5 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              EXIF location data is never shared with other users
+            </li>
+            <li className="flex items-start gap-[var(--space-element)]">
+              <span className="shrink-0 mt-1 w-5 h-5 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              Delete your account and everything is gone — permanently
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -312,7 +372,7 @@ export default function LandingPage() {
           </p>
           <EmailCaptureForm
             id="hero-email"
-            trustLine="No ads. No algorithm. No selling your data. Just your photos, made beautiful."
+            trustLine="No ads. No algorithm. No training on your photos. No selling your data. Your photos stay yours."
           />
         </div>
       </section>

@@ -246,7 +246,7 @@ function DevelopPageContent() {
         </div>
       </div>
 
-      {/* AI development info card */}
+      {/* Development info card */}
       <div className="flex flex-col gap-[var(--space-component)] bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)]">
         <div className="flex items-center gap-[var(--space-element)]">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-action)]/10">
@@ -254,18 +254,18 @@ function DevelopPageContent() {
           </div>
           <div>
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
-              {processMode === 'bw' ? 'AI B&W Conversion' : 'AI Color Correction'}
+              {processMode === 'bw' ? 'Professional B&W Conversion' : 'Professional Color Correction'}
             </h2>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              Cloud-powered per-photo AI
+              Cloud-powered per-photo processing
             </p>
           </div>
         </div>
 
         <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-relaxed">
           {processMode === 'bw'
-            ? 'Your photos are converted to black & white with AI-optimized tonal adjustments — enhancing contrast, highlights, and shadow detail for a classic film look.'
-            : 'Your photos are sent to the cloud where AI analyzes each image individually — correcting exposure, white balance, color, and tone. Developed JPGs are delivered to your gallery.'}
+            ? 'Your photos are converted to black & white with optimized tonal adjustments — enhancing contrast, highlights, and shadow detail for a classic film look.'
+            : 'Your photos are sent to the cloud where each image is analyzed individually — correcting exposure, white balance, color, and tone. Developed JPGs are delivered to your gallery.'}
         </p>
 
         <div className="flex flex-wrap gap-[var(--space-element)]">
@@ -275,7 +275,7 @@ function DevelopPageContent() {
           </Badge>
           <Badge variant="developed">
             <Zap size={12} className="mr-0.5 inline" />
-            Per-photo AI
+            Per-photo correction
           </Badge>
           <Badge variant={processMode === 'bw' ? 'processing' : 'action'}>
             {processMode === 'bw' ? (
