@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X, Grid3X3 } from 'lucide-react';
 import { HeartButton } from '@/components/roll/HeartButton';
+import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -62,6 +63,9 @@ export default function LibraryPage() {
   // All-photos state: combined photos from all developed rolls
   const [allPhotos, setAllPhotos] = useState<Array<{ photo: Photo; rollName: string; rollId: string }>>([]);
   const [allPhotosLoading, setAllPhotosLoading] = useState(false);
+
+  // Lightbox state
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // Fetch all photos from developed rolls
   useEffect(() => {
@@ -323,17 +327,17 @@ export default function LibraryPage() {
                   <button
                     key={`${item.rollId}-${item.photo.id}-${i}`}
                     type="button"
-                    onClick={() => router.push(`/roll/${item.rollId}`)}
+                    onClick={() => setLightboxIndex(i)}
                     className="relative group overflow-hidden"
                   >
                     <img
                       src={item.photo.thumbnail_url}
                       alt=""
                       loading="lazy"
-                      className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                      className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)] pointer-events-none"
                     />
                     {/* Roll name overlay on hover */}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                       <span className="text-[length:var(--text-caption)] text-white truncate block">
                         {item.rollName}
                       </span>
@@ -341,6 +345,16 @@ export default function LibraryPage() {
                   </button>
                 ))}
               </div>
+
+              {/* Lightbox for all-photos view */}
+              {lightboxIndex !== null && (
+                <PhotoLightbox
+                  photos={allPhotos.map((item) => item.photo)}
+                  initialIndex={lightboxIndex}
+                  onClose={() => setLightboxIndex(null)}
+                  mode="roll"
+                />
+              )}
             </>
           )}
         </section>

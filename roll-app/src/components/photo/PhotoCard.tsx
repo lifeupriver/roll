@@ -19,12 +19,13 @@ interface PhotoCardProps {
   };
   isChecked: boolean;
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
+  selectMode?: boolean;
   onCheck?: () => void;
   onHide?: () => void;
   onTap?: () => void;
 }
 
-export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: PhotoCardProps) {
+export function PhotoCard({ photo, isChecked, mode, selectMode, onCheck, onHide, onTap }: PhotoCardProps) {
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -49,16 +50,17 @@ export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: Ph
     if (longPressTimer.current) clearTimeout(longPressTimer.current);
   }, []);
 
-  // In feed mode: clicking the photo selects/deselects it for the roll
+  // In feed mode with selectMode: clicking selects/deselects for roll
+  // In feed mode without selectMode (browse): clicking opens lightbox
   // In other modes: clicking opens the lightbox
   const handlePhotoClick = useCallback(() => {
     if (didLongPress.current) return;
-    if (mode === 'feed' && onCheck) {
+    if (mode === 'feed' && selectMode && onCheck) {
       onCheck();
     } else if (onTap) {
       onTap();
     }
-  }, [mode, onCheck, onTap]);
+  }, [mode, selectMode, onCheck, onTap]);
 
   return (
     <div
@@ -76,8 +78,8 @@ export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: Ph
         className="w-full aspect-[3/4] object-cover pointer-events-none bg-[var(--color-surface-sunken)]"
       />
 
-      {/* Selection overlay (feed mode) */}
-      {mode === 'feed' && isChecked && (
+      {/* Selection overlay (feed mode, select mode only) */}
+      {mode === 'feed' && selectMode && isChecked && (
         <div className="absolute inset-0 bg-[var(--color-action)]/15 ring-2 ring-inset ring-[var(--color-action)] pointer-events-none" />
       )}
 
@@ -93,8 +95,8 @@ export function PhotoCard({ photo, isChecked, mode, onCheck, onHide, onTap }: Ph
         </>
       )}
 
-      {/* Checkmark indicator (feed mode) — always visible when checked */}
-      {mode === 'feed' && onCheck && (
+      {/* Checkmark indicator (feed mode, select mode only) — always visible when checked */}
+      {mode === 'feed' && selectMode && onCheck && (
         <div
           className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 z-10 pointer-events-none ${
             isChecked

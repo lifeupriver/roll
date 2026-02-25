@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Sparkles, Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, Layers } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, Share2, MousePointerClick, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
-import { PhotoStack } from '@/components/photo/PhotoStack';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
@@ -13,7 +12,7 @@ import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
 import { useReelStore } from '@/stores/reelStore';
 import { track } from '@/lib/analytics';
-import type { ContentMode, PhotoStack as PhotoStackType } from '@/types/photo';
+import type { ContentMode } from '@/types/photo';
 import { Badge } from '@/components/ui/Badge';
 
 export default function FeedPage() {
@@ -36,10 +35,8 @@ export default function FeedPage() {
   } = useReelStore();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [suggesting, setSuggesting] = useState(false);
   const [gridColumns, setGridColumns] = useState(3);
-  const [stacksEnabled, setStacksEnabled] = useState(true);
-  const [photoStacks, setPhotoStacks] = useState<PhotoStackType[]>([]);
+  const [selectMode, setSelectMode] = useState(false);
 
   // Determine if we're in clip mode (building a reel)
   const isClipMode = contentMode === 'clips';
@@ -108,71 +105,6 @@ export default function FeedPage() {
     }
     loadActiveReel();
   }, [setReelState]);
-
-  // Load photo stacks
-  useEffect(() => {
-    if (!stacksEnabled || contentMode !== 'all') {
-      setPhotoStacks([]);
-      return;
-    }
-    async function loadStacks() {
-      try {
-        const res = await fetch('/api/photos/stacks');
-        if (res.ok) {
-          const { data } = await res.json();
-          if (Array.isArray(data)) {
-            // Convert stack data to PhotoStack objects using loaded photos
-            const stacks: PhotoStackType[] = data.map((s: { id: string; top_photo_id: string; photo_ids: string[]; similarity: number }) => {
-              const stackPhotos = s.photo_ids
-                .map((pid: string) => photos.find((p) => p.id === pid))
-                .filter(Boolean) as typeof photos;
-              const topPhoto = photos.find((p) => p.id === s.top_photo_id) || stackPhotos[0];
-              return {
-                id: s.id,
-                topPhoto: topPhoto!,
-                photos: stackPhotos,
-                similarity: s.similarity,
-              };
-            }).filter((s: PhotoStackType) => s.topPhoto && s.photos.length >= 2);
-            setPhotoStacks(stacks);
-          }
-        }
-      } catch {
-        // Stacks are optional
-      }
-    }
-    if (photos.length > 0) loadStacks();
-  }, [stacksEnabled, photos.length, contentMode]);
-
-  // Compute which photo IDs are in stacks (to hide duplicates from main grid)
-  const stackedPhotoIds = useMemo(() => {
-    if (!stacksEnabled || photoStacks.length === 0) return new Set<string>();
-    const ids = new Set<string>();
-    for (const stack of photoStacks) {
-      // Don't hide the top photo — we show it via the stack component
-      for (const photo of stack.photos) {
-        if (photo.id !== stack.topPhoto.id) {
-          ids.add(photo.id);
-        }
-      }
-    }
-    return ids;
-  }, [stacksEnabled, photoStacks]);
-
-  // Photos to render in the grid (excluding stacked duplicates)
-  const displayPhotos = useMemo(() => {
-    if (!stacksEnabled || stackedPhotoIds.size === 0) return photos;
-    return photos.filter((p) => !stackedPhotoIds.has(p.id));
-  }, [photos, stacksEnabled, stackedPhotoIds]);
-
-  // Find which stack a photo belongs to (by top photo ID)
-  const stackByTopPhotoId = useMemo(() => {
-    const map = new Map<string, PhotoStackType>();
-    for (const stack of photoStacks) {
-      map.set(stack.topPhoto.id, stack);
-    }
-    return map;
-  }, [photoStacks]);
 
   const contentModeOptions = [
     { value: 'all', label: 'All' },
@@ -328,59 +260,6 @@ export default function FeedPage() {
     [photos]
   );
 
-  const handleAutoFill = useCallback(async () => {
-    setSuggesting(true);
-    try {
-      const remaining = 36 - rollCount;
-      if (remaining <= 0) return;
-
-      const res = await fetch(`/api/rolls/suggest?limit=${remaining}`);
-      if (!res.ok) return;
-      const { data } = await res.json();
-      const suggestedIds: string[] = data?.photoIds ?? [];
-      if (suggestedIds.length === 0) return;
-
-      // Ensure a roll exists
-      let rollId = currentRoll?.id;
-      if (!rollId) {
-        const createRes = await fetch('/api/rolls', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        });
-        if (createRes.ok) {
-          const { data: newRoll } = await createRes.json();
-          setRoll(newRoll);
-          rollId = newRoll.id;
-        } else {
-          return;
-        }
-      }
-
-      // Add each suggested photo
-      for (const photoId of suggestedIds) {
-        if (isChecked(photoId)) continue;
-        checkPhoto(photoId);
-        try {
-          await fetch(`/api/rolls/${rollId}/photos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ photoId }),
-          });
-        } catch {
-          uncheckPhoto(photoId);
-        }
-      }
-
-      track({
-        event: 'roll_autofill',
-        properties: { rollId: rollId || '', count: suggestedIds.length },
-      });
-    } finally {
-      setSuggesting(false);
-    }
-  }, [rollCount, currentRoll, setRoll, isChecked, checkPhoto, uncheckPhoto]);
-
   // Roll status helpers
   const maxPhotos = 36;
   const rollIsFull = rollCount >= maxPhotos;
@@ -428,36 +307,18 @@ export default function FeedPage() {
           }}
           options={contentModeOptions}
         />
-        <div className="flex items-center gap-[var(--space-element)]">
-          {/* Stacks toggle */}
-          {!isClipMode && (
-            <button
-              type="button"
-              onClick={() => setStacksEnabled(!stacksEnabled)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                stacksEnabled
-                  ? 'bg-[var(--color-action-subtle)] text-[var(--color-action)]'
-                  : 'bg-[var(--color-surface-raised)] text-[var(--color-ink-tertiary)]'
-              }`}
-              title={stacksEnabled ? 'Stacking on — similar photos are grouped' : 'Stacking off'}
-            >
-              <Layers size={14} />
-              Stacks
-            </button>
-          )}
-          <div className="flex items-center gap-[var(--space-tight)]">
-            <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-            <input
-              type="range"
-              min={2}
-              max={6}
-              value={gridColumns}
-              onChange={(e) => setGridColumns(Number(e.target.value))}
-              className="w-20 accent-[var(--color-action)]"
-              aria-label="Grid columns"
-            />
-            <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
-          </div>
+        <div className="flex items-center gap-[var(--space-tight)]">
+          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+          <input
+            type="range"
+            min={2}
+            max={6}
+            value={gridColumns}
+            onChange={(e) => setGridColumns(Number(e.target.value))}
+            className="w-20 accent-[var(--color-action)]"
+            aria-label="Grid columns"
+          />
+          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
         </div>
       </div>
 
@@ -467,9 +328,11 @@ export default function FeedPage() {
           className={`mb-[var(--space-component)] rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
             rollIsFull
               ? 'bg-[var(--color-action)] text-white'
-              : rollCount > 0
-                ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
-                : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
+              : selectMode
+                ? 'bg-[var(--color-action-subtle)] border border-[var(--color-action)]'
+                : rollCount > 0
+                  ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
+                  : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
           }`}
         >
           {rollIsFull ? (
@@ -477,6 +340,7 @@ export default function FeedPage() {
             <button
               type="button"
               onClick={() => {
+                setSelectMode(false);
                 if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
               }}
               className="w-full flex items-center justify-between cursor-pointer"
@@ -497,58 +361,87 @@ export default function FeedPage() {
                 <ChevronRight size={18} />
               </div>
             </button>
+          ) : selectMode ? (
+            // Select mode active — show progress + done button
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-action)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
+                    Selecting for roll
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                    {rollCount > 0
+                      ? `${rollCount}/${maxPhotos} — choose ${maxPhotos - rollCount} more`
+                      : `Tap photos to add (up to ${maxPhotos})`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectMode(false)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                Done
+                <X size={14} />
+              </button>
+            </div>
           ) : rollCount > 0 ? (
-            // Building a roll — show progress
-            <button
-              type="button"
-              onClick={() => {
-                if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
-              }}
-              className="w-full cursor-pointer"
-            >
-              <div className="flex items-center justify-between mb-[var(--space-tight)]">
+            // Has photos in roll but browsing mode — show progress + select more button
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  if (currentRoll?.id) router.push(`/roll/${currentRoll.id}`);
+                }}
+                className="flex-1 cursor-pointer"
+              >
                 <div className="flex items-center gap-[var(--space-element)]">
                   <Film size={16} className="text-[var(--color-ink-secondary)]" />
-                  <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                    {currentRoll?.name || 'Next Roll'}
-                  </span>
+                  <div>
+                    <span className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
+                      {maxPhotos - rollCount} more for your roll
+                    </span>
+                    <div className="h-1.5 mt-1 rounded-[var(--radius-pill)] bg-[var(--color-surface-sunken)] overflow-hidden w-32">
+                      <div
+                        className="h-full rounded-[var(--radius-pill)] bg-[var(--color-action)] transition-[width] duration-300 ease-out"
+                        style={{ width: `${fillPercent}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-[var(--space-element)]">
-                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
-                    {rollCount}/{maxPhotos}
-                  </span>
-                  {rollCount < maxPhotos && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAutoFill();
-                      }}
-                      isLoading={suggesting}
-                      disabled={suggesting}
-                    >
-                      <Sparkles size={14} className="mr-1" /> Auto-fill
-                    </Button>
-                  )}
-                  <ChevronRight size={16} className="text-[var(--color-ink-tertiary)]" />
-                </div>
-              </div>
-              {/* Progress bar */}
-              <div className="h-1.5 rounded-[var(--radius-pill)] bg-[var(--color-surface-sunken)] overflow-hidden">
-                <div
-                  className="h-full rounded-[var(--radius-pill)] bg-[var(--color-action)] transition-[width] duration-300 ease-out"
-                  style={{ width: `${fillPercent}%` }}
-                />
-              </div>
-            </button>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
+            </div>
           ) : (
             // No roll started — prompt to begin
-            <div className="flex items-center gap-[var(--space-element)]">
-              <Film size={16} className="text-[var(--color-ink-tertiary)]" />
-              <p className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
-                Tap photos to choose images for your next roll
-              </p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-ink-tertiary)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    Build your next roll
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Browse your photos, then select up to 36 for your roll
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
             </div>
           )}
         </div>
@@ -597,8 +490,9 @@ export default function FeedPage() {
 
       {/* Photo/clip grid — the contact sheet */}
       <PhotoGrid
-        photos={isClipMode ? photos : displayPhotos}
+        photos={photos}
         mode="feed"
+        selectMode={selectMode}
         checkedIds={isClipMode ? clipIds : checkedPhotoIds}
         onCheck={isClipMode ? handleClipCheck : handleCheck}
         onHide={hidePhoto}
@@ -607,23 +501,6 @@ export default function FeedPage() {
         onLoadMore={loadMore}
         isLoading={loading}
         columns={gridColumns}
-        renderOverride={
-          !isClipMode && stacksEnabled
-            ? (photoId: string) => {
-                const stack = stackByTopPhotoId.get(photoId);
-                if (!stack) return null;
-                return (
-                  <PhotoStack
-                    key={`stack-${stack.id}`}
-                    stack={stack}
-                    isChecked={isChecked}
-                    onCheck={handleCheck}
-                    onPhotoTap={handlePhotoTap}
-                  />
-                );
-              }
-            : undefined
-        }
       />
 
       {/* Lightbox for full-screen photo/video viewing */}
@@ -633,8 +510,10 @@ export default function FeedPage() {
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           mode="feed"
-          onCheck={isClipMode ? handleClipCheck : handleCheck}
-          isChecked={isClipMode ? isClipAdded : isChecked}
+          onAddToRoll={!selectMode && !isClipMode ? handleCheck : undefined}
+          isInRoll={!selectMode && !isClipMode ? isChecked : undefined}
+          onCheck={selectMode ? (isClipMode ? handleClipCheck : handleCheck) : undefined}
+          isChecked={selectMode ? (isClipMode ? isClipAdded : isChecked) : undefined}
         />
       )}
     </div>

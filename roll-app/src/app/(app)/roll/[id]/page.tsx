@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft } from 'lucide-react';
+import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
 import Link from 'next/link';
@@ -14,8 +15,16 @@ import Link from 'next/link';
 interface Photo {
   id: string;
   thumbnail_url: string;
+  storage_key: string;
   lqip_base64: string | null;
   date_taken: string | null;
+  camera_make: string | null;
+  camera_model: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  media_type?: 'photo' | 'video';
+  preview_storage_key?: string | null;
+  duration_ms?: number | null;
   created_at: string;
 }
 
@@ -54,6 +63,9 @@ export default function RollDetailPage() {
 
   // Processing poll state
   const [processStatus, setProcessStatus] = useState<ProcessStatus | null>(null);
+
+  // Lightbox state
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const rollId = params.id;
 
@@ -533,13 +545,13 @@ export default function RollDetailPage() {
 
         {/* Developed photo grid with hearts and captions */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-          {photos.map((rp) => (
-            <div key={rp.id} className="relative overflow-hidden group">
+          {photos.map((rp, index) => (
+            <div key={rp.id} className="relative overflow-hidden group cursor-pointer" onClick={() => setLightboxIndex(index)}>
               <img
                 src={rp.processed_storage_key || rp.photos.thumbnail_url}
                 alt=""
                 loading="lazy"
-                className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)] pointer-events-none"
               />
               {/* Heart overlay */}
               <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
@@ -593,6 +605,24 @@ export default function RollDetailPage() {
         >
           Archive this roll
         </button>
+
+        {/* Lightbox */}
+        {lightboxIndex !== null && (
+          <PhotoLightbox
+            photos={photos.map((rp) => ({
+              ...rp.photos,
+              thumbnail_url: rp.processed_storage_key || rp.photos.thumbnail_url,
+            }))}
+            initialIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            mode="roll"
+            onHeart={(photoId) => {
+              const isFav = favoritedIds.has(photoId);
+              handleHeartToggle(photoId, !isFav);
+            }}
+            isHearted={(photoId) => favoritedIds.has(photoId)}
+          />
+        )}
       </div>
     );
   }
@@ -613,35 +643,49 @@ export default function RollDetailPage() {
         }
       `}</style>
 
-      {/* Header: back, roll name + counter */}
+      {/* Header: back + counter */}
       <div className="flex items-center gap-[var(--space-element)]">
         <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          {isEditingName ? (
-            <input
-              autoFocus
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              onBlur={handleSaveName}
-              onKeyDown={handleNameKeyDown}
-              placeholder="Name this roll..."
-              className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
-            />
+          {isFull ? (
+            // Only allow naming when roll is full (ready to develop)
+            isEditingName ? (
+              <input
+                autoFocus
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={handleSaveName}
+                onKeyDown={handleNameKeyDown}
+                placeholder="Name this roll..."
+                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
+              />
+            ) : (
+              <button type="button" onClick={handleStartEditing} className="text-left w-full hover:opacity-70 transition-opacity" title="Name this roll before developing">
+                <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
+                  {roll.name || <span className="text-[var(--color-ink-tertiary)]">Name this roll...</span>}
+                </h1>
+              </button>
+            )
           ) : (
-            <button type="button" onClick={handleStartEditing} className="text-left w-full hover:opacity-70 transition-opacity" title="Click to edit roll name">
-              <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
-                {roll.name || <span className="text-[var(--color-ink-tertiary)]">Name this roll...</span>}
-              </h1>
-            </button>
+            <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)]">
+              Your Roll
+            </h1>
           )}
         </div>
         <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tracking-[0.02em] shrink-0">
           {photoCount} / {maxPhotos}
         </span>
       </div>
+
+      {/* Instructions */}
+      {!isFull && photoCount > 0 && (
+        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+          {maxPhotos - photoCount} more photo{maxPhotos - photoCount !== 1 ? 's' : ''} needed to fill your roll. Go back to your feed to select more.
+        </p>
+      )}
 
       {/* Photo grid (contact sheet) */}
       {photos.length === 0 ? (
@@ -657,13 +701,13 @@ export default function RollDetailPage() {
         />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-          {photos.map((rp) => (
-            <div key={rp.id} className="relative group overflow-hidden bg-[var(--color-surface-sunken)]">
+          {photos.map((rp, index) => (
+            <div key={rp.id} className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer" onClick={() => setLightboxIndex(index)}>
               <img
                 src={rp.photos.thumbnail_url}
                 alt={`Position ${rp.position}`}
                 loading="lazy"
-                className="w-full aspect-[3/4] object-cover"
+                className="w-full aspect-[3/4] object-cover pointer-events-none"
               />
 
               {/* Position badge */}
@@ -719,6 +763,16 @@ export default function RollDetailPage() {
           </Button>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <PhotoLightbox
+          photos={photos.map((rp) => rp.photos)}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          mode="roll"
+        />
+      )}
     </div>
   );
 }

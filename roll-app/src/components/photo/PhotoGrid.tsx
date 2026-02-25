@@ -7,6 +7,7 @@ import type { Photo } from '@/types/photo';
 interface PhotoGridProps {
   photos: Photo[];
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
+  selectMode?: boolean;
   checkedIds?: Set<string>;
   onCheck?: (photoId: string) => void;
   onHide?: (photoId: string) => void;
@@ -22,6 +23,7 @@ interface PhotoGridProps {
 export function PhotoGrid({
   photos,
   mode,
+  selectMode,
   checkedIds,
   onCheck,
   onHide,
@@ -72,6 +74,7 @@ export function PhotoGrid({
               photo={photo}
               isChecked={checkedIds?.has(photo.id) ?? false}
               mode={mode}
+              selectMode={selectMode}
               onCheck={onCheck ? () => onCheck(photo.id) : undefined}
               onHide={onHide ? () => onHide(photo.id) : undefined}
               onTap={onPhotoTap ? () => onPhotoTap(photo.id) : undefined}
