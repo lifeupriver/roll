@@ -1,27 +1,64 @@
 import { EmailCaptureForm } from '@/components/landing/EmailCaptureForm';
 import { FilmProfileShowcase } from '@/components/landing/FilmProfileShowcase';
 import { AnimatedCounter } from '@/components/landing/AnimatedCounter';
-import { FilmDevelopHero } from '@/components/landing/FilmDevelopHero';
+import { HeroVisual } from '@/components/landing/HeroVisual';
+import { FeedVisual, RollVisual, DevelopVisual, PrintsVisual } from '@/components/landing/FeatureVisuals';
 import Link from 'next/link';
 
 export const dynamic = 'force-static';
+
+const PRIMARY_FEATURES = [
+  {
+    title: 'AI-Filtered Feed',
+    subtitle: 'Your best photos, surfaced automatically',
+    desc: 'Roll filters out screenshots, duplicates, and blurry shots — so you only see the photos that matter. Smart content modes let you browse by people, places, or moments.',
+    Visual: FeedVisual,
+  },
+  {
+    title: 'Roll Building',
+    subtitle: 'Pick your 36 favorites, like loading a roll of film',
+    desc: 'Browse your feed and checkmark the shots you love. Fill a roll of 36 photos — like loading a real roll of film. The film strip fills frame by frame until it clicks.',
+    Visual: RollVisual,
+  },
+  {
+    title: 'Film Profiles',
+    subtitle: 'Six film stocks that make your photos beautiful',
+    desc: 'Choose a film stock. Hit develop. Every photo is color-corrected, then processed through a film profile inspired by real analog film. Warmth, Golden, Vivid, Classic, Gentle, Modern.',
+    Visual: DevelopVisual,
+  },
+  {
+    title: 'Prints Delivered',
+    subtitle: 'Real prints, mailed to your door',
+    desc: 'High-quality 4×6 prints of your developed roll, shipped to your door. Your first roll of prints is free. No subscription required.',
+    Visual: PrintsVisual,
+  },
+];
+
+const SECONDARY_FEATURES = [
+  { title: 'Circle', desc: 'Share your best photos with family and friends in a private feed. No ads, no algorithm.' },
+  { title: 'Books', desc: 'Turn your favorites into a hardcover photo book. Flip through pages in the app, then order a printed copy.' },
+  { title: 'Video', desc: 'Roll corrects your videos with the same film stock as your photos. Same beautiful look. No editing required.' },
+  { title: 'Stories & Captions', desc: 'Write the story behind a roll. Caption individual photos. Turn images into a narrative.' },
+  { title: 'Photo Map', desc: 'See where your photos were taken on a world map. Your life, geographically.' },
+  { title: 'Backup', desc: 'Every photo you upload is backed up in the cloud. Encrypted. Safe.' },
+];
 
 export default function LandingPage() {
   return (
     <main className="flex flex-col items-center">
       {/* ================================================
-          Section 1: Hero — headline + visual transformation
+          Section 1: Hero — Split layout with visual
           ================================================ */}
       <section className="flex flex-col items-center justify-center min-h-[90vh] w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-hero)]">
-        <div className="flex flex-col items-center gap-[var(--space-section)] max-w-[800px] w-full text-center">
+        <div className="flex flex-col items-center gap-[var(--space-region)] max-w-[900px] w-full">
           {/* Logotype */}
-          <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-logotype)] tracking-[0.15em] text-[var(--color-ink)]">
+          <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-logotype)] tracking-[0.15em] text-[var(--color-ink)] text-center">
             ROLL
           </h1>
 
           {/* Tagline */}
           <p
-            className="font-[family-name:var(--font-display)] font-light italic text-[var(--color-ink)] leading-[1.3] max-w-[32ch]"
+            className="font-[family-name:var(--font-display)] font-light italic text-[var(--color-ink)] leading-[1.3] max-w-[32ch] text-center"
             style={{ fontSize: 'clamp(1.25rem, 3vw + 0.5rem, 1.875rem)' }}
           >
             Your phone captures thousands of photos.
@@ -29,26 +66,26 @@ export default function LandingPage() {
             Roll turns them into something worth keeping.
           </p>
 
-          {/* Film develop transition — grey thumbnails develop into warm tones */}
-          <FilmDevelopHero />
+          {/* Hero Visual — camera roll transformation mockup */}
+          <HeroVisual />
 
-          {/* CTA */}
+          {/* CTA buttons — primary: Get Started Free, secondary: See a Demo */}
           <div className="flex flex-col sm:flex-row items-center gap-[var(--space-element)] mt-[var(--space-component)]">
             <a
               href="#signup"
-              className="inline-flex items-center justify-center h-14 px-[var(--space-region)] bg-[var(--color-action)] text-[var(--color-ink-inverse)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] font-semibold text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:bg-[var(--color-action-hover)] active:scale-[0.98] shadow-[var(--shadow-floating)]"
+              className="inline-flex items-center justify-center h-14 px-8 py-4 bg-[var(--color-action)] text-[var(--color-ink-inverse)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] font-semibold text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:bg-[var(--color-action-hover)] active:scale-[0.98] shadow-[var(--shadow-floating)]"
             >
               Get Started Free
             </a>
             <Link
               href="/feed"
-              className="inline-flex items-center justify-center h-14 px-[var(--space-region)] border border-[var(--color-border-strong)] text-[var(--color-ink)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:bg-[var(--color-surface-raised)] active:scale-[0.98]"
+              className="inline-flex items-center justify-center h-14 px-6 text-[var(--color-action)] font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:underline"
             >
-              Try the Demo
+              See a Demo
             </Link>
           </div>
 
-          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)] font-light">
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)] font-light text-center">
             No credit card required. Your first roll of prints is free.
           </p>
         </div>
@@ -108,133 +145,117 @@ export default function LandingPage() {
       </section>
 
       {/* ================================================
-          Section 4: How Roll Works — Film Strip Metaphor
+          Section 3b: How Roll Works — 4-step overview
           ================================================ */}
       <section className="w-full py-20 bg-[var(--color-surface-raised)]">
         <div className="max-w-[1100px] mx-auto">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-region)] px-[var(--space-component)]">
             How Roll works
           </h2>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-[var(--space-section)]">
+            {[
+              { step: '1', title: 'Upload', body: 'Drop in your camera roll. Roll automatically filters out the noise — screenshots, duplicates, blurry shots.' },
+              { step: '2', title: 'Curate', body: 'Browse your feed. Checkmark your favorites. Fill a roll of 36 photos — like loading a real roll of film.' },
+              { step: '3', title: 'Develop', body: 'Choose a film stock. Hit develop. We color-correct every photo to match the look of real analog film.' },
+              { step: '4', title: 'Keep', body: 'Order prints, create photo books, share to your Circle, or write the story behind each roll.' },
+            ].map(({ step, title, body }) => (
+              <div key={step} className="flex flex-col gap-[var(--space-tight)]">
+                <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-display)] text-[var(--color-action)] tracking-[0.05em]">
+                  {step}
+                </span>
+                <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                  {title}
+                </h3>
+                <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
+                  {body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          {/* Film strip container */}
-          <div className="relative">
-            {/* Sprocket holes — top */}
-            <div className="flex justify-around px-[var(--space-section)] py-[var(--space-tight)] bg-[var(--color-filmstrip)]">
-              {Array.from({ length: 16 }).map((_, i) => (
-                <div key={`top-${i}`} className="w-3 h-2 rounded-sm bg-[var(--color-sprocket)] opacity-60" />
-              ))}
-            </div>
+      {/* ================================================
+          Section 4: Primary Features (4 cards with hierarchy)
+          ================================================ */}
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
+        <div className="max-w-[900px] mx-auto">
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-element)]">
+            Everything you need for the photos that matter
+          </h2>
+          <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center max-w-[50ch] mx-auto mb-[var(--space-region)]">
+            From messy camera roll to beautiful prints — four steps, one app.
+          </p>
 
-            {/* Steps */}
-            <div
-              className="flex gap-0 overflow-x-auto bg-[var(--color-filmstrip)]"
-              style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
-            >
-              {[
-                {
-                  step: '1',
-                  title: 'Upload',
-                  body: 'Drop in your camera roll — Roll filters out the noise automatically.',
-                  visual: 'scanning-grid',
-                  visualLabel: 'Camera roll scanning',
-                },
-                {
-                  step: '2',
-                  title: 'Curate',
-                  body: 'Heart your favorites and fill a roll of 36 — like loading real film.',
-                  visual: 'curate-grid',
-                  visualLabel: 'Photos with checkmarks',
-                },
-                {
-                  step: '3',
-                  title: 'Develop',
-                  body: 'Choose a film stock and hit develop — every shot gets color-corrected.',
-                  visual: 'before-after',
-                  visualLabel: 'Before/after split',
-                },
-                {
-                  step: '4',
-                  title: 'Keep',
-                  body: 'Order prints, create books, share to your Circle, or write the story.',
-                  visual: 'prints-envelope',
-                  visualLabel: 'Prints in envelope',
-                },
-              ].map(({ step, title, body, visual, visualLabel }) => (
+          {/* Top 2 features: full-width hero-sized cards */}
+          <div className="flex flex-col gap-[var(--space-section)]">
+            {PRIMARY_FEATURES.slice(0, 2).map(({ title, subtitle, desc, Visual }) => (
+              <div
+                key={title}
+                className="flex flex-col md:flex-row gap-[var(--space-section)] items-center rounded-[var(--radius-card)] bg-[var(--color-surface-raised)] p-[var(--space-section)] shadow-[var(--shadow-raised)]"
+              >
+                <div className="w-full md:w-1/2">
+                  <Visual />
+                </div>
+                <div className="w-full md:w-1/2 flex flex-col gap-[var(--space-tight)]">
+                  <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                    {title}
+                  </h3>
+                  <p className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-action)]">
+                    {subtitle}
+                  </p>
+                  <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
+                    {desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {/* Bottom 2 features: 2-column row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--space-section)]">
+              {PRIMARY_FEATURES.slice(2).map(({ title, subtitle, desc, Visual }) => (
                 <div
-                  key={step}
-                  className="flex-shrink-0 w-[260px] md:w-[275px] p-[var(--space-element)]"
-                  style={{ scrollSnapAlign: 'start' }}
+                  key={title}
+                  className="flex flex-col gap-[var(--space-tight)] rounded-[var(--radius-card)] bg-[var(--color-surface-raised)] p-[var(--space-section)] shadow-[var(--shadow-raised)]"
                 >
-                  <div className="rounded-[var(--radius-card)] bg-[var(--color-surface)] overflow-hidden h-full flex flex-col">
-                    {/* Step visual */}
-                    <div className="w-full aspect-[4/3] bg-[var(--color-surface-sunken)] flex items-center justify-center relative overflow-hidden">
-                      {visual === 'scanning-grid' && (
-                        <div className="grid grid-cols-3 gap-1 p-3 w-full h-full">
-                          {Array.from({ length: 9 }).map((_, i) => (
-                            <div key={i} className="bg-[var(--color-surface)] rounded-sm opacity-40" />
-                          ))}
-                          {/* Scanning overlay */}
-                          <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-action)] to-transparent opacity-10" style={{ height: '40%' }} />
-                        </div>
-                      )}
-                      {visual === 'curate-grid' && (
-                        <div className="grid grid-cols-3 gap-1 p-3 w-full h-full">
-                          {Array.from({ length: 9 }).map((_, i) => (
-                            <div key={i} className={`rounded-sm relative ${i < 4 ? 'bg-[var(--color-surface)] opacity-60' : 'bg-[var(--color-surface)] opacity-20'}`}>
-                              {i < 4 && (
-                                <div className="absolute top-0.5 right-0.5 w-3 h-3 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
-                                  <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {visual === 'before-after' && (
-                        <div className="flex w-full h-full">
-                          <div className="w-1/2 bg-[var(--color-surface)] opacity-30 flex items-center justify-center">
-                            <span className="font-[family-name:var(--font-mono)] text-[8px] text-[var(--color-ink-tertiary)] uppercase">Flat</span>
-                          </div>
-                          <div className="w-0.5 bg-white opacity-60" />
-                          <div className="w-1/2 bg-[var(--color-action-subtle)] opacity-50 flex items-center justify-center preview-warmth">
-                            <span className="font-[family-name:var(--font-mono)] text-[8px] text-[var(--color-ink-tertiary)] uppercase">Film</span>
-                          </div>
-                        </div>
-                      )}
-                      {visual === 'prints-envelope' && (
-                        <div className="flex flex-col items-center justify-center gap-1">
-                          <div className="w-14 h-10 bg-[var(--color-surface)] rounded-sm shadow-[var(--shadow-raised)] opacity-60 rotate-[-3deg]" />
-                          <div className="w-16 h-10 bg-[var(--color-surface)] rounded-sm shadow-[var(--shadow-raised)] opacity-50 -mt-3" />
-                          <span className="font-[family-name:var(--font-mono)] text-[8px] text-[var(--color-ink-tertiary)] uppercase mt-1">{visualLabel}</span>
-                        </div>
-                      )}
-                    </div>
-                    {/* Step info */}
-                    <div className="p-[var(--space-element)] flex flex-col gap-[var(--space-tight)] flex-1">
-                      <div className="flex items-baseline gap-[var(--space-tight)]">
-                        <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-heading)] text-[var(--color-action)]">
-                          {step}
-                        </span>
-                        <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
-                          {title}
-                        </h3>
-                      </div>
-                      <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-label)] text-[var(--color-ink-secondary)] leading-[1.5]">
-                        {body}
-                      </p>
-                    </div>
-                  </div>
+                  <Visual />
+                  <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] mt-[var(--space-tight)]">
+                    {title}
+                  </h3>
+                  <p className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-action)]">
+                    {subtitle}
+                  </p>
+                  <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
+                    {desc}
+                  </p>
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Sprocket holes — bottom */}
-            <div className="flex justify-around px-[var(--space-section)] py-[var(--space-tight)] bg-[var(--color-filmstrip)]">
-              {Array.from({ length: 16 }).map((_, i) => (
-                <div key={`bottom-${i}`} className="w-3 h-2 rounded-sm bg-[var(--color-sprocket)] opacity-60" />
+          {/* "And more..." collapsed section */}
+          <details className="mt-[var(--space-region)]">
+            <summary className="cursor-pointer font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)] text-center list-none">
+              <span className="inline-flex items-center gap-[var(--space-tight)] hover:text-[var(--color-action)] transition-colors">
+                And more...
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </summary>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--space-component)] mt-[var(--space-section)]">
+              {SECONDARY_FEATURES.map(({ title, desc }) => (
+                <div key={title} className="flex flex-col gap-[var(--space-micro)] p-[var(--space-component)] rounded-[var(--radius-card)] bg-[var(--color-surface-raised)]">
+                  <h4 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+                    {title}
+                  </h4>
+                  <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] leading-[1.5]">
+                    {desc}
+                  </p>
+                </div>
               ))}
             </div>
-          </div>
+          </details>
         </div>
       </section>
 
