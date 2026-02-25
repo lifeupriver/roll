@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Plus, Image, Grid3X3 } from 'lucide-react';
+import { Users, Plus, Image, Grid3X3, Grid2X2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Empty } from '@/components/ui/Empty';
@@ -44,6 +44,7 @@ export default function CirclePage() {
   const [sharedLoading, setSharedLoading] = useState(false);
 
   const [activeView, setActiveView] = useState<CircleView>('feed');
+  const [gridColumns, setGridColumns] = useState(3);
 
   const fetchCircles = useCallback(async () => {
     try {
@@ -391,9 +392,27 @@ export default function CirclePage() {
             />
           )}
 
-          {/* Grid view of shared posts (Instagram profile grid style) */}
+          {/* Grid size slider */}
           {!sharedLoading && sharedPosts.length > 0 && (
-            <div className="grid grid-cols-3 gap-0.5">
+            <div className="flex items-center justify-end gap-[var(--space-tight)] mb-[var(--space-element)]">
+              <Grid2X2 size={14} className="text-[var(--color-ink-tertiary)]" />
+              <input
+                type="range"
+                min="2"
+                max="5"
+                step="1"
+                value={gridColumns}
+                onChange={(e) => setGridColumns(parseInt(e.target.value, 10))}
+                className="w-20 accent-[var(--color-action)] cursor-pointer"
+                aria-label="Grid columns"
+              />
+              <Grid3X3 size={14} className="text-[var(--color-ink-tertiary)]" />
+            </div>
+          )}
+
+          {/* Grid view of shared posts (profile grid style) */}
+          {!sharedLoading && sharedPosts.length > 0 && (
+            <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
               {sharedPosts.map((post) => {
                 const firstPhoto = (post.photos ?? [])[0];
                 const isReel = post.post_type === 'reel';

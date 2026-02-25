@@ -442,11 +442,11 @@ export default function LibraryPage() {
             />
           )}
 
-          {/* In-progress rolls (building/ready/processing) */}
+          {/* Current rolls (building/ready/processing) */}
           {!isLoading && !error && inProgressRolls.length > 0 && (
             <div>
               <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
-                In Progress
+                Current
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
                 {inProgressRolls.map((roll) => {

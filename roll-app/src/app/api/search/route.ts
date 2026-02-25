@@ -33,15 +33,15 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('photos')
-      .select('id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, created_at')
+      .select('id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, caption, created_at')
       .eq('user_id', user.id)
       .eq('filter_status', 'visible')
       .order('date_taken', { ascending: false, nullsFirst: false })
       .limit(limit);
 
-    // Text query — search in filename
+    // Text query — search in filename and caption
     if (q) {
-      query = query.ilike('filename', `%${q}%`);
+      query = query.or(`filename.ilike.%${q}%,caption.ilike.%${q}%`);
     }
 
     // Scene filter

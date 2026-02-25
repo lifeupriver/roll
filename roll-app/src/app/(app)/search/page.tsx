@@ -83,7 +83,7 @@ export default function SearchPage() {
       <div className="flex gap-[var(--space-tight)]">
         <div className="flex-1">
           <Input
-            placeholder="Search photos..."
+            placeholder="Search photos, captions..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -223,7 +223,7 @@ export default function SearchPage() {
         <div className="flex flex-col items-center justify-center py-[var(--space-hero)] text-center">
           <SearchIcon size={48} className="text-[var(--color-ink-tertiary)] mb-[var(--space-component)]" />
           <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-            Search your photos by filename, scene, camera, date, or people.
+            Search your photos by caption, filename, scene, camera, date, or people.
           </p>
         </div>
       )}
