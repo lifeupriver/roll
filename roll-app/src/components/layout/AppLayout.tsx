@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Grid3X3, Film, Image, BookOpen, Users, User, Menu, X } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
+import { useUser } from '@/hooks/useUser';
 
 function DarkroomBulbIcon({ active }: { active: boolean }) {
   return (
@@ -41,6 +42,11 @@ const navItems = [
   { href: '/account', label: 'Account', icon: User },
 ];
 
+// Stagger delay for drawer nav items (ms)
+const DRAWER_ITEM_STAGGER = 50;
+// Drawer slide duration (ms)
+const DRAWER_SLIDE_DURATION = 200;
+
 interface AppLayoutProps {
   children: React.ReactNode;
 }
@@ -48,6 +54,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const { theme, toggle: toggleTheme } = useTheme();
+  const { user } = useUser();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Close drawer on route change
@@ -76,6 +83,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, [drawerOpen]);
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  // User display info
+  const userInitial = user?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
+  const userName = user?.display_name || user?.email?.split('@')[0] || 'Guest';
+  const userTier = user?.tier === 'pro' ? 'Roll+' : 'Free';
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-surface)] flex flex-col">
@@ -162,49 +174,64 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </header>
 
-      {/* Mobile slide-out drawer — translucent, middle-aligned */}
+      {/* Mobile slide-out drawer — enhanced with user identity and stagger animation */}
       {drawerOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
-          {/* Overlay */}
+          {/* Dim overlay */}
           <div
-            className="absolute inset-0 bg-black/50 animate-[fadeIn_150ms_ease-out]"
+            className="absolute inset-0 bg-black/20 animate-[fadeIn_150ms_ease-out]"
             onClick={closeDrawer}
           />
-          {/* Drawer panel — translucent */}
+          {/* Drawer panel */}
           <div className="absolute inset-y-0 left-0 w-64 bg-[var(--color-surface)]/85 backdrop-blur-xl shadow-[var(--shadow-overlay)] flex flex-col animate-[slideInLeft_200ms_ease-out]">
-            {/* Drawer header */}
-            <div className="flex items-center justify-between h-14 px-[var(--space-component)] pt-[var(--space-element)] border-b border-[var(--color-border)]">
-              <Link
-                href="/feed"
-                onClick={closeDrawer}
-                className="font-[family-name:var(--font-display)] font-bold text-[2rem] tracking-[0.15em] text-[var(--color-ink)]"
-              >
-                ROLL
-              </Link>
-              <button
-                type="button"
-                onClick={closeDrawer}
-                aria-label="Close menu"
-                className="p-2 -mr-2 text-[var(--color-ink-tertiary)] touch-target"
-              >
-                <X size={20} strokeWidth={1.5} />
-              </button>
+            {/* User identity at top */}
+            <div className="px-[var(--space-component)] pt-[var(--space-section)] pb-[var(--space-element)] border-b border-[var(--color-border)]">
+              <div className="flex items-center justify-between mb-[var(--space-element)]">
+                <div className="flex items-center gap-[var(--space-element)]">
+                  {user?.avatar_url ? (
+                    <img src={user.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0">
+                      <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-action)]">
+                        {userInitial}
+                      </span>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-ink)] truncate">
+                      {userName}
+                    </p>
+                    <span className="inline-block px-1.5 py-0.5 rounded-[var(--radius-pill)] bg-[var(--color-action-subtle)] text-[var(--color-action)] font-[family-name:var(--font-mono)] text-[10px] font-medium tracking-wide uppercase">
+                      {userTier}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeDrawer}
+                  aria-label="Close menu"
+                  className="p-2 -mr-2 text-[var(--color-ink-tertiary)] touch-target"
+                >
+                  <X size={20} strokeWidth={1.5} />
+                </button>
+              </div>
             </div>
 
-            {/* Nav items — vertically centered */}
-            <nav className="flex-1 flex flex-col justify-center gap-[var(--space-tight)] p-[var(--space-component)]">
-              {navItems.map((item) => {
+            {/* Nav items — positioned at ~40% from top, stagger entrance */}
+            <nav className="flex-1 flex flex-col pt-[20%] gap-[var(--space-tight)] p-[var(--space-component)]">
+              {navItems.map((item, index) => {
                 const isActive = pathname?.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={closeDrawer}
-                    className={`flex items-center gap-[var(--space-element)] px-[var(--space-element)] py-[var(--space-element)] rounded-[var(--radius-sharp)] text-[length:var(--text-body)] font-[family-name:var(--font-body)] font-medium transition-colors duration-150 ${
+                    className={`drawer-item-enter flex items-center gap-[var(--space-element)] px-[var(--space-element)] py-[var(--space-element)] rounded-[var(--radius-sharp)] text-[length:var(--text-body)] font-[family-name:var(--font-body)] font-medium transition-colors duration-150 ${
                       isActive
                         ? 'text-[var(--color-action)] bg-[var(--color-action-subtle)]'
                         : 'text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)]'
                     }`}
+                    style={{ animationDelay: `${DRAWER_SLIDE_DURATION + index * DRAWER_ITEM_STAGGER}ms` }}
                   >
                     <item.icon size={22} strokeWidth={1.5} />
                     {item.label}
@@ -223,8 +250,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       )}
 
-      {/* Main content */}
-      <main className="lg:pl-60 flex-1">
+      {/* Main content — scales down when drawer is open */}
+      <main
+        className={`lg:pl-60 flex-1 transition-transform duration-200 ease-out origin-left ${
+          drawerOpen ? 'scale-[0.97] translate-x-4' : ''
+        }`}
+      >
         <div className="max-w-[1200px] mx-auto px-[var(--space-component)] lg:px-[var(--space-section)] py-[var(--space-component)] lg:py-[var(--space-section)]">
           {children}
         </div>

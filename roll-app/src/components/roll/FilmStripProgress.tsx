@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface FilmStripProgressProps {
   rollName: string;
@@ -19,6 +19,9 @@ export function FilmStripProgress({
   const fillPercent = Math.min((currentCount / maxCount) * 100, 100);
   const [shimmer, setShimmer] = useState(false);
   const [pulse, setPulse] = useState(false);
+  const [displayCount, setDisplayCount] = useState(currentCount);
+  const [flipping, setFlipping] = useState(false);
+  const prevCount = useRef(currentCount);
 
   useEffect(() => {
     if (isComplete) {
@@ -32,6 +35,19 @@ export function FilmStripProgress({
       };
     }
   }, [isComplete]);
+
+  // Number flip animation when count changes
+  useEffect(() => {
+    if (currentCount !== prevCount.current) {
+      setFlipping(true);
+      const timer = setTimeout(() => {
+        setDisplayCount(currentCount);
+        setFlipping(false);
+      }, 100);
+      prevCount.current = currentCount;
+      return () => clearTimeout(timer);
+    }
+  }, [currentCount]);
 
   return (
     <>
@@ -135,18 +151,18 @@ export function FilmStripProgress({
             {rollName}
           </span>
 
-          {/* Center zone: Fill bar */}
+          {/* Center zone: Fill bar — smooth width transition */}
           <div className="flex-1 mx-[var(--space-element)] md:mx-[var(--space-component)] h-2 rounded-[var(--radius-pill)] bg-[var(--color-sprocket)] overflow-hidden">
             <div
               className={[
-                'h-full rounded-[var(--radius-pill)] transition-[width] duration-200 ease-out',
+                'h-full rounded-[var(--radius-pill)] transition-[width] duration-300 ease-out',
                 shimmer ? 'filmstrip-shimmer' : 'bg-[var(--color-action)]',
               ].join(' ')}
               style={{ width: `${fillPercent}%` }}
             />
           </div>
 
-          {/* Right zone: Frame counter */}
+          {/* Right zone: Frame counter with number flip */}
           <span
             className={[
               'font-[family-name:var(--font-mono)] text-[length:var(--text-lead)]',
@@ -155,7 +171,17 @@ export function FilmStripProgress({
               pulse ? 'filmstrip-counter-pulse' : '',
             ].join(' ')}
           >
-            {currentCount} / {maxCount}
+            <span className="inline-flex items-baseline">
+              <span className="overflow-hidden inline-block h-[1.2em] relative" style={{ width: `${String(displayCount).length}ch` }}>
+                <span
+                  className={flipping ? 'number-flip-enter' : ''}
+                  style={{ display: 'block' }}
+                >
+                  {displayCount}
+                </span>
+              </span>
+              <span> / {maxCount}</span>
+            </span>
           </span>
         </div>
       </div>

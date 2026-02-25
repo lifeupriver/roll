@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Check, EyeOff, Maximize2, Copy, Play } from 'lucide-react';
 import { ClipDurationBadge } from '@/components/reel/ClipDurationBadge';
 
@@ -31,8 +31,20 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [glowPulse, setGlowPulse] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
+  const prevChecked = useRef(isChecked);
+
+  // Trigger glow pulse when photo becomes checked
+  useEffect(() => {
+    if (isChecked && !prevChecked.current) {
+      setGlowPulse(true);
+      const timer = setTimeout(() => setGlowPulse(false), 300);
+      return () => clearTimeout(timer);
+    }
+    prevChecked.current = isChecked;
+  }, [isChecked]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,7 +78,7 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
 
   return (
     <div
-      className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer"
+      className={`relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer ${glowPulse ? 'selection-glow-pulse' : ''}`}
       onClick={handlePhotoClick}
       onContextMenu={handleContextMenu}
       onTouchStart={handleTouchStart}

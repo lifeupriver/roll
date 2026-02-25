@@ -142,7 +142,7 @@ export default function GalleryPage() {
 
       {/* Rolls section */}
       {activeSection === 'rolls' && (
-        <section className="flex flex-col gap-[var(--space-section)]">
+        <section className="flex flex-col gap-[var(--space-section)] tab-content-enter">
           {isLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />
@@ -320,7 +320,7 @@ export default function GalleryPage() {
 
       {/* Reels section */}
       {activeSection === 'reels' && (
-        <section className="flex flex-col gap-[var(--space-section)]">
+        <section className="flex flex-col gap-[var(--space-section)] tab-content-enter">
           {reelsLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />

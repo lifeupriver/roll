@@ -293,7 +293,7 @@ function ProjectsContent() {
 
       {/* Books section */}
       {!loading && activeSection === 'albums' && (
-        <section>
+        <section className="tab-content-enter">
           {filteredAlbums.length === 0 ? (
             <Empty
               icon={BookOpen}
@@ -430,7 +430,7 @@ function ProjectsContent() {
 
       {/* Reels section */}
       {!loading && activeSection === 'reels' && (
-        <section>
+        <section className="tab-content-enter">
           {filteredReels.length === 0 ? (
             <Empty
               icon={Film}

@@ -455,6 +455,98 @@
   }
 }
 
+/* ================================================
+   Grid entrance animation (Task 3.1)
+   ================================================ */
+@keyframes grid-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.grid-enter-item {
+  opacity: 0;
+  animation: grid-enter 250ms ease-out forwards;
+}
+
+/* ================================================
+   Tab content crossfade (Task 3.3)
+   ================================================ */
+@keyframes tab-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.tab-content-enter {
+  animation: tab-fade-in 150ms ease-out forwards;
+}
+
+/* ================================================
+   Checkmark selection glow (Task 3.2)
+   ================================================ */
+@keyframes selection-glow {
+  0% { box-shadow: 0 0 0 0 rgba(196, 93, 62, 0.4); }
+  50% { box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.4); }
+  100% { box-shadow: 0 0 0 3px rgba(196, 93, 62, 0); }
+}
+
+.selection-glow-pulse {
+  animation: selection-glow 300ms ease-out forwards;
+}
+
+/* ================================================
+   Number flip transition (Task 3.2)
+   ================================================ */
+@keyframes number-flip-out {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-100%); opacity: 0; }
+}
+
+@keyframes number-flip-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.number-flip-enter {
+  animation: number-flip-in 200ms ease-out forwards;
+}
+
+/* ================================================
+   Heart flash burst (Task 3.4)
+   ================================================ */
+@keyframes heart-flash {
+  0% { transform: scale(0.3); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.heart-flash {
+  animation: heart-flash 300ms ease-out forwards;
+}
+
+/* ================================================
+   Drawer nav item stagger entrance (Task 3.5)
+   ================================================ */
+@keyframes drawer-item-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.drawer-item-enter {
+  opacity: 0;
+  animation: drawer-item-enter 200ms ease-out forwards;
+}
+
 /* Film profile preview filters */
 .preview-warmth { filter: saturate(1.1) sepia(0.15) brightness(1.05); }
 .preview-golden { filter: saturate(1.2) sepia(0.25) brightness(1.08) contrast(1.05); }
