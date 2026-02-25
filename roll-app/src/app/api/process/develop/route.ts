@@ -8,6 +8,8 @@ import { parseBody, developProcessSchema } from '@/lib/validation';
 import { correctImage, isCorrectionEnabled, activeCorrectionProvider } from '@/lib/correction';
 import { getObject, uploadObject } from '@/lib/storage/r2';
 
+const isPreview = process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true';
+
 export async function POST(request: NextRequest) {
   let supabase: Awaited<ReturnType<typeof createServerSupabaseClient>> | null = null;
   let rollId: string | null = null;
@@ -121,20 +123,27 @@ export async function POST(request: NextRequest) {
 
     for (let i = 0; i < rollPhotos.length; i++) {
       const photo = rollPhotos[i];
-      const processedKey = `processed/${user.id}/${rollId}/${photo.position}_${filmProfileId}.jpg`;
+      const processedKey = isPreview
+        ? `corrected/${rollId}/${photo.position}_${filmProfileId}.jpg`
+        : `processed/${user.id}/${rollId}/${photo.position}_${filmProfileId}.jpg`;
       let correctionApplied = false;
 
       try {
-        // Fetch the original photo from R2
+        // Fetch the original photo from R2 (or local filesystem in preview mode)
         const { data: photoRecord } = await supabase
           .from('photos')
-          .select('storage_key, content_type')
+          .select('storage_key, content_type, thumbnail_url')
           .eq('id', photo.photo_id)
           .single();
 
-        if (photoRecord?.storage_key) {
-          const originalBuffer = await getObject(photoRecord.storage_key);
-          const contentType = photoRecord.content_type || 'image/jpeg';
+        // In preview mode, use thumbnail_url (points to local /photos/ files)
+        const storageKey = isPreview
+          ? (photoRecord as Record<string, unknown>)?.thumbnail_url as string
+          : photoRecord?.storage_key;
+
+        if (storageKey) {
+          const originalBuffer = await getObject(storageKey);
+          const contentType = photoRecord?.content_type || 'image/jpeg';
 
           // Send to correction provider (EyeQ or Imagen) for AI color correction
           const correctionResult = await correctImage(originalBuffer, contentType);
@@ -155,10 +164,15 @@ export async function POST(request: NextRequest) {
         correctionSkippedCount++;
       }
 
+      // In preview mode, store the R2 public URL so the browser can load it directly
+      const storedKey = isPreview && process.env.R2_PUBLIC_URL
+        ? `${process.env.R2_PUBLIC_URL}/${processedKey}`
+        : processedKey;
+
       const { error: photoUpdateError } = await supabase
         .from('roll_photos')
         .update({
-          processed_storage_key: processedKey,
+          processed_storage_key: storedKey,
           correction_applied: correctionApplied,
         })
         .eq('id', photo.id);

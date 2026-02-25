@@ -828,6 +828,7 @@ class MockQueryBuilder {
   private isDelete = false;
   private isUpsert = false;
   private insertData: Record<string, unknown>[] = [];
+  private updateData: Record<string, unknown> = {};
 
   constructor(tableName: string) {
     this.tableName = tableName;
@@ -845,8 +846,9 @@ class MockQueryBuilder {
     return this;
   }
 
-  update(_data: Record<string, unknown>) {
+  update(data: Record<string, unknown>) {
     this.isUpdate = true;
+    this.updateData = data;
     return this;
   }
 
@@ -965,7 +967,18 @@ class MockQueryBuilder {
       return { data: this.insertData, error: null };
     }
 
-    if (this.isUpdate || this.isDelete) {
+    if (this.isUpdate) {
+      // Apply update to matching rows in-place so subsequent reads see the changes
+      for (const row of this.rows) {
+        const matches = this.filters.every((filter) => filter(row));
+        if (matches) {
+          Object.assign(row, this.updateData);
+        }
+      }
+      return { data: null, error: null };
+    }
+
+    if (this.isDelete) {
       return { data: null, error: null };
     }
 
