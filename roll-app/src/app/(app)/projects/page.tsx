@@ -2,16 +2,16 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen, Film, Plus, Play, Image as ImageIcon, ChevronRight, Grid2x2, Grid3x3, ShoppingBag } from 'lucide-react';
+import {
+  BookOpen, Film, Plus, Play, Grid2x2, Grid3x3,
+  MoreHorizontal, Trash2, Copy, Pencil, Search, X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { Spinner } from '@/components/ui/Spinner';
 import { ContentModePills } from '@/components/photo/ContentModePills';
-import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
+import { CreateBookModal } from '@/components/book/CreateBookModal';
 import { useToast } from '@/stores/toastStore';
-import type { Photo } from '@/types/photo';
-
 type ProjectSection = 'albums' | 'reels';
 
 const SECTION_OPTIONS = [
@@ -22,9 +22,12 @@ const SECTION_OPTIONS = [
 interface Album {
   id: string;
   name: string;
+  description?: string | null;
   cover_url: string | null;
   photo_count: number;
+  captions?: Record<string, string>;
   created_at: string;
+  updated_at?: string;
 }
 
 interface ProjectReel {
@@ -36,14 +39,21 @@ interface ProjectReel {
   created_at: string;
 }
 
-interface FavoriteWithPhoto {
-  id: string;
-  photo_id: string;
-  photos: Photo;
-}
-
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
@@ -55,32 +65,24 @@ function ProjectsContent() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [reels, setReels] = useState<ProjectReel[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Create modal state
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createType, setCreateType] = useState<'album' | 'reel'>('album');
-  const [projectName, setProjectName] = useState('');
-  const [creating, setCreating] = useState(false);
-
-  // Photo/clip selector state
-  const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
-  const [favoritesLoading, setFavoritesLoading] = useState(false);
-  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
-
   const [gridColumns, setGridColumns] = useState(3);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [contextMenuId, setContextMenuId] = useState<string | null>(null);
+
+  // Create modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [initialPhotoIds, setInitialPhotoIds] = useState<string[]>([]);
 
   // Load projects
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        // Load albums from API
         const albumsRes = await fetch('/api/projects/albums');
         if (albumsRes.ok) {
           const json = await albumsRes.json();
           const apiAlbums = json.data ?? [];
-
-          // Merge with local albums from localStorage
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
           const apiIds = new Set(apiAlbums.map((a: Album) => a.id));
           const localAlbums = stored
@@ -88,33 +90,39 @@ function ProjectsContent() {
             .map((a: Record<string, unknown>) => ({
               id: a.id as string,
               name: (a.name as string) || 'Untitled Book',
+              description: (a.description as string) || null,
               cover_url: (a.cover_url as string) || null,
               photo_count: (a.photo_count as number) || 0,
+              captions: (a.captions as Record<string, string>) || {},
               created_at: (a.created_at as string) || new Date().toISOString(),
+              updated_at: (a.updated_at as string) || (a.created_at as string) || new Date().toISOString(),
             }));
-
           setAlbums([...localAlbums, ...apiAlbums]);
         } else {
-          // Fallback to localStorage only
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
           setAlbums(stored.map((a: Record<string, unknown>) => ({
             id: a.id as string,
             name: (a.name as string) || 'Untitled Book',
+            description: (a.description as string) || null,
             cover_url: (a.cover_url as string) || null,
             photo_count: (a.photo_count as number) || 0,
+            captions: (a.captions as Record<string, string>) || {},
             created_at: (a.created_at as string) || new Date().toISOString(),
+            updated_at: (a.updated_at as string) || new Date().toISOString(),
           })));
         }
       } catch {
-        // Fallback to localStorage
         try {
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
           setAlbums(stored.map((a: Record<string, unknown>) => ({
             id: a.id as string,
             name: (a.name as string) || 'Untitled Book',
+            description: (a.description as string) || null,
             cover_url: (a.cover_url as string) || null,
             photo_count: (a.photo_count as number) || 0,
+            captions: (a.captions as Record<string, string>) || {},
             created_at: (a.created_at as string) || new Date().toISOString(),
+            updated_at: (a.updated_at as string) || new Date().toISOString(),
           })));
         } catch {
           // Albums not available
@@ -122,7 +130,6 @@ function ProjectsContent() {
       }
 
       try {
-        // Load project reels
         const reelsRes = await fetch('/api/reels?status=developed');
         if (reelsRes.ok) {
           const json = await reelsRes.json();
@@ -148,139 +155,115 @@ function ProjectsContent() {
     load();
   }, []);
 
-  // Fetch favorites when opening create modal
-  const loadFavorites = useCallback(async () => {
-    setFavoritesLoading(true);
-    try {
-      const res = await fetch('/api/favorites');
-      if (res.ok) {
-        const json = await res.json();
-        setFavorites(json.data ?? []);
-      }
-    } catch {
-      toast('Failed to load favorites', 'error');
-    } finally {
-      setFavoritesLoading(false);
-    }
-  }, [toast]);
-
-  const handleOpenCreate = useCallback(
-    (type: 'album' | 'reel') => {
-      setCreateType(type);
-      setProjectName('');
-      setSelectedPhotoIds(new Set());
-      setShowCreateModal(true);
-      loadFavorites();
-    },
-    [loadFavorites]
-  );
-
-  // Auto-open create modal from query params (e.g. from favorites selection)
+  // Auto-open create modal from query params
   useEffect(() => {
     const createParam = searchParams.get('create');
     const photoIdsParam = searchParams.get('photoIds');
-    if (createParam === 'album' || createParam === 'reel') {
-      setCreateType(createParam);
-      setProjectName('');
-      if (photoIdsParam) {
-        setSelectedPhotoIds(new Set(photoIdsParam.split(',')));
-      }
+    if (createParam === 'album') {
+      if (photoIdsParam) setInitialPhotoIds(photoIdsParam.split(','));
       setShowCreateModal(true);
-      loadFavorites();
     }
-  }, [searchParams, loadFavorites]);
+  }, [searchParams]);
 
-  const togglePhotoSelection = useCallback((photoId: string) => {
-    setSelectedPhotoIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(photoId)) next.delete(photoId);
-      else next.add(photoId);
-      return next;
-    });
-  }, []);
-
-  const handleCreate = useCallback(async () => {
-    if (selectedPhotoIds.size === 0) {
-      toast('Select at least one photo', 'error');
-      return;
-    }
-
-    setCreating(true);
-    try {
-      if (createType === 'album') {
-        const albumName = projectName.trim() || 'Untitled Book';
-        const photoIds = Array.from(selectedPhotoIds);
-
-        // Create album via API
-        const res = await fetch('/api/projects/albums', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: albumName, photoIds }),
-        });
-
-        let albumData: Record<string, unknown> | null = null;
-        if (res.ok) {
-          const json = await res.json();
-          albumData = json.data;
-        }
-
-        if (!albumData) {
-          // Fallback: create a local album
-          albumData = {
-            id: `local-${Date.now()}`,
-            name: albumName,
-            cover_url: null,
-            photo_count: photoIds.length,
-            photo_ids: photoIds,
-            created_at: new Date().toISOString(),
-          };
-        }
-
-        // Also store in localStorage for the album detail page to read
-        const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
-        stored.unshift(albumData);
-        localStorage.setItem('roll-albums', JSON.stringify(stored));
-
-        setAlbums((prev) => [{
-          id: albumData!.id as string,
-          name: albumData!.name as string,
-          cover_url: (albumData!.cover_url as string) || null,
-          photo_count: albumData!.photo_count as number,
-          created_at: albumData!.created_at as string,
-        }, ...prev]);
-
-        toast('Book created!', 'success');
-        setShowCreateModal(false);
-        router.push(`/projects/albums/${albumData.id}`);
-      } else {
-        // Create reel from selected clips/favorites
-        toast('Reel creation coming soon!', 'info');
-        setShowCreateModal(false);
-      }
-    } catch {
-      toast('Something went wrong', 'error');
+  const handleBookCreated = useCallback(
+    (bookId: string) => {
       setShowCreateModal(false);
-    } finally {
-      setCreating(false);
-    }
-  }, [createType, projectName, selectedPhotoIds, toast, router]);
+      router.push(`/projects/albums/${bookId}`);
+    },
+    [router]
+  );
+
+  const handleDeleteBook = useCallback(
+    async (albumId: string) => {
+      try {
+        await fetch(`/api/projects/albums/${albumId}`, { method: 'DELETE' });
+      } catch {
+        // Continue with local delete
+      }
+      const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+      localStorage.setItem(
+        'roll-albums',
+        JSON.stringify(stored.filter((a: Record<string, unknown>) => a.id !== albumId))
+      );
+      setAlbums((prev) => prev.filter((a) => a.id !== albumId));
+      setContextMenuId(null);
+      toast('Book deleted', 'info');
+    },
+    [toast]
+  );
+
+  const handleDuplicateBook = useCallback(
+    async (album: Album) => {
+      const newId = `local-${Date.now()}`;
+      const duplicate: Album = {
+        ...album,
+        id: newId,
+        name: `${album.name} (copy)`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+      stored.unshift(duplicate);
+      localStorage.setItem('roll-albums', JSON.stringify(stored));
+      setAlbums((prev) => [duplicate, ...prev]);
+      setContextMenuId(null);
+      toast('Book duplicated', 'success');
+    },
+    [toast]
+  );
+
+  // Filter albums by search
+  const filteredAlbums = searchQuery
+    ? albums.filter((a) => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : albums;
+
+  const filteredReels = searchQuery
+    ? reels.filter((r) => r.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : reels;
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      {/* Page title */}
+      {/* Page header */}
       <div className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
           Projects
         </h1>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => handleOpenCreate(activeSection === 'albums' ? 'album' : 'reel')}
-        >
-          <Plus size={16} className="mr-1" />
-          New {activeSection === 'albums' ? 'Book' : 'Reel'}
-        </Button>
+        <div className="flex items-center gap-[var(--space-tight)]">
+          <button
+            type="button"
+            onClick={() => setShowSearch(!showSearch)}
+            className="p-2 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] transition-colors"
+          >
+            {showSearch ? <X size={18} /> : <Search size={18} />}
+          </button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              setInitialPhotoIds([]);
+              setShowCreateModal(true);
+            }}
+          >
+            <Plus size={16} className="mr-1" />
+            New Book
+          </Button>
+        </div>
       </div>
+
+      {/* Search bar */}
+      {showSearch && (
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]" />
+          <input
+            type="text"
+            placeholder="Search books..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
+            className="w-full h-10 pl-9 pr-3 bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] text-[length:var(--text-label)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)]"
+          />
+        </div>
+      )}
 
       {/* Section toggle + grid slider */}
       <div className="flex items-center justify-between">
@@ -310,51 +293,137 @@ function ProjectsContent() {
         </div>
       )}
 
-      {/* Albums section */}
+      {/* Books section */}
       {!loading && activeSection === 'albums' && (
         <section>
-          {albums.length === 0 ? (
+          {filteredAlbums.length === 0 ? (
             <Empty
               icon={BookOpen}
-              title="No books yet"
-              description="Create your first book from your favorite photos. Each book has one photo per page. Use the + New Book button above to get started."
+              title={searchQuery ? 'No books found' : 'No books yet'}
+              description={
+                searchQuery
+                  ? `No books match "${searchQuery}".`
+                  : 'Create your first photo book from your favorite photos. Add captions, reorder pages, and order a printed copy.'
+              }
+              action={
+                !searchQuery ? (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => { setInitialPhotoIds([]); setShowCreateModal(true); }}
+                  >
+                    <Plus size={16} className="mr-1" />
+                    Create Your First Book
+                  </Button>
+                ) : undefined
+              }
             />
           ) : (
-            <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
-              {albums.map((album) => (
-                <button
-                  key={album.id}
-                  type="button"
-                  onClick={() => router.push(`/projects/albums/${album.id}`)}
-                  className="text-left group cursor-pointer"
-                >
-                  <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                    {album.cover_url ? (
-                      <img
-                        src={album.cover_url}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)]">
-                        <BookOpen size={24} className="text-[var(--color-ink-tertiary)]" />
-                        <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                          {album.photo_count} pages
+            <div
+              className="grid gap-[var(--space-component)]"
+              style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+            >
+              {filteredAlbums.map((album) => (
+                <div key={album.id} className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/projects/albums/${album.id}`)}
+                    className="text-left w-full"
+                  >
+                    {/* Book cover card */}
+                    <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)] shadow-[var(--shadow-raised)] group-hover:shadow-[var(--shadow-floating)] transition-shadow duration-200">
+                      {album.cover_url ? (
+                        <img
+                          src={album.cover_url}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)] bg-[var(--color-surface-sunken)]">
+                          <BookOpen size={24} className="text-[var(--color-ink-tertiary)]" />
+                        </div>
+                      )}
+
+                      {/* Gradient + title overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute bottom-0 inset-x-0 p-3">
+                        <p className="font-[family-name:var(--font-display)] font-medium text-white text-[length:var(--text-label)] leading-tight truncate drop-shadow-sm">
+                          {album.name}
+                        </p>
+                        {album.description && (
+                          <p className="text-white/60 text-[length:var(--text-caption)] mt-0.5 line-clamp-1">
+                            {album.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Spine decoration */}
+                      <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/20 to-transparent" />
+
+                      {/* Page count badge */}
+                      <div className="absolute top-2 right-2 bg-black/30 backdrop-blur-sm rounded-[var(--radius-pill)] px-2 py-0.5">
+                        <span className="font-[family-name:var(--font-mono)] text-[10px] text-white/80">
+                          {album.photo_count} pg
                         </span>
                       </div>
-                    )}
-                  </div>
-                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                    {album.name}
-                  </p>
-                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                    {album.photo_count} page{album.photo_count !== 1 ? 's' : ''} &middot; {formatDate(album.created_at)}
-                  </p>
-                  <span className="inline-flex items-center gap-1 mt-1 text-[length:var(--text-caption)] font-medium text-[var(--color-action)]">
-                    <ShoppingBag size={12} /> Buy Book
-                  </span>
-                </button>
+                    </div>
+
+                    {/* Metadata below card */}
+                    <div className="flex items-center justify-between">
+                      <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                        {formatRelativeDate(album.updated_at || album.created_at)}
+                      </p>
+                      {album.captions && Object.values(album.captions).filter(Boolean).length > 0 && (
+                        <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {Object.values(album.captions).filter(Boolean).length} caption{Object.values(album.captions).filter(Boolean).length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Context menu trigger */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setContextMenuId(contextMenuId === album.id ? null : album.id);
+                    }}
+                    className="absolute top-2 left-2 p-1.5 rounded-[var(--radius-sharp)] bg-black/30 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  >
+                    <MoreHorizontal size={14} />
+                  </button>
+
+                  {/* Context menu dropdown */}
+                  {contextMenuId === album.id && (
+                    <div className="absolute top-10 left-2 z-20 bg-[var(--color-surface)] rounded-[var(--radius-card)] shadow-[var(--shadow-overlay)] border border-[var(--color-border)] py-1 min-w-[140px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setContextMenuId(null);
+                          router.push(`/projects/albums/${album.id}?edit=true`);
+                        }}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-left text-[length:var(--text-label)] text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                      >
+                        <Pencil size={14} /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicateBook(album)}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-left text-[length:var(--text-label)] text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                      >
+                        <Copy size={14} /> Duplicate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBook(album.id)}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-left text-[length:var(--text-label)] text-[var(--color-error)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                      >
+                        <Trash2 size={14} /> Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -364,15 +433,22 @@ function ProjectsContent() {
       {/* Reels section */}
       {!loading && activeSection === 'reels' && (
         <section>
-          {reels.length === 0 ? (
+          {filteredReels.length === 0 ? (
             <Empty
               icon={Film}
-              title="No reels yet"
-              description="Create a reel from your favorite clips. Reels are chronological — the only editing is trimming clip length. Use the + New Reel button above to get started."
+              title={searchQuery ? 'No reels found' : 'No reels yet'}
+              description={
+                searchQuery
+                  ? `No reels match "${searchQuery}".`
+                  : 'Create a reel from your favorite clips. Reels are chronological — the only editing is trimming clip length.'
+              }
             />
           ) : (
-            <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
-              {reels.map((reel) => (
+            <div
+              className="grid gap-[var(--space-element)]"
+              style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+            >
+              {filteredReels.map((reel) => (
                 <button
                   key={reel.id}
                   type="button"
@@ -387,7 +463,6 @@ function ProjectsContent() {
                         <Film size={24} className="text-[var(--color-ink-tertiary)]" />
                       </div>
                     )}
-                    {/* Play indicator */}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
                         <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
@@ -407,97 +482,21 @@ function ProjectsContent() {
         </section>
       )}
 
-      {/* Create project modal — select favorites */}
-      {showCreateModal && (
-        <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)}>
-          <div className="flex flex-col gap-[var(--space-component)]">
-            <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
-              New {createType === 'album' ? 'Book' : 'Reel'}
-            </h2>
-
-            <Input
-              label="Name"
-              placeholder={createType === 'album' ? 'My Book' : 'My Reel'}
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-            />
-
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              {createType === 'album'
-                ? 'Select your favorite photos. Each will be one page in your book.'
-                : 'Select clips to include. They will play in chronological order.'}
-            </p>
-
-            {/* Favorites/photo grid */}
-            {favoritesLoading ? (
-              <div className="flex items-center justify-center py-[var(--space-section)]">
-                <Spinner size="sm" />
-              </div>
-            ) : favorites.length === 0 ? (
-              <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center py-[var(--space-section)]">
-                No favorites yet. Heart photos in your developed rolls first.
-              </p>
-            ) : (
-              <div className="grid grid-cols-3 gap-1 max-h-[320px] overflow-y-auto rounded-[var(--radius-card)]">
-                {favorites.map((fav) => {
-                  const isSelected = selectedPhotoIds.has(fav.photo_id);
-                  return (
-                    <button
-                      key={fav.id}
-                      type="button"
-                      onClick={() => togglePhotoSelection(fav.photo_id)}
-                      className="relative aspect-square overflow-hidden bg-[var(--color-surface-sunken)] group"
-                    >
-                      <img
-                        src={fav.photos.thumbnail_url}
-                        alt=""
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                      />
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-[var(--color-action)]/20 ring-2 ring-inset ring-[var(--color-action)]" />
-                      )}
-                      <div
-                        className={`absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 ${
-                          isSelected
-                            ? 'bg-[var(--color-action)] scale-100'
-                            : 'bg-[var(--color-surface-overlay)]/40 border border-white/60 scale-90 opacity-0 group-hover:opacity-100'
-                        }`}
-                      >
-                        {isSelected && (
-                          <span className="text-white text-[10px] font-bold">
-                            {Array.from(selectedPhotoIds).indexOf(fav.photo_id) + 1}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {selectedPhotoIds.size > 0 && (
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                {selectedPhotoIds.size} {createType === 'album' ? 'page' : 'clip'}{selectedPhotoIds.size !== 1 ? 's' : ''} selected
-              </p>
-            )}
-
-            <div className="flex items-center justify-end gap-[var(--space-element)]">
-              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleCreate}
-                isLoading={creating}
-                disabled={selectedPhotoIds.size === 0}
-              >
-                Create {createType === 'album' ? 'Book' : 'Reel'}
-              </Button>
-            </div>
-          </div>
-        </Modal>
+      {/* Close context menu on click outside */}
+      {contextMenuId && (
+        <div
+          className="fixed inset-0 z-10"
+          onClick={() => setContextMenuId(null)}
+        />
       )}
+
+      {/* Create book modal */}
+      <CreateBookModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={handleBookCreated}
+        initialPhotoIds={initialPhotoIds}
+      />
     </div>
   );
 }
