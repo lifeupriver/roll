@@ -167,7 +167,7 @@ export async function POST() {
     await admin
       .from('profiles')
       .update({
-        display_name: user.user_metadata?.display_name || 'Alex Rivera',
+        display_name: user.user_metadata?.display_name || 'Joshua Brown',
         tier: 'plus',
         onboarding_complete: true,
         photo_count: 84,
@@ -643,7 +643,7 @@ export async function POST() {
           print_size: '4x6',
           photo_count: 36,
           is_free_first_roll: cfg.isFree,
-          shipping_name: user.user_metadata?.display_name || 'Alex Rivera',
+          shipping_name: user.user_metadata?.display_name || 'Joshua Brown',
           shipping_line1: '123 Film Street',
           shipping_line2: 'Apt 4B',
           shipping_city: 'Brooklyn',

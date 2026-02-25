@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X, Grid3X3, Grid2x2, Users, ChevronRight } from 'lucide-react';
+import { Image, Heart, Film, Play, Share2, Wand2, MessageSquare, Check, X, Grid3X3, Grid2x2, Users, ChevronRight, BookOpen, CheckSquare, Printer } from 'lucide-react';
 import { HeartButton } from '@/components/roll/HeartButton';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { Empty } from '@/components/ui/Empty';
@@ -52,7 +52,7 @@ function formatDate(dateString: string): string {
 export default function LibraryPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [activeSection, setActiveSection] = useState<LibrarySection>('all');
+  const [activeSection, setActiveSection] = useState<LibrarySection>('rolls');
   const [rolls, setRolls] = useState<Roll[]>([]);
   const [reels, setReels] = useState<Reel[]>([]);
   const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
@@ -261,7 +261,11 @@ export default function LibraryPage() {
 
   // Selection mode for favorites
   const [selectedFavIds, setSelectedFavIds] = useState<Set<string>>(new Set());
-  const isSelecting = selectedFavIds.size > 0;
+  const [selectMode, setSelectMode] = useState(false);
+  const isSelecting = selectMode || selectedFavIds.size > 0;
+
+  // Lightbox for favorites
+  const [favLightboxIndex, setFavLightboxIndex] = useState<number | null>(null);
 
   const toggleFavSelection = useCallback((photoId: string) => {
     setSelectedFavIds((prev) => {
@@ -534,6 +538,13 @@ export default function LibraryPage() {
                       {roll.film_profile && <> &middot; <span className="capitalize">{roll.film_profile}</span></>}
                       {' '}&middot; {formatDate(roll.created_at)}
                     </p>
+                    <Link
+                      href={`/roll/${roll.id}/order`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 mt-1 text-[length:var(--text-caption)] font-medium text-[var(--color-action)] hover:underline"
+                    >
+                      <Printer size={12} /> Order Prints
+                    </Link>
                   </button>
                 ))}
               </div>
@@ -668,33 +679,53 @@ export default function LibraryPage() {
       {/* Favorites section — grid */}
       {activeSection === 'favorites' && (
         <section>
-          {/* Selection toolbar */}
-          {isSelecting && (
-            <div className="flex items-center justify-between mb-[var(--space-component)] p-[var(--space-element)] bg-[var(--color-action-subtle)] rounded-[var(--radius-card)]">
-              <div className="flex items-center gap-[var(--space-element)]">
-                <button
-                  type="button"
-                  onClick={() => setSelectedFavIds(new Set())}
-                  className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]"
-                >
-                  <X size={18} />
-                </button>
-                <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                  {selectedFavIds.size} selected
-                </span>
-              </div>
-              <div className="flex items-center gap-[var(--space-element)]">
-                <Button variant="secondary" size="sm" onClick={handleOpenCirclePicker}>
-                  <Share2 size={14} className="mr-1" /> Share to Circle
+          {/* Top bar: Select toggle + actions */}
+          {favorites.length > 0 && (
+            <div className="flex items-center justify-between mb-[var(--space-component)]">
+              {!isSelecting ? (
+                <Button variant="secondary" size="sm" onClick={() => setSelectMode(true)}>
+                  <CheckSquare size={14} className="mr-1" /> Select
                 </Button>
-              </div>
+              ) : (
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <button
+                    type="button"
+                    onClick={() => { setSelectMode(false); setSelectedFavIds(new Set()); }}
+                    className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]"
+                  >
+                    <X size={18} />
+                  </button>
+                  <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    {selectedFavIds.size} selected
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
-          {!isSelecting && favorites.length > 0 && (
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
-              Tap photos to select them
-            </p>
+          {/* Selection action bar */}
+          {isSelecting && selectedFavIds.size > 0 && (
+            <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-component)] p-[var(--space-element)] bg-[var(--color-action-subtle)] rounded-[var(--radius-card)] flex-wrap">
+              <Button variant="secondary" size="sm" onClick={handleOpenCirclePicker}>
+                <Share2 size={14} className="mr-1" /> Share to Circle
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => {
+                const params = new URLSearchParams();
+                params.set('photoIds', Array.from(selectedFavIds).join(','));
+                params.set('type', 'album');
+                router.push(`/projects?create=album&${params.toString()}`);
+              }}>
+                <BookOpen size={14} className="mr-1" /> New Book
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => {
+                const params = new URLSearchParams();
+                params.set('photoIds', Array.from(selectedFavIds).join(','));
+                params.set('type', 'reel');
+                router.push(`/projects?create=reel&${params.toString()}`);
+              }}>
+                <Film size={14} className="mr-1" /> New Reel
+              </Button>
+            </div>
           )}
 
           {favoritesLoading && (
@@ -712,80 +743,102 @@ export default function LibraryPage() {
           )}
 
           {!favoritesLoading && favorites.length > 0 && (
-            <div className="grid gap-[var(--space-micro)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
-              {favorites.map((fav) => (
-                <div
-                  key={fav.id}
-                  className="relative group overflow-hidden cursor-pointer"
-                  onClick={() => toggleFavSelection(fav.photo_id)}
-                >
-                  <img
-                    src={fav.photos.thumbnail_url}
-                    alt={`Favorited photo from ${fav.rolls?.name || 'roll'}`}
-                    loading="lazy"
-                    className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
-                  />
-                  {/* Selection overlay */}
-                  {selectedFavIds.has(fav.photo_id) && (
-                    <div className="absolute inset-0 bg-[var(--color-action)]/15 ring-2 ring-inset ring-[var(--color-action)] pointer-events-none" />
-                  )}
-                  {/* Selection checkmark */}
+            <>
+              <div className="grid gap-[var(--space-micro)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+                {favorites.map((fav, index) => (
                   <div
-                    className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 z-10 pointer-events-none ${
-                      selectedFavIds.has(fav.photo_id)
-                        ? 'bg-[var(--color-action)] scale-100'
-                        : 'bg-black/30 border border-white/50 scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100'
-                    }`}
+                    key={fav.id}
+                    className="relative group overflow-hidden cursor-pointer"
+                    onClick={() => {
+                      if (isSelecting) {
+                        toggleFavSelection(fav.photo_id);
+                      } else {
+                        setFavLightboxIndex(index);
+                      }
+                    }}
                   >
-                    <Check size={14} strokeWidth={2.5} className="text-white" />
-                  </div>
-                  {/* Heart overlay */}
-                  <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
-                    <HeartButton
-                      isHearted={true}
-                      onChange={() => handleUnfavorite(fav.photo_id)}
+                    <img
+                      src={fav.photos.thumbnail_url}
+                      alt={`Favorited photo from ${fav.rolls?.name || 'roll'}`}
+                      loading="lazy"
+                      className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
                     />
-                  </div>
-                  {/* Caption + Roll name overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent">
-                    {editingFavCaptionId === fav.photo_id ? (
-                      <input
-                        autoFocus
-                        type="text"
-                        value={favCaptionText}
-                        onChange={(e) => setFavCaptionText(e.target.value)}
-                        onBlur={handleSaveFavCaption}
-                        onKeyDown={handleFavCaptionKeyDown}
-                        placeholder="Write a caption..."
-                        maxLength={200}
-                        className="w-full px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleStartFavCaption(fav.photo_id)}
-                        className="w-full text-left px-[var(--space-tight)] py-[var(--space-tight)]"
-                      >
-                        {favCaptions.get(fav.photo_id) ? (
-                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)] mb-0.5">
-                            {favCaptions.get(fav.photo_id)}
-                          </p>
-                        ) : (
-                          <p className="text-[length:var(--text-caption)] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mb-0.5">
-                            <MessageSquare size={10} /> Write a caption
-                          </p>
-                        )}
-                        {fav.rolls?.name && (
-                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)]/70 font-[family-name:var(--font-body)]">
-                            {fav.rolls.name}
-                          </span>
-                        )}
-                      </button>
+                    {/* Selection overlay */}
+                    {isSelecting && selectedFavIds.has(fav.photo_id) && (
+                      <div className="absolute inset-0 bg-[var(--color-action)]/15 ring-2 ring-inset ring-[var(--color-action)] pointer-events-none" />
                     )}
+                    {/* Selection checkmark — only in select mode */}
+                    {isSelecting && (
+                      <div
+                        className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 z-10 pointer-events-none ${
+                          selectedFavIds.has(fav.photo_id)
+                            ? 'bg-[var(--color-action)] scale-100'
+                            : 'bg-black/30 border border-white/50 scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100'
+                        }`}
+                      >
+                        <Check size={14} strokeWidth={2.5} className="text-white" />
+                      </div>
+                    )}
+                    {/* Heart overlay */}
+                    <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]" onClick={(e) => e.stopPropagation()}>
+                      <HeartButton
+                        isHearted={true}
+                        onChange={() => handleUnfavorite(fav.photo_id)}
+                      />
+                    </div>
+                    {/* Caption + Roll name overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent">
+                      {editingFavCaptionId === fav.photo_id ? (
+                        <input
+                          autoFocus
+                          type="text"
+                          value={favCaptionText}
+                          onChange={(e) => setFavCaptionText(e.target.value)}
+                          onBlur={handleSaveFavCaption}
+                          onKeyDown={handleFavCaptionKeyDown}
+                          placeholder="Write a caption..."
+                          maxLength={200}
+                          className="w-full px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <div
+                          className="w-full text-left px-[var(--space-tight)] py-[var(--space-tight)]"
+                          onClick={(e) => { e.stopPropagation(); handleStartFavCaption(fav.photo_id); }}
+                        >
+                          {favCaptions.get(fav.photo_id) ? (
+                            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)] mb-0.5">
+                              {favCaptions.get(fav.photo_id)}
+                            </p>
+                          ) : (
+                            <p className="text-[length:var(--text-caption)] text-white/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mb-0.5">
+                              <MessageSquare size={10} /> Write a caption
+                            </p>
+                          )}
+                          {fav.rolls?.name && (
+                            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-inverse)]/70 font-[family-name:var(--font-body)]">
+                              {fav.rolls.name}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {/* Favorites lightbox */}
+              {favLightboxIndex !== null && (
+                <PhotoLightbox
+                  photos={favorites.map((fav) => fav.photos)}
+                  initialIndex={favLightboxIndex}
+                  onClose={() => setFavLightboxIndex(null)}
+                  mode="favorites"
+                  onHeart={(photoId) => handleUnfavorite(photoId)}
+                  isHearted={() => true}
+                />
+              )}
+            </>
           )}
         </section>
       )}
