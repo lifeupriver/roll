@@ -343,16 +343,16 @@ export default function CirclePage() {
               >
                 <Users size={22} className="text-[var(--color-action)]" />
               </button>
-              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center max-w-[72px] truncate">
+              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center max-w-[72px] line-clamp-2 leading-tight">
                 {circle.name}
               </span>
               <button
                 type="button"
                 onClick={() => openSettings(circle)}
-                className="p-1 rounded-full text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
                 aria-label={`${circle.name} settings`}
               >
-                <Settings size={14} />
+                <Settings size={16} />
               </button>
             </div>
           ))}
@@ -581,9 +581,10 @@ export default function CirclePage() {
                       {isOwn && (
                         <button
                           onClick={() => handleDetailDeleteComment(c.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] transition-all"
+                          className="opacity-0 group-hover:opacity-100 p-2.5 -mr-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] transition-all touch-target"
+                          aria-label="Delete comment"
                         >
-                          <Trash2 size={12} />
+                          <Trash2 size={14} />
                         </button>
                       )}
                     </div>

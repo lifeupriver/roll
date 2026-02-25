@@ -148,43 +148,43 @@ function SpreadPage({
           <button
             type="button"
             onClick={() => onPhotoTap(page.photoId)}
-            className="absolute top-2 right-2 p-1.5 rounded-[var(--radius-sharp)] bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 p-2.5 rounded-[var(--radius-sharp)] bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity touch-target"
           >
-            <Maximize2 size={14} />
+            <Maximize2 size={16} />
           </button>
         )}
 
         {/* Edit mode controls */}
         {editable && (
-          <div className="absolute top-2 left-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2 left-2 flex flex-col gap-0 opacity-0 group-hover:opacity-100 transition-opacity">
             {onMovePage && pageIndex > 0 && (
               <button
                 type="button"
                 onClick={() => onMovePage(pageIndex, 'up')}
-                className="p-1 rounded-[var(--radius-sharp)] bg-black/40 text-white hover:bg-black/60 transition-colors"
+                className="p-2.5 rounded-[var(--radius-sharp)] bg-black/40 text-white hover:bg-black/60 transition-colors touch-target"
                 title="Move page earlier"
               >
-                <ChevronUp size={14} />
+                <ChevronUp size={16} />
               </button>
             )}
             {onMovePage && pageIndex < totalPages - 1 && (
               <button
                 type="button"
                 onClick={() => onMovePage(pageIndex, 'down')}
-                className="p-1 rounded-[var(--radius-sharp)] bg-black/40 text-white hover:bg-black/60 transition-colors"
+                className="p-2.5 rounded-[var(--radius-sharp)] bg-black/40 text-white hover:bg-black/60 transition-colors touch-target"
                 title="Move page later"
               >
-                <ChevronDown size={14} />
+                <ChevronDown size={16} />
               </button>
             )}
             {onRemovePage && (
               <button
                 type="button"
                 onClick={() => onRemovePage(page.photoId)}
-                className="p-1 rounded-[var(--radius-sharp)] bg-black/40 text-red-300 hover:bg-red-500/60 hover:text-white transition-colors"
+                className="p-2.5 rounded-[var(--radius-sharp)] bg-black/40 text-red-300 hover:bg-red-500/60 hover:text-white transition-colors touch-target"
                 title="Remove page"
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
               </button>
             )}
           </div>

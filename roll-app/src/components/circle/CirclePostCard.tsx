@@ -337,10 +337,10 @@ export function CirclePostCard({
                   {isOwn && (
                     <button
                       onClick={() => handleDeleteComment(c.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-2.5 -mr-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] transition-all touch-target"
                       aria-label="Delete comment"
                     >
-                      <Trash2 size={12} />
+                      <Trash2 size={14} />
                     </button>
                   )}
                 </div>

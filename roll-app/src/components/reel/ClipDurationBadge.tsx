@@ -16,9 +16,9 @@ export function ClipDurationBadge({ durationMs }: ClipDurationBadgeProps) {
     <span
       className={[
         'absolute bottom-1.5 left-1.5 z-10',
-        'px-1 py-0.5',
-        'bg-[oklch(0_0_0/0.6)]',
-        'rounded-[2px]',
+        'px-1.5 py-0.5',
+        'bg-[oklch(0_0_0/0.7)]',
+        'rounded-sm',
         'font-[family-name:var(--font-mono)]',
         'text-[length:var(--text-caption)]',
         'text-white',

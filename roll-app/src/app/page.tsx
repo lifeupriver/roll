@@ -67,7 +67,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 2: Problem Statement
           ================================================ */}
-      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
         <div className="max-w-[900px] mx-auto flex flex-col md:flex-row items-center gap-[var(--space-region)]">
           {/* Lifestyle image placeholder */}
           <div className="w-full md:w-1/2 aspect-[4/3] rounded-[var(--radius-card)] overflow-hidden bg-[var(--color-surface-sunken)] border border-[var(--color-border)] flex items-center justify-center">
@@ -92,7 +92,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 3: Social Proof — Testimonial
           ================================================ */}
-      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
         <div className="max-w-[600px] mx-auto">
           <div className="rounded-[var(--radius-card)] bg-[var(--color-surface-raised)] shadow-[var(--shadow-floating)] p-[var(--space-region)] text-center">
             <svg className="mx-auto mb-[var(--space-component)] text-[var(--color-action)]" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M11.3 2.3c-.4-.2-.8-.3-1.3-.3C7.2 2 5 4.7 5 8c0 2 .7 3.7 2 5v6c0 1.7 1.3 3 3 3h2c1.7 0 3-1.3 3-3v-6c0-1.7-1.3-3-3-3H9.3C9.1 8.7 9 7.4 9 6c0-1.1.3-2.1.8-2.8l1.5.1zm10 0c-.4-.2-.8-.3-1.3-.3-2.8 0-5 2.7-5 6 0 2 .7 3.7 2 5v6c0 1.7 1.3 3 3 3h2c1.7 0 3-1.3 3-3v-6c0-1.7-1.3-3-3-3h-2.7c-.2-1.3-.3-2.6-.3-4 0-1.1.3-2.1.8-2.8l1.5.1z" /></svg>
@@ -120,7 +120,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 4: How Roll Works — Film Strip Metaphor
           ================================================ */}
-      <section className="w-full py-[var(--space-page)] md:py-[var(--space-hero)] bg-[var(--color-surface-raised)]">
+      <section className="w-full py-20 bg-[var(--color-surface-raised)]">
         <div className="max-w-[1100px] mx-auto">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-region)] px-[var(--space-component)]">
             How Roll works
@@ -251,7 +251,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 5: Film Profiles — Full-Width Showcase
           ================================================ */}
-      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
         <div className="max-w-[1100px] mx-auto">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-element)]">
             Six film stocks. Each one beautiful.
@@ -266,7 +266,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 6: The Result — Physical prints
           ================================================ */}
-      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)] bg-[var(--color-surface-raised)]">
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20 bg-[var(--color-surface-raised)]">
         <div className="max-w-[900px] mx-auto">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-region)]">
             From screen to something real
@@ -320,7 +320,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 7: Privacy — Elevated with warm treatment
           ================================================ */}
-      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
         <div className="max-w-[700px] mx-auto">
           <div className="rounded-[var(--radius-modal)] bg-[var(--color-surface-raised)] shadow-[var(--shadow-floating)] p-[var(--space-region)] md:p-[var(--space-page)]">
             <div className="flex items-center justify-center mb-[var(--space-section)]">
@@ -358,7 +358,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 8: Pricing — Outcome-focused
           ================================================ */}
-      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)] bg-[var(--color-surface-raised)]">
+      <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20 bg-[var(--color-surface-raised)]">
         <div className="max-w-[800px] mx-auto">
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-section)]">
             Free to start. $4.99/month for everything.
@@ -434,7 +434,7 @@ export default function LandingPage() {
       {/* ================================================
           Section 9: Final CTA — Single button
           ================================================ */}
-      <section id="signup" className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-[var(--space-page)] md:py-[var(--space-hero)]">
+      <section id="signup" className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
         <div className="max-w-[500px] mx-auto flex flex-col items-center text-center gap-[var(--space-section)]">
           <h2
             className="font-[family-name:var(--font-display)] font-medium text-[var(--color-ink)]"

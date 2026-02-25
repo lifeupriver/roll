@@ -101,7 +101,7 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
       {photo.media_type === 'video' && (
         <>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
               <Play size={20} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
             </div>
           </div>
