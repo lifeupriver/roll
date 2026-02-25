@@ -297,8 +297,15 @@ export default function CircleDetailPage() {
           >
             <div className="flex -space-x-2">
               {visibleMembers.map((member) => (
-                <div
+                <button
                   key={member.id}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (member.user_id !== user?.id) {
+                      router.push(`/circle/member/${member.user_id}`);
+                    }
+                  }}
                   className="w-8 h-8 rounded-full border-2 border-[var(--color-surface)] flex-shrink-0 overflow-hidden"
                   title={member.profiles?.display_name || member.profiles?.email || 'Member'}
                 >
@@ -311,7 +318,7 @@ export default function CircleDetailPage() {
                       </span>
                     </div>
                   )}
-                </div>
+                </button>
               ))}
               {overflowCount > 0 && (
                 <div className="w-8 h-8 rounded-full border-2 border-[var(--color-surface)] bg-[var(--color-surface-sunken)] flex items-center justify-center flex-shrink-0">
@@ -466,9 +473,18 @@ export default function CircleDetailPage() {
                       )}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isSelf) {
+                            router.push(`/circle/member/${member.user_id}`);
+                            setMembersModalOpen(false);
+                          }
+                        }}
+                        className={`text-left text-[length:var(--text-body)] text-[var(--color-ink)] ${!isSelf ? 'hover:text-[var(--color-action)] hover:underline' : ''}`}
+                      >
                         {name}{isSelf ? ' (you)' : ''}
-                      </span>
+                      </button>
                       {member.role === 'creator' && (
                         <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Creator</span>
                       )}

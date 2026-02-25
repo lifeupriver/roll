@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { BookOpen, Film, Plus, Play, Image as ImageIcon, ChevronRight, Grid2x2, Grid3x3 } from 'lucide-react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { BookOpen, Film, Plus, Play, Image as ImageIcon, ChevronRight, Grid2x2, Grid3x3, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { Spinner } from '@/components/ui/Spinner';
@@ -47,8 +47,9 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export default function ProjectsPage() {
+function ProjectsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState<ProjectSection>('albums');
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -73,14 +74,51 @@ export default function ProjectsPage() {
     async function load() {
       setLoading(true);
       try {
-        // Load albums from API (mock for now)
+        // Load albums from API
         const albumsRes = await fetch('/api/projects/albums');
         if (albumsRes.ok) {
           const json = await albumsRes.json();
-          setAlbums(json.data ?? []);
+          const apiAlbums = json.data ?? [];
+
+          // Merge with local albums from localStorage
+          const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+          const apiIds = new Set(apiAlbums.map((a: Album) => a.id));
+          const localAlbums = stored
+            .filter((a: Album) => !apiIds.has(a.id))
+            .map((a: Record<string, unknown>) => ({
+              id: a.id as string,
+              name: (a.name as string) || 'Untitled Album',
+              cover_url: (a.cover_url as string) || null,
+              photo_count: (a.photo_count as number) || 0,
+              created_at: (a.created_at as string) || new Date().toISOString(),
+            }));
+
+          setAlbums([...localAlbums, ...apiAlbums]);
+        } else {
+          // Fallback to localStorage only
+          const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+          setAlbums(stored.map((a: Record<string, unknown>) => ({
+            id: a.id as string,
+            name: (a.name as string) || 'Untitled Album',
+            cover_url: (a.cover_url as string) || null,
+            photo_count: (a.photo_count as number) || 0,
+            created_at: (a.created_at as string) || new Date().toISOString(),
+          })));
         }
       } catch {
-        // Albums not available yet — show empty
+        // Fallback to localStorage
+        try {
+          const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+          setAlbums(stored.map((a: Record<string, unknown>) => ({
+            id: a.id as string,
+            name: (a.name as string) || 'Untitled Album',
+            cover_url: (a.cover_url as string) || null,
+            photo_count: (a.photo_count as number) || 0,
+            created_at: (a.created_at as string) || new Date().toISOString(),
+          })));
+        } catch {
+          // Albums not available
+        }
       }
 
       try {
@@ -137,6 +175,21 @@ export default function ProjectsPage() {
     [loadFavorites]
   );
 
+  // Auto-open create modal from query params (e.g. from favorites selection)
+  useEffect(() => {
+    const createParam = searchParams.get('create');
+    const photoIdsParam = searchParams.get('photoIds');
+    if (createParam === 'album' || createParam === 'reel') {
+      setCreateType(createParam);
+      setProjectName('');
+      if (photoIdsParam) {
+        setSelectedPhotoIds(new Set(photoIdsParam.split(',')));
+      }
+      setShowCreateModal(true);
+      loadFavorites();
+    }
+  }, [searchParams, loadFavorites]);
+
   const togglePhotoSelection = useCallback((photoId: string) => {
     setSelectedPhotoIds((prev) => {
       const next = new Set(prev);
@@ -155,33 +208,62 @@ export default function ProjectsPage() {
     setCreating(true);
     try {
       if (createType === 'album') {
-        // Create album
+        const albumName = projectName.trim() || 'Untitled Album';
+        const photoIds = Array.from(selectedPhotoIds);
+
+        // Create album via API
         const res = await fetch('/api/projects/albums', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: projectName.trim() || 'Untitled Album',
-            photoIds: Array.from(selectedPhotoIds),
-          }),
+          body: JSON.stringify({ name: albumName, photoIds }),
         });
+
+        let albumData: Record<string, unknown> | null = null;
         if (res.ok) {
           const json = await res.json();
-          setAlbums((prev) => [json.data, ...prev]);
-          toast('Album created!', 'success');
-        } else {
-          toast('Failed to create album', 'error');
+          albumData = json.data;
         }
+
+        if (!albumData) {
+          // Fallback: create a local album
+          albumData = {
+            id: `local-${Date.now()}`,
+            name: albumName,
+            cover_url: null,
+            photo_count: photoIds.length,
+            photo_ids: photoIds,
+            created_at: new Date().toISOString(),
+          };
+        }
+
+        // Also store in localStorage for the album detail page to read
+        const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+        stored.unshift(albumData);
+        localStorage.setItem('roll-albums', JSON.stringify(stored));
+
+        setAlbums((prev) => [{
+          id: albumData!.id as string,
+          name: albumData!.name as string,
+          cover_url: (albumData!.cover_url as string) || null,
+          photo_count: albumData!.photo_count as number,
+          created_at: albumData!.created_at as string,
+        }, ...prev]);
+
+        toast('Album created!', 'success');
+        setShowCreateModal(false);
+        router.push(`/projects/albums/${albumData.id}`);
       } else {
         // Create reel from selected clips/favorites
         toast('Reel creation coming soon!', 'info');
+        setShowCreateModal(false);
       }
     } catch {
       toast('Something went wrong', 'error');
+      setShowCreateModal(false);
     } finally {
       setCreating(false);
-      setShowCreateModal(false);
     }
-  }, [createType, projectName, selectedPhotoIds, toast]);
+  }, [createType, projectName, selectedPhotoIds, toast, router]);
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
@@ -235,13 +317,7 @@ export default function ProjectsPage() {
             <Empty
               icon={BookOpen}
               title="No albums yet"
-              description="Create your first album from your favorite photos. Each album is a simple book with one photo per page."
-              action={
-                <Button variant="primary" size="md" onClick={() => handleOpenCreate('album')}>
-                  <Plus size={16} className="mr-1" />
-                  New Album
-                </Button>
-              }
+              description="Create your first album from your favorite photos. Each album is a simple book with one photo per page. Use the + New Album button above to get started."
             />
           ) : (
             <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
@@ -275,6 +351,9 @@ export default function ProjectsPage() {
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
                     {album.photo_count} page{album.photo_count !== 1 ? 's' : ''} &middot; {formatDate(album.created_at)}
                   </p>
+                  <span className="inline-flex items-center gap-1 mt-1 text-[length:var(--text-caption)] font-medium text-[var(--color-action)]">
+                    <ShoppingBag size={12} /> Buy Book
+                  </span>
                 </button>
               ))}
             </div>
@@ -426,5 +505,13 @@ export default function ProjectsPage() {
         </Modal>
       )}
     </div>
+  );
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense>
+      <ProjectsContent />
+    </Suspense>
   );
 }
