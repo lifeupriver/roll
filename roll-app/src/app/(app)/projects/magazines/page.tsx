@@ -58,18 +58,19 @@ export default function MagazinesPage() {
 
       {magazines.length === 0 ? (
         <Empty
-          icon={<BookOpen size={40} className="text-[var(--color-ink-tertiary)]" />}
+          icon={BookOpen}
           title="No magazines yet"
           description="Create your first photo magazine — auto-designed from your favorites."
-        >
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => router.push('/projects/magazines/create')}
-          >
-            Create Magazine
-          </Button>
-        </Empty>
+          action={
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => router.push('/projects/magazines/create')}
+            >
+              Create Magazine
+            </Button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-[var(--space-component)]">
           {magazines.map((mag) => (

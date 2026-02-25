@@ -52,7 +52,7 @@ async function fetchStory(photoId: string): Promise<StoryData | null> {
 
   let reelUrl: string | undefined;
   if (reelClip) {
-    const reel = reelClip.reels as Record<string, unknown> | null;
+    const reel = reelClip.reels as unknown as Record<string, unknown> | null;
     if (reel?.status === 'developed' && reel?.assembled_storage_key) {
       reelUrl = reel.assembled_storage_key as string;
     }

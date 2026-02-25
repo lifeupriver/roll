@@ -44,7 +44,7 @@ export async function GET(
 
     const thumbnails = (rollPhotos ?? []).map((rp: Record<string, unknown>) => {
       const photo = rp.photos as Record<string, unknown> | null;
-      return photo?.thumbnail_url || '';
+      return (photo?.thumbnail_url as string) || '';
     }).filter(Boolean);
 
     const accentColor = (roll.public_settings as Record<string, unknown>)?.accent_color

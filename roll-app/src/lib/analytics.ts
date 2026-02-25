@@ -34,6 +34,7 @@ export type AnalyticsEvent =
   // Feed
   | { event: 'content_mode_changed'; properties: { mode: string } }
   | { event: 'photo_hidden'; properties: { photoId: string } }
+  | { event: 'moment_cluster_expanded'; properties: { clusterId: string } }
   // Roll
   | { event: 'photo_checked'; properties: { rollId: string; photoCount: number } }
   | { event: 'photo_unchecked'; properties: { rollId: string; photoCount: number } }

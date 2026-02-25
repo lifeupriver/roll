@@ -10,7 +10,7 @@ interface VoiceCaptionButtonProps {
 
 export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButtonProps) {
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
   const isSupported = typeof window !== 'undefined' && (
     'SpeechRecognition' in window || 'webkitSpeechRecognition' in window
@@ -31,7 +31,7 @@ export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButto
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0]?.[0]?.transcript;
       if (transcript) {
         onTranscript(transcript);
@@ -75,9 +75,28 @@ export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButto
 }
 
 // Add SpeechRecognition types for browsers that support it
+interface SpeechRecognitionEvent extends Event {
+  results: { [index: number]: { [index: number]: { transcript: string } } };
+}
+
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
   }
 }

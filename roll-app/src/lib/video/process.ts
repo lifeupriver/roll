@@ -40,7 +40,7 @@ export async function processVideoClip(
   let correctionApplied = false;
   try {
     const { correctVideo } = await import('@/lib/correction');
-    if (correctVideo) {
+    if (typeof correctVideo === 'function') {
       // Correction is handled by the provider — it returns the corrected buffer
       // For video, we send the full clip and get a corrected version back
       correctionApplied = true;
