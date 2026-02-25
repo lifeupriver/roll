@@ -2,26 +2,42 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Plus, Image, Grid3X3, Grid2X2, ArrowLeft, ChevronLeft, ChevronRight, Heart, Smile, Star, MessageCircle, Send, Trash2 } from 'lucide-react';
+import {
+  Users, Plus, Image, Grid3X3, Grid2X2, ArrowLeft, ChevronLeft, ChevronRight,
+  Send, Trash2, Settings, Bell, BellOff, Lock, Globe, UserPlus, UserMinus,
+  Shield, Eye, EyeOff, X, ChevronDown,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Empty } from '@/components/ui/Empty';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
-import { ContentModePills } from '@/components/photo/ContentModePills';
 import { CirclePostCard } from '@/components/circle/CirclePostCard';
 import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
 import type { Circle, CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
-type CircleView = 'feed' | 'shared' | 'circles';
+// ---------------------------------------------------------------------------
+// Settings types
+// ---------------------------------------------------------------------------
+interface CircleSettings {
+  notifications: 'all' | 'mentions' | 'off';
+  privacy: 'private' | 'public';
+  whoCanPost: 'everyone' | 'admins';
+  approveNewMembers: boolean;
+  muteCircle: boolean;
+  showActivity: boolean;
+}
 
-const VIEW_OPTIONS = [
-  { value: 'feed', label: 'Feed' },
-  { value: 'shared', label: 'Shared' },
-  { value: 'circles', label: 'Circles' },
-];
+const DEFAULT_SETTINGS: CircleSettings = {
+  notifications: 'all',
+  privacy: 'private',
+  whoCanPost: 'everyone',
+  approveNewMembers: true,
+  muteCircle: false,
+  showActivity: true,
+};
 
 export default function CirclePage() {
   const router = useRouter();
@@ -39,12 +55,13 @@ export default function CirclePage() {
   const [feedPosts, setFeedPosts] = useState<CirclePost[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
 
-  // Shared by me posts
-  const [sharedPosts, setSharedPosts] = useState<CirclePost[]>([]);
-  const [sharedLoading, setSharedLoading] = useState(false);
-
-  const [activeView, setActiveView] = useState<CircleView>('feed');
   const [gridColumns, setGridColumns] = useState(3);
+
+  // Settings panel state
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeSettingsCircle, setActiveSettingsCircle] = useState<Circle | null>(null);
+  const [settings, setSettings] = useState<CircleSettings>(DEFAULT_SETTINGS);
+  const [inviteEmail, setInviteEmail] = useState('');
 
   // Post detail view state
   const [selectedPost, setSelectedPost] = useState<CirclePost | null>(null);
@@ -82,39 +99,16 @@ export default function CirclePage() {
     }
   }, []);
 
-  // Fetch posts shared by current user
-  const fetchShared = useCallback(async () => {
-    setSharedLoading(true);
-    try {
-      const res = await fetch('/api/circles/shared');
-      if (res.ok) {
-        const { data } = await res.json();
-        setSharedPosts(data ?? []);
-      }
-    } catch {
-      // Silently fail
-    } finally {
-      setSharedLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     fetchCircles();
   }, [fetchCircles]);
 
-  // Load feed on mount and when switching to feed view
+  // Load feed on mount
   useEffect(() => {
-    if (activeView === 'feed' && feedPosts.length === 0) {
+    if (!loading && circles.length > 0 && feedPosts.length === 0) {
       fetchFeed();
     }
-  }, [activeView, fetchFeed]);
-
-  // Load shared when switching to shared view
-  useEffect(() => {
-    if (activeView === 'shared' && sharedPosts.length === 0) {
-      fetchShared();
-    }
-  }, [activeView, fetchShared]);
+  }, [loading, circles.length, fetchFeed]);
 
   const handleCreateCircle = async () => {
     if (!circleName.trim()) {
@@ -155,46 +149,29 @@ export default function CirclePage() {
     }
   };
 
-  const formatRelativeDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays}d ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
   // Reaction handlers for feed posts
   const handleReaction = useCallback(
     async (postId: string, reactionType: ReactionType) => {
-      const updatePosts = (setter: typeof setFeedPosts) => {
-        setter((prev) =>
-          prev.map((p) => {
-            if (p.id !== postId) return p;
-            return {
-              ...p,
-              reactions: [
-                ...(p.reactions ?? []),
-                {
-                  id: `temp-${Date.now()}`,
-                  post_id: postId,
-                  user_id: user?.id ?? '',
-                  reaction_type: reactionType,
-                  created_at: new Date().toISOString(),
-                },
-              ],
-            };
-          })
-        );
-      };
-      updatePosts(setFeedPosts);
-      updatePosts(setSharedPosts);
+      setFeedPosts((prev) =>
+        prev.map((p) => {
+          if (p.id !== postId) return p;
+          return {
+            ...p,
+            reactions: [
+              ...(p.reactions ?? []),
+              {
+                id: `temp-${Date.now()}`,
+                post_id: postId,
+                user_id: user?.id ?? '',
+                reaction_type: reactionType,
+                created_at: new Date().toISOString(),
+              },
+            ],
+          };
+        })
+      );
 
-      const post = [...feedPosts, ...sharedPosts].find((p) => p.id === postId);
+      const post = feedPosts.find((p) => p.id === postId);
       if (!post) return;
 
       try {
@@ -207,28 +184,24 @@ export default function CirclePage() {
         // Revert on error
       }
     },
-    [user?.id, feedPosts, sharedPosts]
+    [user?.id, feedPosts]
   );
 
   const handleRemoveReaction = useCallback(
     async (postId: string, reactionType: ReactionType) => {
-      const updatePosts = (setter: typeof setFeedPosts) => {
-        setter((prev) =>
-          prev.map((p) => {
-            if (p.id !== postId) return p;
-            return {
-              ...p,
-              reactions: (p.reactions ?? []).filter(
-                (r) => !(r.user_id === user?.id && r.reaction_type === reactionType)
-              ),
-            };
-          })
-        );
-      };
-      updatePosts(setFeedPosts);
-      updatePosts(setSharedPosts);
+      setFeedPosts((prev) =>
+        prev.map((p) => {
+          if (p.id !== postId) return p;
+          return {
+            ...p,
+            reactions: (p.reactions ?? []).filter(
+              (r) => !(r.user_id === user?.id && r.reaction_type === reactionType)
+            ),
+          };
+        })
+      );
 
-      const post = [...feedPosts, ...sharedPosts].find((p) => p.id === postId);
+      const post = feedPosts.find((p) => p.id === postId);
       if (!post) return;
 
       try {
@@ -241,47 +214,34 @@ export default function CirclePage() {
         // Revert on error
       }
     },
-    [user?.id, feedPosts, sharedPosts]
+    [user?.id, feedPosts]
   );
 
   const handleCommentAdded = useCallback((postId: string, comment: CircleComment) => {
-    const updatePosts = (setter: typeof setFeedPosts) => {
-      setter((prev) =>
-        prev.map((p) => {
-          if (p.id !== postId) return p;
-          return { ...p, comments: [...(p.comments ?? []), comment] };
-        })
-      );
-    };
-    updatePosts(setFeedPosts);
-    updatePosts(setSharedPosts);
+    setFeedPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        return { ...p, comments: [...(p.comments ?? []), comment] };
+      })
+    );
   }, []);
 
   const handleCommentDeleted = useCallback((postId: string, commentId: string) => {
-    const updatePosts = (setter: typeof setFeedPosts) => {
-      setter((prev) =>
-        prev.map((p) => {
-          if (p.id !== postId) return p;
-          return { ...p, comments: (p.comments ?? []).filter((c) => c.id !== commentId) };
-        })
-      );
-    };
-    updatePosts(setFeedPosts);
-    updatePosts(setSharedPosts);
+    setFeedPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        return { ...p, comments: (p.comments ?? []).filter((c) => c.id !== commentId) };
+      })
+    );
   }, []);
 
-  // When selectedPost changes in feed/shared state, sync it
-  const syncSelectedPost = useCallback((postId: string) => {
-    const updated = [...feedPosts, ...sharedPosts].find((p) => p.id === postId);
-    if (updated) setSelectedPost(updated);
-  }, [feedPosts, sharedPosts]);
-
-  // Keep selectedPost synced with feed/shared post changes
+  // Keep selectedPost synced with feed post changes
   useEffect(() => {
     if (selectedPost) {
-      syncSelectedPost(selectedPost.id);
+      const updated = feedPosts.find((p) => p.id === selectedPost.id);
+      if (updated) setSelectedPost(updated);
     }
-  }, [feedPosts, sharedPosts]);
+  }, [feedPosts]);
 
   const handleDetailComment = async () => {
     if (!detailCommentText.trim() || detailCommentSending || !selectedPost) return;
@@ -320,16 +280,83 @@ export default function CirclePage() {
     }
   };
 
+  const openSettings = (circle: Circle) => {
+    setActiveSettingsCircle(circle);
+    setSettings(DEFAULT_SETTINGS);
+    setSettingsOpen(true);
+  };
+
+  const handleInvite = async () => {
+    if (!inviteEmail.trim() || !activeSettingsCircle) return;
+    try {
+      const res = await fetch(`/api/circles/${activeSettingsCircle.id}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail.trim() }),
+      });
+      if (res.ok) {
+        toast('Invitation sent!', 'success');
+        setInviteEmail('');
+      } else {
+        toast('Failed to send invitation', 'error');
+      }
+    } catch {
+      toast('Something went wrong', 'error');
+    }
+  };
+
   const isPlus = user?.tier === 'plus';
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
-      {/* View toggle: Feed / Shared (profile) / Circles */}
-      <ContentModePills
-        activeMode={activeView}
-        onChange={(mode) => setActiveView(mode as CircleView)}
-        options={VIEW_OPTIONS}
-      />
+      {/* Header with circles list and settings gear */}
+      <div className="flex items-center justify-between">
+        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+          Circle
+        </h1>
+        {!loading && circles.length > 0 && (
+          <div className="flex items-center gap-[var(--space-tight)]">
+            {isPlus && (
+              <button
+                type="button"
+                onClick={() => setCreateModalOpen(true)}
+                className="p-2 rounded-[var(--radius-sharp)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                aria-label="New circle"
+              >
+                <Plus size={20} strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Circles row — horizontal scroll of circle avatars */}
+      {!loading && circles.length > 0 && (
+        <div className="flex gap-[var(--space-component)] overflow-x-auto no-scrollbar pb-[var(--space-tight)]">
+          {circles.map((circle) => (
+            <div key={circle.id} className="flex flex-col items-center gap-[var(--space-tight)] shrink-0">
+              <button
+                type="button"
+                onClick={() => router.push(`/circle/${circle.id}`)}
+                className="relative w-16 h-16 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center ring-2 ring-[var(--color-action)]/30 hover:ring-[var(--color-action)] transition-all cursor-pointer"
+              >
+                <Users size={22} className="text-[var(--color-action)]" />
+              </button>
+              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center max-w-[72px] truncate">
+                {circle.name}
+              </span>
+              <button
+                type="button"
+                onClick={() => openSettings(circle)}
+                className="p-1 rounded-full text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+                aria-label={`${circle.name} settings`}
+              >
+                <Settings size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Loading state */}
       {loading && (
@@ -362,8 +389,8 @@ export default function CirclePage() {
         />
       )}
 
-      {/* Feed view — see photos from your circles */}
-      {!loading && circles.length > 0 && activeView === 'feed' && (
+      {/* Feed — see photos from all your circles */}
+      {!loading && circles.length > 0 && (
         <section>
           {feedLoading && (
             <div className="flex items-center justify-center py-[var(--space-section)]">
@@ -399,147 +426,6 @@ export default function CirclePage() {
               ))}
             </div>
           )}
-        </section>
-      )}
-
-      {/* Shared view — your posts (profile-like) */}
-      {!loading && circles.length > 0 && activeView === 'shared' && (
-        <section>
-          {/* Profile header */}
-          <div className="flex items-center gap-[var(--space-component)] mb-[var(--space-section)]">
-            <div className="w-16 h-16 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0 overflow-hidden ring-2 ring-[var(--color-action)]/30">
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                <span className="text-[length:var(--text-heading)] font-medium text-[var(--color-action)]">
-                  {(user?.display_name || user?.email || '?').charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div>
-              <p className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)]">
-                {user?.display_name || user?.email || 'You'}
-              </p>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                {sharedPosts.length} post{sharedPosts.length !== 1 ? 's' : ''} shared
-              </p>
-            </div>
-          </div>
-
-          {sharedLoading && (
-            <div className="flex items-center justify-center py-[var(--space-section)]">
-              <Spinner />
-            </div>
-          )}
-
-          {!sharedLoading && sharedPosts.length === 0 && (
-            <Empty
-              icon={Grid3X3}
-              title="No shared posts yet"
-              description="Develop a roll, choose your favorites, and share them to a circle."
-            />
-          )}
-
-          {/* Grid size slider */}
-          {!sharedLoading && sharedPosts.length > 0 && (
-            <div className="flex items-center justify-end gap-[var(--space-tight)] mb-[var(--space-element)]">
-              <Grid2X2 size={14} className="text-[var(--color-ink-tertiary)]" />
-              <input
-                type="range"
-                min="2"
-                max="5"
-                step="1"
-                value={gridColumns}
-                onChange={(e) => setGridColumns(parseInt(e.target.value, 10))}
-                className="w-20 accent-[var(--color-action)] cursor-pointer"
-                aria-label="Grid columns"
-              />
-              <Grid3X3 size={14} className="text-[var(--color-ink-tertiary)]" />
-            </div>
-          )}
-
-          {/* Grid view of shared posts (profile grid style) */}
-          {!sharedLoading && sharedPosts.length > 0 && (
-            <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
-              {sharedPosts.map((post) => {
-                const firstPhoto = (post.photos ?? [])[0];
-                const isReel = post.post_type === 'reel';
-                return (
-                  <button
-                    key={post.id}
-                    type="button"
-                    onClick={() => router.push(`/circle/${post.circle_id}`)}
-                    className="relative aspect-square bg-[var(--color-surface-sunken)] overflow-hidden"
-                  >
-                    {isReel && post.reel_poster_key ? (
-                      <img
-                        src={`/api/photos/serve?key=${encodeURIComponent(post.reel_poster_key)}`}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : firstPhoto ? (
-                      <img
-                        src={`/api/photos/serve?key=${encodeURIComponent(firstPhoto.storage_key)}`}
-                        alt=""
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Image size={20} className="text-[var(--color-ink-tertiary)]" />
-                      </div>
-                    )}
-                    {/* Multi-photo indicator */}
-                    {!isReel && (post.photos ?? []).length > 1 && (
-                      <div className="absolute top-1 right-1">
-                        <Grid3X3 size={14} className="text-white drop-shadow" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Circles list view */}
-      {!loading && circles.length > 0 && activeView === 'circles' && (
-        <section className="flex flex-col gap-[var(--space-component)]">
-          {isPlus && (
-            <div className="flex justify-end">
-              <Button variant="secondary" size="sm" onClick={() => setCreateModalOpen(true)}>
-                <Plus size={16} className="mr-1" /> New Circle
-              </Button>
-            </div>
-          )}
-          {circles.map((circle) => (
-            <button
-              key={circle.id}
-              onClick={() => router.push(`/circle/${circle.id}`)}
-              className="text-left w-full"
-            >
-              <Card className="flex items-center justify-between hover:bg-[var(--color-surface-sunken)] transition-colors cursor-pointer">
-                <div className="flex items-center gap-[var(--space-component)]">
-                  <div className="w-12 h-12 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center flex-shrink-0 ring-2 ring-[var(--color-action)]/30">
-                    <Users size={20} className="text-[var(--color-action)]" />
-                  </div>
-                  <div className="flex flex-col gap-[var(--space-tight)]">
-                    <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
-                      {circle.name}
-                    </span>
-                    <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                      {circle.member_count} {circle.member_count === 1 ? 'member' : 'members'}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
-                  {formatRelativeDate(circle.updated_at)}
-                </span>
-              </Card>
-            </button>
-          ))}
         </section>
       )}
 
@@ -603,7 +489,6 @@ export default function CirclePage() {
                     alt=""
                     className="w-full max-h-[60vh] object-contain"
                   />
-                  {/* Navigation arrows */}
                   {photos.length > 1 && selectedPhotoIndex > 0 && (
                     <button
                       onClick={() => setSelectedPhotoIndex((i) => i - 1)}
@@ -738,6 +623,224 @@ export default function CirclePage() {
           </div>
         );
       })()}
+
+      {/* Circle Settings Panel — slides in from right */}
+      {settingsOpen && activeSettingsCircle && (
+        <div className="fixed inset-0 z-50">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/50 animate-[fadeIn_150ms_ease-out]"
+            onClick={() => setSettingsOpen(false)}
+          />
+          {/* Settings panel */}
+          <div className="absolute inset-y-0 right-0 w-full max-w-md bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] flex flex-col animate-[slideInRight_200ms_ease-out] overflow-hidden">
+            {/* Settings header */}
+            <div className="flex items-center justify-between px-[var(--space-component)] py-[var(--space-element)] border-b border-[var(--color-border)] shrink-0">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Settings size={18} className="text-[var(--color-ink-secondary)]" />
+                <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)]">
+                  {activeSettingsCircle.name}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(false)}
+                className="p-2 -mr-2 rounded-[var(--radius-sharp)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Settings content — scrollable */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Circle info */}
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <div className="flex items-center gap-[var(--space-component)]">
+                  <div className="w-14 h-14 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center ring-2 ring-[var(--color-action)]/30">
+                    <Users size={24} className="text-[var(--color-action)]" />
+                  </div>
+                  <div>
+                    <p className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+                      {activeSettingsCircle.name}
+                    </p>
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                      {activeSettingsCircle.member_count} member{activeSettingsCircle.member_count !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Invite members */}
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
+                  <UserPlus size={14} /> Invite Members
+                </h3>
+                <div className="flex gap-[var(--space-tight)]">
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="Email address"
+                    className="flex-1 h-10 px-[var(--space-element)] text-[length:var(--text-body)] bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] focus:outline-none focus:border-[var(--color-border-focus)]"
+                  />
+                  <Button variant="primary" size="sm" onClick={handleInvite} disabled={!inviteEmail.trim()}>
+                    Invite
+                  </Button>
+                </div>
+              </div>
+
+              {/* Notifications */}
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
+                  <Bell size={14} /> Notifications
+                </h3>
+                <div className="flex flex-col gap-[var(--space-tight)]">
+                  {(['all', 'mentions', 'off'] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSettings((s) => ({ ...s, notifications: opt }))}
+                      className={`flex items-center gap-[var(--space-element)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-sharp)] transition-colors ${
+                        settings.notifications === opt
+                          ? 'bg-[var(--color-action-subtle)] text-[var(--color-action)]'
+                          : 'text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-raised)]'
+                      }`}
+                    >
+                      {opt === 'all' && <Bell size={16} />}
+                      {opt === 'mentions' && <Bell size={16} />}
+                      {opt === 'off' && <BellOff size={16} />}
+                      <span className="text-[length:var(--text-body)] font-medium capitalize">{opt === 'all' ? 'All notifications' : opt === 'mentions' ? 'Mentions only' : 'Off'}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Privacy */}
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
+                  <Shield size={14} /> Privacy
+                </h3>
+                <div className="flex flex-col gap-[var(--space-element)]">
+                  {/* Private / Public toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[var(--space-element)]">
+                      {settings.privacy === 'private' ? <Lock size={16} className="text-[var(--color-ink-secondary)]" /> : <Globe size={16} className="text-[var(--color-ink-secondary)]" />}
+                      <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">
+                        {settings.privacy === 'private' ? 'Private circle' : 'Public circle'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSettings((s) => ({ ...s, privacy: s.privacy === 'private' ? 'public' : 'private' }))}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${settings.privacy === 'private' ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settings.privacy === 'private' ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {settings.privacy === 'private' ? 'Only invited members can see and join' : 'Anyone with the link can view posts'}
+                  </p>
+
+                  {/* Approve new members */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[var(--space-element)]">
+                      <UserPlus size={16} className="text-[var(--color-ink-secondary)]" />
+                      <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">Approve new members</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSettings((s) => ({ ...s, approveNewMembers: !s.approveNewMembers }))}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${settings.approveNewMembers ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settings.approveNewMembers ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Posting permissions */}
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
+                  <Image size={14} /> Who Can Post
+                </h3>
+                <div className="flex flex-col gap-[var(--space-tight)]">
+                  {(['everyone', 'admins'] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setSettings((s) => ({ ...s, whoCanPost: opt }))}
+                      className={`flex items-center gap-[var(--space-element)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-sharp)] transition-colors ${
+                        settings.whoCanPost === opt
+                          ? 'bg-[var(--color-action-subtle)] text-[var(--color-action)]'
+                          : 'text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-raised)]'
+                      }`}
+                    >
+                      <span className="text-[length:var(--text-body)] font-medium capitalize">
+                        {opt === 'everyone' ? 'All members' : 'Admins only'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Activity & Visibility */}
+              <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
+                <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
+                  <Eye size={14} /> Activity
+                </h3>
+                <div className="flex flex-col gap-[var(--space-element)]">
+                  {/* Mute circle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[var(--space-element)]">
+                      {settings.muteCircle ? <EyeOff size={16} className="text-[var(--color-ink-secondary)]" /> : <Eye size={16} className="text-[var(--color-ink-secondary)]" />}
+                      <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">Mute this circle</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSettings((s) => ({ ...s, muteCircle: !s.muteCircle }))}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${settings.muteCircle ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settings.muteCircle ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Show activity status */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[var(--space-element)]">
+                      <Globe size={16} className="text-[var(--color-ink-secondary)]" />
+                      <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">Show activity status</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSettings((s) => ({ ...s, showActivity: !s.showActivity }))}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${settings.showActivity ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settings.showActivity ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Danger zone */}
+              <div className="p-[var(--space-component)]">
+                <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
+                  <UserMinus size={14} /> Leave Circle
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    toast('Leave circle functionality coming soon', 'info');
+                  }}
+                  className="text-[var(--color-error)]"
+                >
+                  Leave {activeSettingsCircle.name}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Circle Modal */}
       <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)}>

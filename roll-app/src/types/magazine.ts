@@ -1,5 +1,5 @@
 export type MagazineStatus = 'draft' | 'review' | 'ordered' | 'shipped' | 'delivered';
-export type MagazineTemplate = 'monthly' | 'quarterly' | 'annual' | 'baby_first_year' | 'vacation' | 'custom';
+export type MagazineTemplate = 'monthly' | 'quarterly' | 'annual' | 'highlights' | 'vacation' | 'custom';
 export type MagazineFormat = '6x9' | '8x10';
 
 export interface PhotoSlot {

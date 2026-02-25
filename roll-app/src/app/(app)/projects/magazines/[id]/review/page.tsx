@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Package } from 'lucide-react';
+import { ArrowLeft, Package, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
@@ -16,6 +16,7 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
   const [magazine, setMagazine] = useState<Magazine | null>(null);
   const [loading, setLoading] = useState(true);
   const [ordering, setOrdering] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   // Shipping form
   const [name, setName] = useState('');
@@ -56,6 +57,7 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           shippingAddress: { name, line1, line2, city, state, postalCode, country },
+          quantity,
         }),
       });
 
@@ -113,8 +115,36 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
           </p>
         </div>
         <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-lead)] text-[var(--color-ink)]">
-          ${magazine.price_cents ? (magazine.price_cents / 100).toFixed(2) : '—'}
+          ${magazine.price_cents ? ((magazine.price_cents * quantity) / 100).toFixed(2) : '—'}
         </span>
+      </div>
+
+      {/* Quantity selector */}
+      <div className="flex items-center justify-between p-[var(--space-component)] bg-[var(--color-surface-raised)] rounded-[var(--radius-card)]">
+        <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em]">
+          Quantity
+        </span>
+        <div className="flex items-center gap-[var(--space-element)]">
+          <button
+            type="button"
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            disabled={quantity <= 1}
+            className="w-8 h-8 rounded-full border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-sunken)] disabled:opacity-30 transition-colors cursor-pointer"
+          >
+            <Minus size={14} />
+          </button>
+          <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-body)] text-[var(--color-ink)] w-8 text-center tabular-nums">
+            {quantity}
+          </span>
+          <button
+            type="button"
+            onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+            disabled={quantity >= 10}
+            className="w-8 h-8 rounded-full border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-sunken)] disabled:opacity-30 transition-colors cursor-pointer"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Shipping form */}
@@ -143,7 +173,7 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
         isLoading={ordering}
         className="w-full"
       >
-        Place Order — ${magazine.price_cents ? (magazine.price_cents / 100).toFixed(2) : '—'} + shipping
+        Place Order{quantity > 1 ? ` (${quantity} copies)` : ''} — ${magazine.price_cents ? ((magazine.price_cents * quantity) / 100).toFixed(2) : '—'} + shipping
       </Button>
 
       <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center">

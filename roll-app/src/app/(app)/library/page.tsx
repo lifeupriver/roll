@@ -270,7 +270,7 @@ export default function GalleryPage() {
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 mt-1 text-[length:var(--text-caption)] font-medium text-[var(--color-action)] hover:underline"
                     >
-                      <Printer size={12} /> Order This Roll
+                      <Printer size={12} /> Order Prints or Magazine
                     </Link>
                   </button>
                 ))}
@@ -319,7 +319,7 @@ export default function GalleryPage() {
 
       {/* Reels section */}
       {activeSection === 'reels' && (
-        <section className="flex flex-col gap-[var(--space-element)]">
+        <section className="flex flex-col gap-[var(--space-section)]">
           {reelsLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />
@@ -341,53 +341,123 @@ export default function GalleryPage() {
             />
           )}
 
-          {!reelsLoading && !error && activeReels.length > 0 && (
-            <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
-              {activeReels.map((reel) => {
-                const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
-                return (
-                  <button
-                    key={reel.id}
-                    type="button"
-                    onClick={() => router.push(`/library/reels/${reel.id}`)}
-                    className="text-left group cursor-pointer"
-                  >
-                    <div className="relative aspect-video bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                      {reel.poster_storage_key ? (
-                        <img
-                          src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Film size={24} className="text-[var(--color-ink-tertiary)]" />
-                        </div>
-                      )}
+          {/* Current reel — in-progress reel with clip count */}
+          {!reelsLoading && !error && (() => {
+            const currentReel = activeReels.find((r) => r.status === 'building' || r.status === 'ready');
+            if (!currentReel) return null;
+            const maxClips = 30;
+            const clipFillPercent = Math.min(100, Math.round((currentReel.clip_count / maxClips) * 100));
+            return (
+              <div>
+                <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
+                  Current
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/library/reels/${currentReel.id}`)}
+                  className="flex items-center gap-[var(--space-component)] w-full text-left group cursor-pointer"
+                >
+                  <div className="relative w-24 h-[170px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
+                    {currentReel.poster_storage_key ? (
+                      <img
+                        src={`/api/photos/serve?key=${encodeURIComponent(currentReel.poster_storage_key)}`}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                          <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
-                        </div>
+                        <Play size={24} className="text-[var(--color-ink-tertiary)]" />
                       </div>
-                      <span
-                        className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
-                        style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
-                      >
-                        {status.label}
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col gap-[var(--space-tight)]">
+                    <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                      {currentReel.name || 'Current Reel'}
+                    </p>
+                    <p className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                      {currentReel.clip_count} clip{currentReel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(currentReel.created_at)}
+                    </p>
+                    <div className="flex items-center gap-[var(--space-element)]">
+                      <div className="flex-1 h-2 bg-[var(--color-surface-sunken)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${clipFillPercent}%`,
+                            backgroundColor: clipFillPercent >= 90 ? 'var(--color-processing)' : 'var(--color-action)',
+                          }}
+                        />
+                      </div>
+                      <span className="text-[length:var(--text-caption)] font-[family-name:var(--font-mono)] text-[var(--color-ink-secondary)] tabular-nums shrink-0">
+                        {currentReel.clip_count}/{maxClips}
                       </span>
                     </div>
-                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                      {reel.name || 'Untitled Reel'}
-                    </p>
-                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                      {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                  </div>
+                </button>
+              </div>
+            );
+          })()}
+
+          {/* Developed reels */}
+          {!reelsLoading && !error && (() => {
+            const developedReels = activeReels.filter((r) => r.status === 'developed' || r.status === 'processing');
+            if (developedReels.length === 0) return null;
+            const hasCurrentReel = activeReels.some((r) => r.status === 'building' || r.status === 'ready');
+            return (
+              <div>
+                {hasCurrentReel && (
+                  <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
+                    Completed
+                  </h2>
+                )}
+                <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+                  {developedReels.map((reel) => {
+                    const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
+                    return (
+                      <button
+                        key={reel.id}
+                        type="button"
+                        onClick={() => router.push(`/library/reels/${reel.id}`)}
+                        className="text-left group cursor-pointer"
+                      >
+                        <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                          {reel.poster_storage_key ? (
+                            <img
+                              src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Film size={24} className="text-[var(--color-ink-tertiary)]" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                              <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
+                            </div>
+                          </div>
+                          <span
+                            className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
+                            style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
+                          >
+                            {status.label}
+                          </span>
+                        </div>
+                        <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                          {reel.name || 'Untitled Reel'}
+                        </p>
+                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </section>
       )}
     </div>
