@@ -94,35 +94,6 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main content */}
       <main className="lg:pl-60 pb-14 lg:pb-0">
-        {/* Mobile top bar with nav labels + darkroom bulb */}
-        <div className="lg:hidden flex items-center justify-between px-[var(--space-component)] pt-[var(--space-element)]">
-          <nav className="flex items-center gap-[var(--space-element)]">
-            {navItems.map((item) => {
-              const isActive = pathname?.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] transition-colors duration-150 ${
-                    isActive
-                      ? 'text-[var(--color-ink)]'
-                      : 'text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
-            className="p-2 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors shrink-0"
-          >
-            <DarkroomBulbIcon active={theme === 'darkroom'} />
-          </button>
-        </div>
         <div className="max-w-[1200px] mx-auto px-[var(--space-component)] lg:px-[var(--space-section)] py-[var(--space-section)]">
           {children}
         </div>

@@ -299,8 +299,8 @@ export default function FeedPage() {
   if (!loading && photos.length === 0) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-[var(--space-section)]">
-          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
+        <div className="mb-[var(--space-section)]">
+          <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
             Roll
           </h1>
         </div>
@@ -316,8 +316,8 @@ export default function FeedPage() {
   return (
     <div className="pb-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-[var(--space-component)]">
-        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
+      <div className="mb-[var(--space-component)]">
+        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
           Roll
         </h1>
       </div>
