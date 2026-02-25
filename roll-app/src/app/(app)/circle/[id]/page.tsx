@@ -306,7 +306,7 @@ export default function CircleDetailPage() {
                       router.push(`/circle/member/${member.user_id}`);
                     }
                   }}
-                  className="w-8 h-8 rounded-full border-2 border-[var(--color-surface)] flex-shrink-0 overflow-hidden"
+                  className="w-8 h-8 rounded-full border-2 border-[var(--color-surface)] flex-shrink-0 overflow-hidden ring-2 ring-[var(--color-action)]/30"
                   title={member.profiles?.display_name || member.profiles?.email || 'Member'}
                 >
                   {member.profiles?.avatar_url ? (

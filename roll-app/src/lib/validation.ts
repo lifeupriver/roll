@@ -97,7 +97,7 @@ export const completeUploadSchema = z.object({
 export const createOrderSchema = z.object({
   rollId: z.string().uuid(),
   product: z.enum(['roll_prints', 'album_prints', 'individual', 'photo_book']),
-  printSize: z.enum(['4x6', '5x7', '8x8']),
+  printSize: z.enum(['3x5', '4x6', '5x7', '8x10', '6x6', '8x8', '10x10']),
   shipping: z.object({
     name: trimmedString(200),
     line1: trimmedString(200),
@@ -289,7 +289,7 @@ const printShippingSchema = z.object({
 });
 
 export const createPrintSubscriptionSchema = z.object({
-  printSize: z.enum(['4x6', '5x7']).default('4x6'),
+  printSize: z.enum(['3x5', '4x6', '5x7', '8x10', '6x6', '8x8', '10x10']).default('4x6'),
   frequency: z.enum(['monthly', 'quarterly']).default('monthly'),
   maxPhotos: z.number().int().min(1).max(36).default(36),
   shipping: printShippingSchema,

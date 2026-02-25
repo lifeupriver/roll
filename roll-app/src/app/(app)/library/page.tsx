@@ -442,59 +442,63 @@ export default function LibraryPage() {
             />
           )}
 
-          {/* In-progress rolls (building/ready/processing) */}
-          {!isLoading && !error && inProgressRolls.length > 0 && (
-            <div>
-              <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
-                In Progress
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
-                {inProgressRolls.map((roll) => {
-                  const status = STATUS_LABEL[roll.status] || STATUS_LABEL.building;
-                  return (
-                    <button
-                      key={roll.id}
-                      type="button"
-                      onClick={() => router.push(`/roll/${roll.id}`)}
-                      className="text-left group cursor-pointer"
-                    >
-                      {/* Cover photo or placeholder */}
-                      <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                        {rollCovers.get(roll.id) ? (
-                          <img
-                            src={rollCovers.get(roll.id)}
-                            alt=""
-                            className="absolute inset-0 w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)]">
-                            <Film size={24} className="text-[var(--color-ink-tertiary)]" />
-                            <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tabular-nums">
-                              {roll.photo_count}/{roll.max_photos}
-                            </span>
-                          </div>
-                        )}
-                        {/* Status badge */}
-                        <span
-                          className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
-                          style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
-                        >
-                          {status.label}
-                        </span>
+          {/* Current roll — single active roll with fullness indicator */}
+          {!isLoading && !error && inProgressRolls.length > 0 && (() => {
+            const currentRoll = inProgressRolls[0];
+            const fillPercent = Math.min(100, Math.round((currentRoll.photo_count / currentRoll.max_photos) * 100));
+            return (
+              <div>
+                <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
+                  Current
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/roll/${currentRoll.id}`)}
+                  className="flex items-center gap-[var(--space-component)] w-full text-left group cursor-pointer"
+                >
+                  {/* Cover thumbnail */}
+                  <div className="relative w-20 h-[106px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
+                    {rollCovers.get(currentRoll.id) ? (
+                      <img
+                        src={rollCovers.get(currentRoll.id)}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Film size={20} className="text-[var(--color-ink-tertiary)]" />
                       </div>
-                      <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                        {roll.name || 'Untitled Roll'}
-                      </p>
-                      <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                        {roll.photo_count} photo{roll.photo_count !== 1 ? 's' : ''} &middot; {formatDate(roll.created_at)}
-                      </p>
-                    </button>
-                  );
-                })}
+                    )}
+                  </div>
+                  {/* Info + fullness bar */}
+                  <div className="flex-1 min-w-0 flex flex-col gap-[var(--space-tight)]">
+                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                      {currentRoll.name || 'Untitled Roll'}
+                    </p>
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                      {currentRoll.photo_count} of {currentRoll.max_photos} photos &middot; {formatDate(currentRoll.created_at)}
+                    </p>
+                    {/* Fullness bar */}
+                    <div className="flex items-center gap-[var(--space-element)]">
+                      <div className="flex-1 h-2 bg-[var(--color-surface-sunken)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${fillPercent}%`,
+                            backgroundColor: fillPercent >= 90 ? 'var(--color-processing)' : 'var(--color-action)',
+                          }}
+                        />
+                      </div>
+                      <span className="text-[length:var(--text-caption)] font-[family-name:var(--font-mono)] text-[var(--color-ink-secondary)] tabular-nums shrink-0">
+                        {fillPercent}%
+                      </span>
+                    </div>
+                  </div>
+                </button>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Developed rolls — the main library */}
           {!isLoading && !error && developedRolls.length > 0 && (
@@ -526,9 +530,7 @@ export default function LibraryPage() {
                           <Wand2 size={24} className="text-[var(--color-developed)]" />
                         </div>
                       )}
-                      <span className="absolute top-[var(--space-tight)] right-[var(--space-tight)] inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium bg-[var(--color-developed)]/10 text-[var(--color-developed)]">
-                        <Wand2 size={10} /> Developed
-                      </span>
+                      {/* No badge needed — section heading separates developed rolls */}
                     </div>
                     <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
                       {roll.name || 'Untitled Roll'}
@@ -543,7 +545,7 @@ export default function LibraryPage() {
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 mt-1 text-[length:var(--text-caption)] font-medium text-[var(--color-action)] hover:underline"
                     >
-                      <Printer size={12} /> Order Prints
+                      <Printer size={12} /> Order This Roll
                     </Link>
                   </button>
                 ))}

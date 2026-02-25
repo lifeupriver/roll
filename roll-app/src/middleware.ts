@@ -6,9 +6,12 @@ export async function middleware(request: NextRequest) {
 
   // Preview mode: skip all auth checks so the app can run without Supabase
   if (process.env.NEXT_PUBLIC_PREVIEW_MODE === 'true') {
-    // Redirect landing and auth pages to feed in preview mode (user is always "logged in")
+    // Allow the landing page to show — it has a "See a Demo" button
+    if (pathname === '/') {
+      return NextResponse.next({ request });
+    }
+    // Redirect auth pages to feed in preview mode (user is always "logged in")
     if (
-      pathname === '/' ||
       pathname.startsWith('/login') ||
       pathname.startsWith('/signup') ||
       pathname.startsWith('/callback')
@@ -83,6 +86,7 @@ export async function middleware(request: NextRequest) {
     '/memories',
     '/search',
     '/map',
+    '/projects',
     '/seed',
   ];
   const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));

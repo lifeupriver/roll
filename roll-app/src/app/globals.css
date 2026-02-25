@@ -190,7 +190,7 @@
   border-radius: 50%;
   background: var(--color-action);
   border: 2px solid oklch(0.65 0.14 55);
-  margin-top: -6px;
+  margin-top: -5px;
 }
 .darkroom input[type="range"]::-moz-range-track {
   height: 6px;
@@ -204,6 +204,75 @@
   border-radius: 50%;
   background: var(--color-action);
   border: 2px solid oklch(0.65 0.14 55);
+}
+
+/* Mobile-optimized range sliders — ensure 44px touch target */
+@media (max-width: 768px) {
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-surface-sunken);
+    border: 1px solid var(--color-border);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-action);
+    border: 2px solid var(--color-surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    margin-top: -10px;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--color-surface-sunken);
+    border: 1px solid var(--color-border);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-action);
+    border: 2px solid var(--color-surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+}
+
+/* Darkroom mobile sliders */
+@media (max-width: 768px) {
+  .darkroom input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    background: var(--color-surface-raised);
+    border: 1px solid oklch(0.65 0.14 55);
+  }
+  .darkroom input[type="range"]::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+    background: var(--color-action);
+    border: 2px solid oklch(0.65 0.14 55);
+    margin-top: -10px;
+  }
+  .darkroom input[type="range"]::-moz-range-track {
+    height: 8px;
+    background: var(--color-surface-raised);
+    border: 1px solid oklch(0.65 0.14 55);
+  }
+  .darkroom input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: var(--color-action);
+    border: 2px solid oklch(0.65 0.14 55);
+  }
 }
 
 /* Darkroom mode film grain is more visible */

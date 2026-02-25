@@ -518,7 +518,7 @@ export function PhotoLightbox({
         )}
 
         {/* Mode-specific action buttons */}
-        <div className="flex items-center gap-[var(--space-element)]">
+        <div className="flex items-center justify-center gap-[var(--space-element)]">
           {/* Feed mode: Add to Roll button (browse mode) */}
           {mode === 'feed' && onAddToRoll && (
             <button

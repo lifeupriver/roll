@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { Modal } from '@/components/ui/Modal';
@@ -81,6 +81,10 @@ export default function RollDetailPage() {
   const [showStoryModal, setShowStoryModal] = useState(false);
   const [storyText, setStoryText] = useState('');
   const [savedStory, setSavedStory] = useState('');
+
+  // Filter toggles
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'photo' | 'video'>('all');
+  const [peopleFilter, setPeopleFilter] = useState<'all' | 'people'>('all');
 
   const rollId = params.id;
 
@@ -433,6 +437,19 @@ export default function RollDetailPage() {
   const canDevelop = photoCount >= 10;
   const favoriteCount = favoritedIds.size;
 
+  // Filter photos by media type and people presence
+  const filteredPhotos = photos.filter((rp) => {
+    if (mediaFilter === 'photo' && rp.photos.media_type === 'video') return false;
+    if (mediaFilter === 'video' && rp.photos.media_type !== 'video') return false;
+    if (peopleFilter === 'people') {
+      // Filter for photos that likely contain people (heuristic: check for face-related metadata)
+      // Since face detection data isn't always available, we use latitude/camera as a proxy
+      // for "real" photos (not screenshots/documents) which more likely contain people
+      return rp.photos.camera_make !== null;
+    }
+    return true;
+  });
+
   // ------------------------------------------------------------------
   // Loading state
   // ------------------------------------------------------------------
@@ -592,22 +609,22 @@ export default function RollDetailPage() {
           </span>
         </div>
 
-        {/* Order Prints — prominent CTA at top */}
+        {/* Order This Roll — prominent CTA at top */}
         <Link href={`/roll/${rollId}/order`} className="block">
           <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
             <div className="flex items-center gap-[var(--space-element)]">
               <Printer size={24} />
               <div>
                 <p className="text-[length:var(--text-body)] font-medium">
-                  Order Prints
+                  Order This Roll
                 </p>
                 <p className="text-[length:var(--text-caption)] opacity-80">
-                  High-quality prints delivered to your door
+                  Prints or book delivered to your door
                 </p>
               </div>
             </div>
             <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
-              Print
+              Order
             </div>
           </div>
         </Link>
@@ -640,24 +657,82 @@ export default function RollDetailPage() {
           </p>
         )}
 
-        {/* Grid size slider */}
-        <div className="flex items-center justify-end gap-[var(--space-tight)]">
-          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-          <input
-            type="range"
-            min={2}
-            max={6}
-            value={gridColumns}
-            onChange={(e) => setGridColumns(Number(e.target.value))}
-            className="w-20 accent-[var(--color-action)]"
-            aria-label="Grid columns"
-          />
-          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        {/* Filter toggles + grid size slider */}
+        <div className="flex items-center justify-between gap-[var(--space-element)] flex-wrap">
+          {/* Media type toggle: Photo / Video */}
+          <div className="flex items-center gap-[var(--space-tight)]">
+            <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
+              {([
+                { value: 'all', icon: Images, label: 'All' },
+                { value: 'photo', icon: Camera, label: 'Photos' },
+                { value: 'video', icon: Video, label: 'Videos' },
+              ] as const).map(({ value, icon: Icon, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setMediaFilter(value)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                    mediaFilter === value
+                      ? 'bg-[var(--color-action)] text-white'
+                      : 'text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
+                  }`}
+                >
+                  <Icon size={12} />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* People toggle: All / People */}
+            <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
+              {([
+                { value: 'all', icon: Images, label: 'All' },
+                { value: 'people', icon: UserRound, label: 'People' },
+              ] as const).map(({ value, icon: Icon, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setPeopleFilter(value)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                    peopleFilter === value
+                      ? 'bg-[var(--color-action)] text-white'
+                      : 'text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
+                  }`}
+                >
+                  <Icon size={12} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid size slider */}
+          <div className="flex items-center gap-[var(--space-tight)]">
+            <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+            <input
+              type="range"
+              min="2"
+              max="6"
+              step="1"
+              value={gridColumns}
+              onChange={(e) => setGridColumns(parseInt(e.target.value, 10))}
+              className="w-20 accent-[var(--color-action)] cursor-pointer"
+              aria-label="Grid columns"
+            />
+            <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+          </div>
         </div>
+
+        {/* Photo count info */}
+        {(mediaFilter !== 'all' || peopleFilter !== 'all') && (
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            Showing {filteredPhotos.length} of {photos.length} photos
+          </p>
+        )}
 
         {/* Developed photo grid with hearts and captions */}
         <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
-          {photos.map((rp, index) => (
+          {filteredPhotos.map((rp, index) => (
             <div key={rp.id} className="relative overflow-hidden group cursor-pointer" onClick={() => setLightboxIndex(index)}>
               <img
                 src={rp.processed_storage_key || rp.photos.thumbnail_url}
@@ -721,7 +796,7 @@ export default function RollDetailPage() {
         {/* Lightbox */}
         {lightboxIndex !== null && (
           <PhotoLightbox
-            photos={photos.map((rp) => ({
+            photos={filteredPhotos.map((rp) => ({
               ...rp.photos,
               thumbnail_url: rp.processed_storage_key || rp.photos.thumbnail_url,
             }))}
