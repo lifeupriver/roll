@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, BookOpen, ChevronLeft, ChevronRight, ShoppingBag,
@@ -37,7 +37,7 @@ interface AlbumData {
 
 type BookView = 'cover' | 'pages' | 'lightbox';
 
-export default function BookDetailPage() {
+function BookDetailContent() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -112,58 +112,85 @@ export default function BookDetailPage() {
   const leftIndex = layout === 'spread' ? currentSpread * 2 : currentSpread;
   const rightIndex = layout === 'spread' ? currentSpread * 2 + 1 : -1;
 
-  // Fetch album data
+  // Helper: apply loaded album data to state
+  const applyAlbumData = useCallback(
+    (albumData: AlbumData, photosData: PhotoData[]) => {
+      setAlbum(albumData);
+      setPhotos(photosData);
+      setCaptions(albumData.captions ?? {});
+      setBookName(albumData.name ?? 'Untitled Book');
+      setBookDescription(albumData.description ?? '');
+    },
+    []
+  );
+
+  // Helper: fetch photo details for a list of IDs
+  const fetchPhotoDetails = useCallback(async (photoIds: string[]): Promise<PhotoData[]> => {
+    const details: PhotoData[] = [];
+    for (const photoId of photoIds) {
+      try {
+        const res = await fetch(`/api/photos/${photoId}`);
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data) details.push(data);
+        }
+      } catch {
+        // Skip failed photos
+      }
+    }
+    return details;
+  }, []);
+
+  // Fetch album data with three-tier fallback
   const fetchAlbum = useCallback(async () => {
+    // 1. Try detail API
     try {
-      // Try API first
       const apiRes = await fetch(`/api/projects/albums/${albumId}`);
       if (apiRes.ok) {
         const json = await apiRes.json();
-        const albumData = json.data;
-        const photosData = json.photos ?? [];
-        setAlbum(albumData);
-        setPhotos(photosData);
-        setCaptions(albumData.captions ?? {});
-        setBookName(albumData.name ?? 'Untitled Book');
-        setBookDescription(albumData.description ?? '');
+        if (json.data) {
+          applyAlbumData(json.data, json.photos ?? []);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {
+      // Fall through
+    }
+
+    // 2. Try localStorage
+    try {
+      const storedAlbums: AlbumData[] = JSON.parse(localStorage.getItem('roll-albums') || '[]');
+      const localAlbum = storedAlbums.find((a) => a.id === albumId);
+      if (localAlbum) {
+        const photoDetails = await fetchPhotoDetails(localAlbum.photo_ids ?? []);
+        applyAlbumData(localAlbum, photoDetails);
         setLoading(false);
         return;
       }
     } catch {
-      // Fall through to localStorage
+      // Fall through
     }
 
-    // Fallback to localStorage
+    // 3. Try list API as final fallback (handles DB schema mismatches)
     try {
-      const storedAlbums = JSON.parse(localStorage.getItem('roll-albums') || '[]');
-      const localAlbum = storedAlbums.find((a: AlbumData) => a.id === albumId);
-      if (localAlbum) {
-        setAlbum(localAlbum);
-        setCaptions(localAlbum.captions ?? {});
-        setBookName(localAlbum.name ?? 'Untitled Book');
-        setBookDescription(localAlbum.description ?? '');
-
-        // Fetch photos individually
-        const photoDetails: PhotoData[] = [];
-        for (const photoId of localAlbum.photo_ids ?? []) {
-          try {
-            const res = await fetch(`/api/photos/${photoId}`);
-            if (res.ok) {
-              const { data } = await res.json();
-              if (data) photoDetails.push(data);
-            }
-          } catch {
-            // Skip failed photos
-          }
+      const listRes = await fetch('/api/projects/albums');
+      if (listRes.ok) {
+        const json = await listRes.json();
+        const match = (json.data ?? []).find((a: AlbumData) => a.id === albumId);
+        if (match) {
+          const photoDetails = await fetchPhotoDetails(match.photo_ids ?? []);
+          applyAlbumData(match, photoDetails);
+          setLoading(false);
+          return;
         }
-        setPhotos(photoDetails);
       }
     } catch {
-      // Nothing to load
-    } finally {
-      setLoading(false);
+      // Fall through
     }
-  }, [albumId]);
+
+    setLoading(false);
+  }, [albumId, applyAlbumData, fetchPhotoDetails]);
 
   useEffect(() => {
     fetchAlbum();
@@ -741,5 +768,13 @@ export default function BookDetailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function BookDetailPage() {
+  return (
+    <Suspense>
+      <BookDetailContent />
+    </Suspense>
   );
 }

@@ -64,7 +64,7 @@ export default function YearInReviewPage() {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
+        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
           Year in Review
         </h1>
       </div>

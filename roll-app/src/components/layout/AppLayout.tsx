@@ -1,8 +1,9 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3X3, Image, Users, User, FolderOpen } from 'lucide-react';
+import { Grid3X3, Image, Users, User, FolderOpen, Menu, X } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -46,12 +47,40 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const { theme, toggle: toggleTheme } = useTheme();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Close drawer on route change
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDrawerOpen(false);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [drawerOpen]);
+
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)]">
+    <div className="min-h-[100dvh] bg-[var(--color-surface)] flex flex-col">
       <OfflineBanner />
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar — unchanged */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="flex flex-col gap-[var(--space-section)] p-[var(--space-section)]">
           <div className="flex items-center justify-between px-[var(--space-element)]">
@@ -92,33 +121,101 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </aside>
 
+      {/* Mobile top bar with hamburger */}
+      <header className="lg:hidden sticky top-0 z-30 bg-[var(--color-surface)] border-b border-[var(--color-border)]">
+        <div className="flex items-center justify-between h-12 px-[var(--space-component)]">
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open menu"
+            className="p-2 -ml-2 text-[var(--color-ink)] touch-target"
+          >
+            <Menu size={22} strokeWidth={1.5} />
+          </button>
+          <Link
+            href="/feed"
+            className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-body)] tracking-[0.15em] text-[var(--color-ink)]"
+          >
+            ROLL
+          </Link>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
+            className="p-2 -mr-2 touch-target"
+          >
+            <DarkroomBulbIcon active={theme === 'darkroom'} />
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile slide-out drawer */}
+      {drawerOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/50 animate-[fadeIn_150ms_ease-out]"
+            onClick={closeDrawer}
+          />
+          {/* Drawer panel */}
+          <div className="absolute inset-y-0 left-0 w-64 bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] flex flex-col animate-[slideInLeft_200ms_ease-out]">
+            {/* Drawer header */}
+            <div className="flex items-center justify-between h-12 px-[var(--space-component)] border-b border-[var(--color-border)]">
+              <Link
+                href="/feed"
+                onClick={closeDrawer}
+                className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-body)] tracking-[0.15em] text-[var(--color-ink)]"
+              >
+                ROLL
+              </Link>
+              <button
+                type="button"
+                onClick={closeDrawer}
+                aria-label="Close menu"
+                className="p-2 -mr-2 text-[var(--color-ink-tertiary)] touch-target"
+              >
+                <X size={20} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Nav items */}
+            <nav className="flex flex-col gap-[var(--space-tight)] p-[var(--space-component)] flex-1">
+              {navItems.map((item) => {
+                const isActive = pathname?.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={closeDrawer}
+                    className={`flex items-center gap-[var(--space-element)] px-[var(--space-element)] py-[var(--space-element)] rounded-[var(--radius-sharp)] text-[length:var(--text-body)] font-[family-name:var(--font-body)] font-medium transition-colors duration-150 ${
+                      isActive
+                        ? 'text-[var(--color-action)] bg-[var(--color-action-subtle)]'
+                        : 'text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)]'
+                    }`}
+                  >
+                    <item.icon size={22} strokeWidth={1.5} />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Drawer footer */}
+            <div className="p-[var(--space-component)] border-t border-[var(--color-border)]">
+              <p className="font-[family-name:var(--font-display)] font-light italic text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Develop your roll.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main content */}
-      <main className="lg:pl-60 pb-14 lg:pb-0">
-        <div className="max-w-[1200px] mx-auto px-[var(--space-component)] lg:px-[var(--space-section)] py-[var(--space-section)]">
+      <main className="lg:pl-60 flex-1">
+        <div className="max-w-[1200px] mx-auto px-[var(--space-component)] lg:px-[var(--space-section)] py-[var(--space-component)] lg:py-[var(--space-section)]">
           {children}
         </div>
       </main>
-
-      {/* Mobile bottom tab bar */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 h-14 bg-[var(--color-surface)] border-t border-[var(--color-border)] flex items-center justify-around z-40">
-        {navItems.map((item) => {
-          const isActive = pathname?.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center gap-0.5 py-1 min-w-[64px] touch-target ${
-                isActive ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-tertiary)]'
-              }`}
-            >
-              <item.icon size={24} strokeWidth={1.5} />
-              <span className="text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium">
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 }

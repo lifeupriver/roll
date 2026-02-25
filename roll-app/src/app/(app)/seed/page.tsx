@@ -65,10 +65,6 @@ export default function SeedPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] max-w-lg mx-auto">
-      <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-        Mock Data
-      </h1>
-
       <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
         Populate your account with realistic mock data to preview the full UI.
         This creates photos, rolls, favorites, circles, print orders, and referrals.

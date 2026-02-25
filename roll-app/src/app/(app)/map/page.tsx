@@ -69,9 +69,6 @@ export default function MapPage() {
   if (photos.length === 0) {
     return (
       <div>
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] mb-[var(--space-section)]">
-          Photo Map
-        </h1>
         <Empty
           icon={MapPin}
           title="No geotagged photos"
@@ -83,10 +80,7 @@ export default function MapPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-component)]">
-      <div className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-          Photo Map
-        </h1>
+      <div className="flex items-center justify-end">
         <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)]">
           {photos.length} geotagged photo{photos.length !== 1 ? 's' : ''}
         </span>

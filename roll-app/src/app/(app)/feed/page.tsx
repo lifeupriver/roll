@@ -299,12 +299,7 @@ export default function FeedPage() {
   if (!loading && photos.length === 0) {
     return (
       <div>
-        <div className="mb-[var(--space-section)]">
-          <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-            Roll
-          </h1>
-        </div>
-        <Empty
+          <Empty
           icon={Smartphone}
           title="No photos imported yet"
           description="Roll continuously imports and filters your camera roll. Great photos surface here — junk is hidden automatically."
@@ -315,13 +310,6 @@ export default function FeedPage() {
 
   return (
     <div className="pb-4">
-      {/* Header */}
-      <div className="mb-[var(--space-component)]">
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-          Roll
-        </h1>
-      </div>
-
       {/* Content mode pills + grid size slider */}
       <div className="flex items-center justify-between mb-[var(--space-component)]">
         <ContentModePills
