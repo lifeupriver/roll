@@ -265,7 +265,7 @@ function DevelopPageContent() {
         <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-relaxed">
           {processMode === 'bw'
             ? 'Your photos are converted to black & white with AI-optimized tonal adjustments — enhancing contrast, highlights, and shadow detail for a classic film look.'
-            : 'Your photos are sent to the cloud where AI analyzes each image individually — correcting exposure, white balance, color, and tone. Developed JPGs are delivered to your shelf.'}
+            : 'Your photos are sent to the cloud where AI analyzes each image individually — correcting exposure, white balance, color, and tone. Developed JPGs are delivered to your gallery.'}
         </p>
 
         <div className="flex flex-wrap gap-[var(--space-element)]">
@@ -301,7 +301,7 @@ function DevelopPageContent() {
       </Button>
 
       <p className="text-center text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-        {processMode === 'bw' ? 'B&W' : 'Color-corrected'} JPGs will appear in your shelf
+        {processMode === 'bw' ? 'B&W' : 'Color-corrected'} JPGs will appear in your gallery
       </p>
     </div>
   );

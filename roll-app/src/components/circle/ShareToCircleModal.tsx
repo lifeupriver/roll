@@ -32,7 +32,7 @@ type ShareMode = 'photos' | 'reel';
 
 const SHARE_MODE_OPTIONS = [
   { value: 'photos', label: 'Photos' },
-  { value: 'reel', label: 'Reel' },
+  { value: 'reel', label: 'Bin' },
 ];
 
 interface ShareToCircleModalProps {
@@ -117,7 +117,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
       return;
     }
     if (shareMode === 'reel' && !selectedReelId) {
-      toast('Select a reel to share', 'error');
+      toast('Select a bin to share', 'error');
       return;
     }
 
@@ -135,7 +135,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
       });
 
       if (res.ok) {
-        toast(`Shared ${shareMode === 'reel' ? 'reel' : 'photos'} to Circle!`, 'success');
+        toast(`Shared ${shareMode === 'reel' ? 'bin' : 'photos'} to Circle!`, 'success');
         onClose();
       } else {
         const { error } = await res.json();
@@ -240,7 +240,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
           <>
             {reels.length === 0 && (
               <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center py-[var(--space-section)]">
-                No developed reels to share. Develop a reel first.
+                No developed bins to share. Process a bin first.
               </p>
             )}
 
@@ -282,7 +282,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
 
                       <div className="flex-1 min-w-0">
                         <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
-                          {reel.name || 'Untitled Reel'}
+                          {reel.name || 'Untitled Bin'}
                         </p>
                         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
                           {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
@@ -316,7 +316,7 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
               label="Caption"
               placeholder={
                 shareMode === 'reel'
-                  ? 'Say something about this reel...'
+                  ? 'Say something about this bin...'
                   : 'Say something about these photos...'
               }
               value={caption}

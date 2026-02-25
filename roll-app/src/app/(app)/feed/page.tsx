@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, Share2, MousePointerClick, X } from 'lucide-react';
+import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, MousePointerClick, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -13,7 +13,6 @@ import { useRollStore } from '@/stores/rollStore';
 import { useReelStore } from '@/stores/reelStore';
 import { track } from '@/lib/analytics';
 import type { ContentMode } from '@/types/photo';
-import { Badge } from '@/components/ui/Badge';
 
 export default function FeedPage() {
   const router = useRouter();
@@ -286,15 +285,9 @@ export default function FeedPage() {
     <div className="pb-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-[var(--space-component)]">
-        <div className="flex items-center gap-[var(--space-element)]">
-          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
-            Roll
-          </h1>
-          <Badge variant="info">
-            <Smartphone size={12} className="mr-1 inline" />
-            Synced
-          </Badge>
-        </div>
+        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)]">
+          Roll
+        </h1>
       </div>
 
       {/* Content mode pills + grid size slider */}
@@ -447,42 +440,93 @@ export default function FeedPage() {
         </div>
       )}
 
-      {/* Reel status banner — above the grid (clip mode) */}
+      {/* Bin status banner — above the grid (clip mode) */}
       {isClipMode && (
         <div
           className={`mb-[var(--space-component)] rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
-            reelCount > 0
-              ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
-              : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
+            selectMode
+              ? 'bg-[var(--color-action-subtle)] border border-[var(--color-action)]'
+              : reelCount > 0
+                ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
+                : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
           }`}
         >
-          {reelCount > 0 && currentReel ? (
-            <button
-              type="button"
-              onClick={() => router.push(`/library/reels/${currentReel.id}`)}
-              className="w-full cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-[var(--space-element)]">
-                  <Film size={16} className="text-[var(--color-ink-secondary)]" />
-                  <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                    {currentReel.name || 'Next Reel'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-[var(--space-element)]">
-                  <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
-                    {reelCount} clip{reelCount !== 1 ? 's' : ''}
-                  </span>
-                  <ChevronRight size={16} className="text-[var(--color-ink-tertiary)]" />
+          {selectMode ? (
+            // Select mode active for clips
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-action)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
+                    Selecting clips for bin
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                    {reelCount > 0
+                      ? `${reelCount} clip${reelCount !== 1 ? 's' : ''} selected`
+                      : 'Tap clips to add them'}
+                  </p>
                 </div>
               </div>
-            </button>
+              <button
+                type="button"
+                onClick={() => setSelectMode(false)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                Done
+                <X size={14} />
+              </button>
+            </div>
+          ) : reelCount > 0 && currentReel ? (
+            // Has clips but browsing
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => router.push(`/library/reels/${currentReel.id}`)}
+                className="flex-1 cursor-pointer"
+              >
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <Film size={16} className="text-[var(--color-ink-secondary)]" />
+                  <div>
+                    <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                      {currentReel.name || 'Next Bin'}
+                    </span>
+                    <span className="ml-2 font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
+                      {reelCount} clip{reelCount !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
+            </div>
           ) : (
-            <div className="flex items-center gap-[var(--space-element)]">
-              <Film size={16} className="text-[var(--color-ink-tertiary)]" />
-              <p className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
-                Tap clips to add them to your next reel
-              </p>
+            // No clips yet
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-ink-tertiary)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    Build your next bin
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Browse your clips, then select ones to process
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium transition-colors hover:bg-[var(--color-action-hover)]"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
             </div>
           )}
         </div>
@@ -494,6 +538,7 @@ export default function FeedPage() {
         mode="feed"
         selectMode={selectMode}
         checkedIds={isClipMode ? clipIds : checkedPhotoIds}
+        checkedOrder={!isClipMode ? Array.from(checkedPhotoIds) : undefined}
         onCheck={isClipMode ? handleClipCheck : handleCheck}
         onHide={hidePhoto}
         onPhotoTap={handlePhotoTap}

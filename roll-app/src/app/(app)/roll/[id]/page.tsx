@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, ArrowLeft, Grid2x2, Grid3x3 } from 'lucide-react';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
@@ -66,6 +66,7 @@ export default function RollDetailPage() {
 
   // Lightbox state
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [gridColumns, setGridColumns] = useState(3);
 
   const rollId = params.id;
 
@@ -373,7 +374,7 @@ export default function RollDetailPage() {
         description={error || 'This roll does not exist or you do not have access.'}
         action={
           <Button variant="secondary" onClick={() => router.push('/library')}>
-            Back to Shelf
+            Back to Gallery
           </Button>
         }
       />
@@ -412,7 +413,7 @@ export default function RollDetailPage() {
 
         {photos.length > 0 && (
           <div className="opacity-50">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
                   <img src={rp.photos.thumbnail_url} alt="" loading="lazy" className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]" />
@@ -445,7 +446,7 @@ export default function RollDetailPage() {
 
         <div className="relative">
           <div className="opacity-50">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
                   <img src={rp.photos.thumbnail_url} alt="" loading="lazy" className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]" />
@@ -543,8 +544,23 @@ export default function RollDetailPage() {
           </p>
         )}
 
+        {/* Grid size slider */}
+        <div className="flex items-center justify-end gap-[var(--space-tight)]">
+          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+          <input
+            type="range"
+            min={2}
+            max={6}
+            value={gridColumns}
+            onChange={(e) => setGridColumns(Number(e.target.value))}
+            className="w-20 accent-[var(--color-action)]"
+            aria-label="Grid columns"
+          />
+          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        </div>
+
         {/* Developed photo grid with hearts and captions */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
           {photos.map((rp, index) => (
             <div key={rp.id} className="relative overflow-hidden group cursor-pointer" onClick={() => setLightboxIndex(index)}>
               <img
@@ -700,7 +716,7 @@ export default function RollDetailPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
           {photos.map((rp, index) => (
             <div key={rp.id} className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer" onClick={() => setLightboxIndex(index)}>
               <img

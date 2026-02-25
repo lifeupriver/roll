@@ -236,7 +236,7 @@ export default function OrderHistoryPage() {
           description="Develop a roll and order your first prints!"
           action={
             <Link href="/library">
-              <Button variant="secondary">Go to Shelf</Button>
+              <Button variant="secondary">Go to Gallery</Button>
             </Link>
           }
         />

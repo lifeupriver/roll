@@ -215,8 +215,8 @@ export default function AccountPage() {
             }`}
           >
             <span
-              className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                theme === 'darkroom' ? 'translate-x-5.5' : 'translate-x-0.5'
+              className={`absolute top-[2px] left-[2px] w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                theme === 'darkroom' ? 'translate-x-[20px]' : 'translate-x-0'
               }`}
             />
           </button>
