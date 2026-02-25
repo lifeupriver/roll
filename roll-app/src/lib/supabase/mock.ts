@@ -21,53 +21,66 @@ const MOCK_AUTH_USER = {
 
 // ── Mock data per table ──────────────────────────────────────────────
 
-// Scene-based placeholder images served from /public/placeholders/
-// These are rich SVGs with gradients and realistic compositions
-const PLACEHOLDER_MAP: Record<string, string> = {
-  landscape: '/placeholders/landscape-golden.svg',
-  nature: '/placeholders/landscape-green.svg',
-  beach: '/placeholders/beach.svg',
-  portrait: '/placeholders/portrait-warm.svg',
-  food: '/placeholders/food.svg',
-  restaurant: '/placeholders/food.svg',
-  urban: '/placeholders/urban.svg',
-  street: '/placeholders/urban.svg',
-  architecture: '/placeholders/urban.svg',
-  indoor: '/placeholders/indoor.svg',
-  home: '/placeholders/indoor.svg',
-  pet: '/placeholders/pet.svg',
-  event: '/placeholders/event.svg',
-  group: '/placeholders/event.svg',
-  travel: '/placeholders/landscape-golden.svg',
-  sport: '/placeholders/portrait-outdoor.svg',
-  outdoor: '/placeholders/portrait-outdoor.svg',
-};
-
-// All available placeholders for cycling when no scene matches
-const ALL_PLACEHOLDERS = [
-  '/placeholders/landscape-golden.svg',
-  '/placeholders/landscape-blue.svg',
-  '/placeholders/landscape-green.svg',
-  '/placeholders/portrait-warm.svg',
-  '/placeholders/portrait-outdoor.svg',
-  '/placeholders/food.svg',
-  '/placeholders/urban.svg',
-  '/placeholders/indoor.svg',
-  '/placeholders/pet.svg',
-  '/placeholders/beach.svg',
-  '/placeholders/event.svg',
+// Real user photos served from /public/photos/
+const USER_PHOTOS = [
+  '/photos/IMG_0283%20Large.jpeg',
+  '/photos/IMG_0289%20Large.jpeg',
+  '/photos/IMG_0296%20Large.jpeg',
+  '/photos/IMG_0320%20Large.jpeg',
+  '/photos/IMG_0358%20Large.jpeg',
+  '/photos/IMG_0489%20Large.jpeg',
+  '/photos/IMG_0491%20Large.jpeg',
+  '/photos/IMG_1071%20Large.jpeg',
+  '/photos/IMG_1424%20Large.jpeg',
+  '/photos/IMG_1570%20Large.jpeg',
+  '/photos/IMG_1585%20Large.jpeg',
+  '/photos/IMG_1591%20Large.jpeg',
+  '/photos/IMG_1600%20Large.jpeg',
+  '/photos/IMG_1603%20Large.jpeg',
+  '/photos/IMG_1648%20Large.jpeg',
+  '/photos/IMG_1686%20Large.jpeg',
+  '/photos/IMG_2543%20Large.jpeg',
+  '/photos/IMG_2650%20Large.jpeg',
+  '/photos/IMG_2988%20Large.jpeg',
+  '/photos/IMG_3068%20Large.jpeg',
+  '/photos/IMG_3142%20Large.jpeg',
+  '/photos/IMG_3235%20Large.jpeg',
+  '/photos/IMG_3360%20Large.jpeg',
+  '/photos/IMG_3372%20Large.jpeg',
+  '/photos/IMG_3403%20Large.jpeg',
+  '/photos/IMG_3410%20Large.jpeg',
+  '/photos/IMG_3518%20Large.jpeg',
+  '/photos/IMG_3520%20Large.jpeg',
+  '/photos/IMG_3528%20Large.jpeg',
+  '/photos/IMG_3601%20Large.jpeg',
+  '/photos/IMG_3791%20Large.jpeg',
+  '/photos/IMG_3801%20Large.jpeg',
+  '/photos/IMG_3879%20Large.jpeg',
+  '/photos/IMG_3914%20Large.jpeg',
+  '/photos/IMG_4498%20Large.jpeg',
+  '/photos/IMG_4963%20Large.jpeg',
+  '/photos/IMG_5443%20Large.jpeg',
+  '/photos/IMG_5503%20Large.jpeg',
+  '/photos/IMG_5527%20Large.jpeg',
+  '/photos/IMG_5630%20Large.jpeg',
+  '/photos/IMG_6724%20Large.jpeg',
+  '/photos/IMG_7779%20Large.jpeg',
+  '/photos/IMG_9751%20Large.jpeg',
+  '/photos/IMG_9946%20Large.jpeg',
+  '/photos/76BBD8D2-D7D1-4A75-8207-794B07FFD1D1%20Large.jpeg',
+  '/photos/801FB7C1-4CBE-469A-B3E4-91785923EE33%20Large.jpeg',
+  '/photos/842FF6DB-19ED-4E40-8201-E742D0D84C59%20Large.jpeg',
+  '/photos/9ADD0AF2-5D7B-417D-830A-A29868DE7733%20Large.jpeg',
+  '/photos/CD59C42D-DD27-4AD8-8CDA-1B858B9FB4A2%20Large.jpeg',
+  '/photos/DB7BD432-EDDD-4B44-8CD1-945BF4B26EAB%20Large.jpeg',
 ];
 
-// Pick a placeholder based on scene tags, with deterministic fallback
-function placeholderForScene(scenes: string[], index: number): string {
-  for (const scene of scenes) {
-    if (PLACEHOLDER_MAP[scene]) return PLACEHOLDER_MAP[scene];
-  }
-  return ALL_PLACEHOLDERS[index % ALL_PLACEHOLDERS.length];
+function pickPhoto(index: number): string {
+  return USER_PHOTOS[index % USER_PHOTOS.length];
 }
 
-function picsum(_seed: string, _w = 600, _h = 400, scenes: string[] = [], index = 0) {
-  return placeholderForScene(scenes, index);
+function picsum(_seed: string, _w = 600, _h = 400, _scenes: string[] = [], index = 0) {
+  return pickPhoto(index);
 }
 
 function uuid(n: number) {
@@ -83,7 +96,7 @@ const MOCK_PROFILE = {
   id: MOCK_USER_ID,
   email: 'preview@roll.photos',
   display_name: 'Alex Rivera',
-  avatar_url: '/placeholders/portrait-warm.svg',
+  avatar_url: USER_PHOTOS[3],
   tier: 'plus' as const,
   onboarding_complete: true,
   photo_count: 84,
@@ -358,7 +371,7 @@ const MOCK_REELS = [
     clips_processed: 8,
     correction_skipped_count: 0,
     assembled_storage_key: `reels/${MOCK_USER_ID}/${uuid(400)}/assembled.mp4`,
-    poster_storage_key: '/placeholders/beach.svg',
+    poster_storage_key: USER_PHOTOS[8],
     assembled_duration_ms: 147000,
     created_at: lastWeek,
     updated_at: yesterday,
@@ -395,7 +408,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[0],
     email: 'jordan@example.com',
     display_name: 'Jordan Lee',
-    avatar_url: '/placeholders/portrait-warm.svg',
+    avatar_url: USER_PHOTOS[7],
     tier: 'plus',
     onboarding_complete: true,
     photo_count: 42,
@@ -409,7 +422,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[1],
     email: 'sam@example.com',
     display_name: 'Sam Chen',
-    avatar_url: '/placeholders/portrait-outdoor.svg',
+    avatar_url: USER_PHOTOS[12],
     tier: 'free',
     onboarding_complete: true,
     photo_count: 18,
@@ -423,7 +436,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[2],
     email: 'riley@example.com',
     display_name: 'Riley Park',
-    avatar_url: '/placeholders/event.svg',
+    avatar_url: USER_PHOTOS[20],
     tier: 'plus',
     onboarding_complete: true,
     photo_count: 67,
@@ -437,7 +450,7 @@ const FAKE_MEMBER_PROFILES = [
     id: FAKE_MEMBER_IDS[3],
     email: 'morgan@example.com',
     display_name: 'Morgan Taylor',
-    avatar_url: '/placeholders/landscape-blue.svg',
+    avatar_url: USER_PHOTOS[30],
     tier: 'free',
     onboarding_complete: true,
     photo_count: 9,
@@ -454,7 +467,7 @@ const MOCK_CIRCLES = [
     id: uuid(500),
     creator_id: MOCK_USER_ID,
     name: 'Family Photos',
-    cover_photo_url: '/placeholders/landscape-golden.svg',
+    cover_photo_url: USER_PHOTOS[0],
     member_count: 4,
     invite_token: 'abc123',
     created_at: twoWeeksAgo,
@@ -464,7 +477,7 @@ const MOCK_CIRCLES = [
     id: uuid(501),
     creator_id: MOCK_USER_ID,
     name: 'NYC Weekend Crew',
-    cover_photo_url: '/placeholders/urban.svg',
+    cover_photo_url: USER_PHOTOS[19],
     member_count: 3,
     invite_token: 'def456',
     created_at: lastWeek,
@@ -569,43 +582,43 @@ const MOCK_CIRCLE_POST_PHOTOS = [
   {
     id: uuid(570),
     post_id: uuid(560),
-    storage_key: '/placeholders/beach.svg',
+    storage_key: USER_PHOTOS[5],
     position: 1,
   },
   {
     id: uuid(571),
     post_id: uuid(561),
-    storage_key: '/placeholders/landscape-blue.svg',
+    storage_key: USER_PHOTOS[10],
     position: 1,
   },
   {
     id: uuid(572),
     post_id: uuid(561),
-    storage_key: '/placeholders/indoor.svg',
+    storage_key: USER_PHOTOS[15],
     position: 2,
   },
   {
     id: uuid(573),
     post_id: uuid(562),
-    storage_key: '/placeholders/landscape-green.svg',
+    storage_key: USER_PHOTOS[22],
     position: 1,
   },
   {
     id: uuid(574),
     post_id: uuid(563),
-    storage_key: '/placeholders/urban.svg',
+    storage_key: USER_PHOTOS[28],
     position: 1,
   },
   {
     id: uuid(575),
     post_id: uuid(563),
-    storage_key: '/placeholders/landscape-green.svg',
+    storage_key: USER_PHOTOS[33],
     position: 2,
   },
   {
     id: uuid(576),
     post_id: uuid(564),
-    storage_key: '/placeholders/landscape-golden.svg',
+    storage_key: USER_PHOTOS[40],
     position: 1,
   },
 ];
@@ -1022,8 +1035,8 @@ const mockAuth = {
 const mockStorage = {
   from: (_bucket: string) => ({
     upload: async () => ({ data: { path: 'mock-path' }, error: null }),
-    getPublicUrl: (_path: string) => ({
-      data: { publicUrl: '/placeholders/landscape-golden.svg' },
+    getPublicUrl: (path: string) => ({
+      data: { publicUrl: path.startsWith('/photos/') ? path : USER_PHOTOS[0] },
     }),
     download: async () => ({ data: new Blob(), error: null }),
     remove: async () => ({ data: [], error: null }),
