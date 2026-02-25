@@ -12,6 +12,7 @@ import {
   Pause,
   Volume2,
   VolumeX,
+  Share2,
 } from 'lucide-react';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 
@@ -223,6 +224,34 @@ export function PhotoLightbox({
     video.currentTime = fraction * video.duration;
     setVideoProgress(fraction);
   }, []);
+
+  // Share current photo
+  const handleShare = useCallback(async () => {
+    const shareData: ShareData = {
+      title: 'Photo from Roll',
+      text: formattedDate ? `Photo from ${formattedDate}` : 'Photo from Roll',
+    };
+
+    // If Web Share API supports URL sharing
+    if (currentPhoto.thumbnail_url && !currentPhoto.thumbnail_url.startsWith('data:')) {
+      shareData.url = currentPhoto.thumbnail_url;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled or share failed
+      }
+    } else {
+      // Fallback: copy image URL to clipboard
+      try {
+        await navigator.clipboard.writeText(currentPhoto.thumbnail_url || '');
+      } catch {
+        // Clipboard API not available
+      }
+    }
+  }, [currentPhoto]);
 
   // Format camera info
   const cameraInfo = (() => {
@@ -491,6 +520,23 @@ export function PhotoLightbox({
               />
             </button>
           )}
+
+          {/* Share button — always available */}
+          <button
+            type="button"
+            onClick={handleShare}
+            aria-label="Share this photo"
+            className={[
+              'flex items-center justify-center',
+              'w-11 h-11 min-w-[44px] min-h-[44px]',
+              'bg-transparent border-none cursor-pointer',
+              'text-[var(--color-ink-inverse)] hover:text-[var(--color-ink-inverse)]/70',
+              'transition-colors duration-150 ease-out',
+              'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
+            ].join(' ')}
+          >
+            <Share2 size={22} strokeWidth={1.5} />
+          </button>
         </div>
 
         {/* Photo counter */}
