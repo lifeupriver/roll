@@ -52,9 +52,6 @@ export default function CollectionsPage() {
   if (collections.length === 0) {
     return (
       <div>
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] mb-[var(--space-section)]">
-          Collections
-        </h1>
         <Empty
           icon={Layers}
           title="No collections yet"
@@ -82,10 +79,6 @@ export default function CollectionsPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-        Collections
-      </h1>
-
       {sectionOrder.map((type) => {
         const items = grouped[type];
         if (!items || items.length === 0) return null;

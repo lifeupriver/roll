@@ -224,10 +224,7 @@ function ProjectsContent() {
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Page header */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-          Projects
-        </h1>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-[var(--space-tight)]">
           <button
             type="button"

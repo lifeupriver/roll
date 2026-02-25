@@ -489,7 +489,7 @@ export default function RollDetailPage() {
           <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
+          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
         </div>
@@ -537,7 +537,7 @@ export default function RollDetailPage() {
           <button onClick={() => router.push('/library')} className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
+          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
         </div>
@@ -593,11 +593,11 @@ export default function RollDetailPage() {
                 onBlur={handleSaveName}
                 onKeyDown={handleNameKeyDown}
                 placeholder="Caption this roll..."
-                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
+                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
               />
             ) : (
               <button type="button" onClick={handleStartEditing} className="text-left w-full">
-                <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] truncate">
+                <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] truncate">
                   {roll.name || <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>}
                 </h1>
               </button>
@@ -948,17 +948,17 @@ export default function RollDetailPage() {
                 onBlur={handleSaveName}
                 onKeyDown={handleNameKeyDown}
                 placeholder="Name this roll..."
-                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
+                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
               />
             ) : (
               <button type="button" onClick={handleStartEditing} className="text-left w-full hover:opacity-70 transition-opacity" title="Name this roll before developing">
-                <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
+                <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
                   {roll.name || <span className="text-[var(--color-ink-tertiary)]">Name this roll...</span>}
                 </h1>
               </button>
             )
           ) : (
-            <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
+            <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
               Your Roll
             </h1>
           )}

@@ -75,10 +75,6 @@ export default function SearchPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-        Search
-      </h1>
-
       {/* Search bar */}
       <div className="flex gap-[var(--space-tight)]">
         <div className="flex-1">

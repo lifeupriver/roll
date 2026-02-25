@@ -315,11 +315,6 @@ export default function LibraryPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      {/* Page title */}
-      <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-        Gallery
-      </h1>
-
       {/* Section toggle + grid slider */}
       <div className="flex items-center justify-between">
         <ContentModePills

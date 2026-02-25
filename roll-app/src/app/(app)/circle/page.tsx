@@ -325,10 +325,7 @@ export default function CirclePage() {
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-          Circle
-        </h1>
+      <div className="flex items-center justify-end">
         {isPlus && (
           <Button variant="secondary" size="sm" onClick={() => setCreateModalOpen(true)}>
             <Plus size={16} className="mr-1" /> New Circle

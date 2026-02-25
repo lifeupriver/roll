@@ -249,7 +249,7 @@ export default function ReelDetailPage() {
             />
           ) : (
             <button type="button" onClick={handleStartEditing} className="text-left w-full">
-              <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)] truncate">
+              <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] truncate">
                 {currentReel.name || <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>}
               </h1>
             </button>

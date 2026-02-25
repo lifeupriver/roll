@@ -41,14 +41,9 @@ export default function MemoriesPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      <div>
-        <h1 className="font-[family-name:var(--font-display)] font-light text-[length:var(--text-page-title)] leading-[0.9] tracking-tight text-[var(--color-ink)]">
-          Memories
-        </h1>
-        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] mt-[var(--space-tight)]">
-          On this day, {dateLabel}
-        </p>
-      </div>
+      <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
+        On this day, {dateLabel}
+      </p>
 
       {memories.length === 0 ? (
         <Empty
