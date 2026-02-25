@@ -38,12 +38,12 @@ export const MAGAZINE_TEMPLATES: MagazineTemplateConfig[] = [
     icon: 'Star',
   },
   {
-    id: 'baby_first_year',
-    name: "Baby's First Year",
-    description: '12 monthly sections documenting your baby\'s first year',
-    defaultDateRangeMonths: 12,
-    suggestedPageCount: 48,
-    icon: 'Heart',
+    id: 'highlights',
+    name: 'Highlights',
+    description: 'Your best moments and milestones from any time period',
+    defaultDateRangeMonths: 6,
+    suggestedPageCount: 36,
+    icon: 'Sparkles',
   },
   {
     id: 'vacation',

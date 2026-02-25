@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Printer, Check, MapPin, BookOpen } from 'lucide-react';
+import { ArrowLeft, Printer, Check, MapPin, BookOpen, Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -22,10 +22,9 @@ const PRINT_PRICES: Record<string, number> = {
   '8x10': 120,
 };
 
-const BOOK_PRICES: Record<string, number> = {
-  '6x6': 2499,
-  '8x8': 2999,
-  '10x10': 3999,
+const MAGAZINE_PRICES: Record<string, number> = {
+  '6x9': 1999,
+  '8x10': 2499,
 };
 
 const SHIPPING_CENTS = 499;
@@ -57,9 +56,12 @@ export default function OrderPrintsPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
   // Step 1 – product type + size selection
-  const [orderType, setOrderType] = useState<'prints' | 'book'>('prints');
+  const [orderType, setOrderType] = useState<'prints' | 'magazine'>('prints');
   const [printSize, setPrintSize] = useState<PrintSize>('4x6');
-  const [bookSize, setBookSize] = useState<PrintSize>('8x8');
+  const [magazineSize, setMagazineSize] = useState<PrintSize>('8x10');
+
+  // Quantity
+  const [quantity, setQuantity] = useState(1);
 
   // Step 2 – shipping address
   const [shipping, setShipping] = useState<ShippingAddress>({
@@ -78,11 +80,12 @@ export default function OrderPrintsPage() {
 
   // ---- Derived state ------------------------------------------------------
   const isFirstRoll = true; // In a real app, derive from user's order history
-  const isFreeOrder = orderType === 'prints' && isFirstRoll;
-  const selectedSize = orderType === 'prints' ? printSize : bookSize;
+  const isFreeOrder = orderType === 'prints' && isFirstRoll && quantity === 1;
+  const selectedSize = orderType === 'prints' ? printSize : magazineSize;
   const selectedProduct: PrintProduct = orderType === 'prints' ? 'roll_prints' : 'photo_book';
   const pricePerUnit = orderType === 'prints' ? (PRINT_PRICES[printSize] ?? 30) : 0;
-  const subtotalCents = orderType === 'prints' ? photoCount * pricePerUnit : (BOOK_PRICES[bookSize] ?? 2999);
+  const unitSubtotal = orderType === 'prints' ? photoCount * pricePerUnit : (MAGAZINE_PRICES[magazineSize] ?? 2499);
+  const subtotalCents = unitSubtotal * quantity;
   const totalCents = isFreeOrder ? 0 : subtotalCents + SHIPPING_CENTS;
 
   // ---- Fetch roll ---------------------------------------------------------
@@ -152,6 +155,7 @@ export default function OrderPrintsPage() {
           rollId,
           product: selectedProduct,
           printSize: selectedSize,
+          quantity,
           shipping,
         }),
       });
@@ -197,10 +201,9 @@ export default function OrderPrintsPage() {
     { size: '8x10', label: '8 x 10', price: PRINT_PRICES['8x10'] },
   ];
 
-  const bookSizes: { size: PrintSize; label: string; price: number }[] = [
-    { size: '6x6', label: '6 x 6', price: BOOK_PRICES['6x6'] },
-    { size: '8x8', label: '8 x 8', price: BOOK_PRICES['8x8'] },
-    { size: '10x10', label: '10 x 10', price: BOOK_PRICES['10x10'] },
+  const magazineSizes: { size: PrintSize; label: string; price: number }[] = [
+    { size: '6x9', label: '6 x 9', price: MAGAZINE_PRICES['6x9'] },
+    { size: '8x10', label: '8 x 10', price: MAGAZINE_PRICES['8x10'] },
   ];
 
   // ========================================================================
@@ -302,22 +305,22 @@ export default function OrderPrintsPage() {
 
             <button
               type="button"
-              onClick={() => setOrderType('book')}
+              onClick={() => setOrderType('magazine')}
               className={[
                 'flex flex-col items-center gap-[var(--space-element)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 transition-all duration-150 cursor-pointer',
-                orderType === 'book'
+                orderType === 'magazine'
                   ? 'border-[var(--color-action)] bg-[var(--color-action-subtle)] shadow-[var(--shadow-floating)]'
                   : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-border-strong)]',
               ].join(' ')}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${orderType === 'book' ? 'bg-[var(--color-action)]/15' : 'bg-[var(--color-surface-sunken)]'}`}>
-                <BookOpen size={24} className={orderType === 'book' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-tertiary)]'} />
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${orderType === 'magazine' ? 'bg-[var(--color-action)]/15' : 'bg-[var(--color-surface-sunken)]'}`}>
+                <BookOpen size={24} className={orderType === 'magazine' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-tertiary)]'} />
               </div>
-              <span className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${orderType === 'book' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
-                Book
+              <span className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${orderType === 'magazine' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+                Magazine
               </span>
               <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center">
-                Bound softcover book
+                Silk paper magazine
               </span>
             </button>
           </div>
@@ -352,20 +355,20 @@ export default function OrderPrintsPage() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-[var(--space-element)]">
-                {bookSizes.map(({ size, label, price }) => (
+              <div className="grid grid-cols-2 gap-[var(--space-element)]">
+                {magazineSizes.map(({ size, label, price }) => (
                   <button
                     key={size}
                     type="button"
-                    onClick={() => setBookSize(size)}
+                    onClick={() => setMagazineSize(size)}
                     className={[
                       'flex flex-col items-center gap-[var(--space-tight)] p-[var(--space-element)] rounded-[var(--radius-card)] border-2 transition-all duration-150 cursor-pointer',
-                      bookSize === size
+                      magazineSize === size
                         ? 'border-[var(--color-action)] bg-[var(--color-action-subtle)]'
                         : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-border-strong)]',
                     ].join(' ')}
                   >
-                    <span className={`font-[family-name:var(--font-mono)] text-[length:var(--text-body)] ${bookSize === size ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+                    <span className={`font-[family-name:var(--font-mono)] text-[length:var(--text-body)] ${magazineSize === size ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
                       {label}
                     </span>
                     <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
@@ -377,17 +380,45 @@ export default function OrderPrintsPage() {
             )}
           </div>
 
+          {/* Quantity selector */}
+          <div className="flex items-center justify-between">
+            <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em]">
+              Quantity
+            </span>
+            <div className="flex items-center gap-[var(--space-element)]">
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                disabled={quantity <= 1}
+                className="w-8 h-8 rounded-full border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-raised)] disabled:opacity-30 transition-colors cursor-pointer"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-body)] text-[var(--color-ink)] w-8 text-center tabular-nums">
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                disabled={quantity >= 10}
+                className="w-8 h-8 rounded-full border border-[var(--color-border)] flex items-center justify-center text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-raised)] disabled:opacity-30 transition-colors cursor-pointer"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+          </div>
+
           {/* Price summary */}
           <Card>
             <div className="flex flex-col gap-[var(--space-tight)]">
               {orderType === 'prints' ? (
                 <div className="flex items-center justify-between text-[length:var(--text-body)]">
-                  <span className="text-[var(--color-ink-secondary)]">{photoCount} photos x {formatCents(pricePerUnit)}</span>
+                  <span className="text-[var(--color-ink-secondary)]">{photoCount} photos x {formatCents(pricePerUnit)}{quantity > 1 ? ` x ${quantity}` : ''}</span>
                   <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">{formatCents(subtotalCents)}</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-between text-[length:var(--text-body)]">
-                  <span className="text-[var(--color-ink-secondary)]">{bookSize} Book ({photoCount} photos)</span>
+                  <span className="text-[var(--color-ink-secondary)]">{magazineSize} Magazine{quantity > 1 ? ` x ${quantity}` : ''}</span>
                   <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">{formatCents(subtotalCents)}</span>
                 </div>
               )}
@@ -537,7 +568,7 @@ export default function OrderPrintsPage() {
               <div className="grid grid-cols-2 gap-[var(--space-tight)] text-[length:var(--text-body)]">
                 <span className="text-[var(--color-ink-secondary)]">Product</span>
                 <span className="text-[var(--color-ink)] text-right">
-                  {orderType === 'prints' ? 'Roll Prints' : 'Photo Book'}
+                  {orderType === 'prints' ? 'Roll Prints' : 'Roll Magazine'}
                 </span>
 
                 <span className="text-[var(--color-ink-secondary)]">Size</span>
@@ -548,6 +579,11 @@ export default function OrderPrintsPage() {
                 <span className="text-[var(--color-ink-secondary)]">Photos</span>
                 <span className="text-[var(--color-ink)] font-[family-name:var(--font-mono)] text-right">
                   {photoCount}
+                </span>
+
+                <span className="text-[var(--color-ink-secondary)]">Quantity</span>
+                <span className="text-[var(--color-ink)] font-[family-name:var(--font-mono)] text-right">
+                  {quantity}
                 </span>
 
                 <span className="text-[var(--color-ink-secondary)]">Roll</span>
@@ -600,8 +636,8 @@ export default function OrderPrintsPage() {
                     <div className="flex items-center justify-between text-[length:var(--text-body)]">
                       <span className="text-[var(--color-ink-secondary)]">
                         {orderType === 'prints'
-                          ? `${photoCount} photos x ${formatCents(pricePerUnit)}`
-                          : `${selectedSize} Book (${photoCount} photos)`}
+                          ? `${photoCount} photos x ${formatCents(pricePerUnit)}${quantity > 1 ? ` x ${quantity}` : ''}`
+                          : `${selectedSize} Magazine${quantity > 1 ? ` x ${quantity}` : ''}`}
                       </span>
                       <span className="text-[var(--color-ink)] font-[family-name:var(--font-mono)]">
                         {formatCents(subtotalCents)}

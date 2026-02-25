@@ -85,7 +85,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-60 lg:flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-xl">
         <div className="flex flex-col h-full">
           {/* Logo + theme toggle at top */}
-          <div className="p-[var(--space-section)] pb-0">
+          <div className="p-[var(--space-section)] pt-[var(--space-hero)] pb-0">
             <div className="flex items-center justify-between px-[var(--space-element)]">
               <Link
                 href="/feed"
@@ -173,7 +173,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           {/* Drawer panel — translucent */}
           <div className="absolute inset-y-0 left-0 w-64 bg-[var(--color-surface)]/85 backdrop-blur-xl shadow-[var(--shadow-overlay)] flex flex-col animate-[slideInLeft_200ms_ease-out]">
             {/* Drawer header */}
-            <div className="flex items-center justify-between h-12 px-[var(--space-component)] border-b border-[var(--color-border)]">
+            <div className="flex items-center justify-between h-14 px-[var(--space-component)] pt-[var(--space-element)] border-b border-[var(--color-border)]">
               <Link
                 href="/feed"
                 onClick={closeDrawer}

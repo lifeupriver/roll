@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Layers, Star, Heart, MapPin, Palette } from 'lucide-react';
+import { Calendar, Layers, Star, Sparkles, MapPin, Palette } from 'lucide-react';
 import { MAGAZINE_TEMPLATES, type MagazineTemplateConfig } from '@/lib/magazine/templates';
 import type { MagazineTemplate } from '@/types/magazine';
 
@@ -8,7 +8,7 @@ const ICON_MAP: Record<string, typeof Calendar> = {
   Calendar,
   Layers,
   Star,
-  Heart,
+  Sparkles,
   MapPin,
   Palette,
 };
