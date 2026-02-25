@@ -13,7 +13,7 @@ const MOCK_USER_ID = 'preview-user-00000000-0000-0000-0000-000000000000';
 const MOCK_AUTH_USER = {
   id: MOCK_USER_ID,
   email: 'preview@roll.photos',
-  user_metadata: { display_name: 'Preview User' },
+  user_metadata: { display_name: 'Joshua Brown' },
   app_metadata: {},
   aud: 'authenticated',
   created_at: '2025-01-01T00:00:00.000Z',

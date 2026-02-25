@@ -477,8 +477,8 @@ export default function LibraryPage() {
                         )}
                         {/* Status badge */}
                         <span
-                          className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium"
-                          style={{ backgroundColor: `color-mix(in oklch, ${status.color} 15%, transparent)`, color: status.color }}
+                          className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
+                          style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
                         >
                           {status.label}
                         </span>
@@ -656,8 +656,8 @@ export default function LibraryPage() {
                       </div>
                       {/* Status badge */}
                       <span
-                        className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium"
-                        style={{ backgroundColor: `color-mix(in oklch, ${status.color} 15%, transparent)`, color: status.color }}
+                        className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
+                        style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
                       >
                         {status.label}
                       </span>

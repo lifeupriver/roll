@@ -37,9 +37,11 @@ interface PhotoLightboxProps {
   onCheck?: (photoId: string) => void;
   onHeart?: (photoId: string) => void;
   onAddToRoll?: (photoId: string) => void;
+  onCaption?: (photoId: string, caption: string) => void;
   isChecked?: (photoId: string) => boolean;
   isHearted?: (photoId: string) => boolean;
   isInRoll?: (photoId: string) => boolean;
+  getCaption?: (photoId: string) => string;
 }
 
 export function PhotoLightbox({
@@ -50,9 +52,11 @@ export function PhotoLightbox({
   onCheck,
   onHeart,
   onAddToRoll,
+  onCaption,
   isChecked,
   isHearted,
   isInRoll,
+  getCaption,
 }: PhotoLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isOpen, setIsOpen] = useState(false);
@@ -63,6 +67,9 @@ export function PhotoLightbox({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+
+  const [isEditingCaption, setIsEditingCaption] = useState(false);
+  const [captionDraft, setCaptionDraft] = useState('');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -92,10 +99,11 @@ export function PhotoLightbox({
     };
   }, []);
 
-  // Reset video state when switching photos
+  // Reset video and caption state when switching photos
   useEffect(() => {
     setIsPlaying(false);
     setVideoProgress(0);
+    setIsEditingCaption(false);
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
@@ -330,7 +338,7 @@ export function PhotoLightbox({
             'transition-colors duration-150 ease-out',
             'cursor-pointer border-none',
             'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-            'hidden sm:flex',
+            'flex',
           ].join(' ')}
         >
           <ChevronLeft size={32} strokeWidth={1.5} />
@@ -352,7 +360,7 @@ export function PhotoLightbox({
             'transition-colors duration-150 ease-out',
             'cursor-pointer border-none',
             'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
-            'hidden sm:flex',
+            'flex',
           ].join(' ')}
         >
           <ChevronRight size={32} strokeWidth={1.5} />
@@ -469,6 +477,45 @@ export function PhotoLightbox({
             </p>
           )}
         </div>
+
+        {/* Caption prompt — roll mode */}
+        {(mode === 'roll' || mode === 'favorites') && onCaption && (
+          <div className="w-full max-w-md">
+            {isEditingCaption ? (
+              <input
+                autoFocus
+                type="text"
+                value={captionDraft}
+                onChange={(e) => setCaptionDraft(e.target.value)}
+                onBlur={() => {
+                  onCaption(currentPhoto.id, captionDraft.trim());
+                  setIsEditingCaption(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onCaption(currentPhoto.id, captionDraft.trim());
+                    setIsEditingCaption(false);
+                  }
+                  if (e.key === 'Escape') setIsEditingCaption(false);
+                }}
+                placeholder="Write a caption..."
+                maxLength={200}
+                className="w-full bg-transparent border-b border-white/30 focus:border-white/60 text-[length:var(--text-label)] text-[var(--color-ink-inverse)] placeholder:text-white/40 focus:outline-none text-center pb-1"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setCaptionDraft(getCaption?.(currentPhoto.id) || '');
+                  setIsEditingCaption(true);
+                }}
+                className="w-full text-center text-[length:var(--text-label)] text-white/50 hover:text-white/70 transition-colors"
+              >
+                {getCaption?.(currentPhoto.id) || 'Add a caption'}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Mode-specific action buttons */}
         <div className="flex items-center gap-[var(--space-element)]">

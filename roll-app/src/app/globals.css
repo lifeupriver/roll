@@ -167,21 +167,43 @@
   }
 }
 
-/* Darkroom mode: range sliders use safelight red */
+/* Darkroom mode: range sliders use safelight red with orange outline, no white */
 .darkroom input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
   accent-color: var(--color-action);
-}
-.darkroom input[type="range"]::-webkit-slider-thumb {
-  background: var(--color-action);
-}
-.darkroom input[type="range"]::-moz-range-thumb {
-  background: var(--color-action);
+  height: 6px;
+  background: transparent;
+  cursor: pointer;
 }
 .darkroom input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
   background: var(--color-surface-raised);
+  border-radius: 9999px;
+  border: 1px solid oklch(0.65 0.14 55);
+}
+.darkroom input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-action);
+  border: 2px solid oklch(0.65 0.14 55);
+  margin-top: -6px;
 }
 .darkroom input[type="range"]::-moz-range-track {
+  height: 6px;
   background: var(--color-surface-raised);
+  border-radius: 9999px;
+  border: 1px solid oklch(0.65 0.14 55);
+}
+.darkroom input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-action);
+  border: 2px solid oklch(0.65 0.14 55);
 }
 
 /* Darkroom mode film grain is more visible */
