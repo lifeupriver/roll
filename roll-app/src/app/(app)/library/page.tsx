@@ -456,7 +456,7 @@ export default function LibraryPage() {
                   className="flex items-center gap-[var(--space-component)] w-full text-left group cursor-pointer"
                 >
                   {/* Cover thumbnail */}
-                  <div className="relative w-20 h-[106px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
+                  <div className="relative w-32 h-[170px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
                     {rollCovers.get(currentRoll.id) ? (
                       <img
                         src={rollCovers.get(currentRoll.id)}
@@ -466,16 +466,16 @@ export default function LibraryPage() {
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Film size={20} className="text-[var(--color-ink-tertiary)]" />
+                        <Film size={24} className="text-[var(--color-ink-tertiary)]" />
                       </div>
                     )}
                   </div>
                   {/* Info + fullness bar */}
                   <div className="flex-1 min-w-0 flex flex-col gap-[var(--space-tight)]">
-                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                      {currentRoll.name || 'Untitled Roll'}
+                    <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                      {currentRoll.name || 'Current Roll'}
                     </p>
-                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    <p className="text-[length:var(--text-label)] text-[var(--color-ink)]">
                       {currentRoll.photo_count} of {currentRoll.max_photos} photos &middot; {formatDate(currentRoll.created_at)}
                     </p>
                     {/* Fullness bar */}
@@ -507,7 +507,7 @@ export default function LibraryPage() {
                   Developed
                 </h2>
               )}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
+              <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
                 {developedRolls.map((roll) => (
                   <button
                     key={roll.id}
@@ -563,7 +563,7 @@ export default function LibraryPage() {
                 <span>{showArchived ? 'Hide' : 'Show'} archived ({archivedRolls.length})</span>
               </button>
               {showArchived && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)] opacity-60">
+                <div className="grid gap-[var(--space-element)] opacity-60" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
                   {archivedRolls.map((roll) => (
                     <button
                       key={roll.id}
@@ -625,7 +625,7 @@ export default function LibraryPage() {
           )}
 
           {!reelsLoading && !error && activeReels.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-[var(--space-element)]">
+            <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
               {activeReels.map((reel) => {
                 const isDeveloped = reel.status === 'developed';
                 const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
@@ -781,7 +781,7 @@ export default function LibraryPage() {
                       </div>
                     )}
                     {/* Heart overlay */}
-                    <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]" onClick={(e) => e.stopPropagation()}>
+                    <div className="absolute -top-1 -right-1" onClick={(e) => e.stopPropagation()}>
                       <HeartButton
                         isHearted={true}
                         onChange={() => handleUnfavorite(fav.photo_id)}

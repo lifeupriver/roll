@@ -757,7 +757,7 @@ export default function RollDetailPage() {
                 className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)] pointer-events-none"
               />
               {/* Heart overlay */}
-              <div className="absolute top-[var(--space-tight)] right-[var(--space-tight)]">
+              <div className="absolute -top-1 -right-1" onClick={(e) => e.stopPropagation()}>
                 <HeartButton
                   isHearted={favoritedIds.has(rp.photo_id)}
                   onChange={(hearted) => handleHeartToggle(rp.photo_id, hearted)}
@@ -958,33 +958,11 @@ export default function RollDetailPage() {
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          {isFull ? (
-            // Only allow naming when roll is full (ready to develop)
-            isEditingName ? (
-              <input
-                autoFocus
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onBlur={handleSaveName}
-                onKeyDown={handleNameKeyDown}
-                placeholder="Name this roll..."
-                className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)]"
-              />
-            ) : (
-              <button type="button" onClick={handleStartEditing} className="text-left w-full hover:opacity-70 transition-opacity" title="Name this roll before developing">
-                <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
-                  {roll.name || <span className="text-[var(--color-ink-tertiary)]">Name this roll...</span>}
-                </h1>
-              </button>
-            )
-          ) : (
-            <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
-              Your Roll
-            </h1>
-          )}
+          <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+            Your Roll
+          </h1>
         </div>
-        <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] tracking-[0.02em] shrink-0">
+        <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink)] tracking-[0.02em] shrink-0">
           {photoCount} / {maxPhotos}
         </span>
       </div>
@@ -994,6 +972,24 @@ export default function RollDetailPage() {
         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
           {maxPhotos - photoCount} more photo{maxPhotos - photoCount !== 1 ? 's' : ''} needed to fill your roll. Go back to your feed to select more.
         </p>
+      )}
+
+      {/* Grid size slider */}
+      {photos.length > 0 && (
+        <div className="flex items-center justify-end gap-[var(--space-tight)]">
+          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
+          <input
+            type="range"
+            min="2"
+            max="6"
+            step="1"
+            value={gridColumns}
+            onChange={(e) => setGridColumns(parseInt(e.target.value, 10))}
+            className="w-20 accent-[var(--color-action)] cursor-pointer"
+            aria-label="Grid columns"
+          />
+          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        </div>
       )}
 
       {/* Photo grid (contact sheet) */}
@@ -1041,19 +1037,53 @@ export default function RollDetailPage() {
       )}
 
       {/* Develop CTA */}
-      <div className="relative">
+      <div className="relative flex flex-col gap-[var(--space-element)]">
         {!canDevelop && (
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center mb-[var(--space-tight)]">
             Add at least 10 photos to develop this roll
           </p>
         )}
+        {/* Name input — only shown when clicking develop */}
+        {canDevelop && isEditingName && (
+          <input
+            autoFocus
+            type="text"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            onBlur={() => {
+              handleSaveName();
+              if (editName.trim()) {
+                router.push(`/roll/develop?rollId=${rollId}`);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSaveName();
+                router.push(`/roll/develop?rollId=${rollId}`);
+              }
+              if (e.key === 'Escape') setIsEditingName(false);
+            }}
+            placeholder="Name this roll before developing..."
+            className="w-full bg-transparent border-b border-[var(--color-border)] pb-1 font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] focus:outline-none focus:border-[var(--color-action)] text-center"
+          />
+        )}
         {isReady ? (
-          <Link href={`/roll/develop?rollId=${rollId}`} className="block">
-            <Button variant="primary" size="lg" className={isFull ? 'develop-pulse' : ''}>
-              <Film size={18} className="mr-2" />
-              Develop
-            </Button>
-          </Link>
+          <Button
+            variant="primary"
+            size="lg"
+            className={isFull ? 'develop-pulse' : ''}
+            onClick={() => {
+              if (!roll.name) {
+                setEditName('');
+                setIsEditingName(true);
+              } else {
+                router.push(`/roll/develop?rollId=${rollId}`);
+              }
+            }}
+          >
+            <Film size={18} className="mr-2" />
+            Develop
+          </Button>
         ) : (
           <Button
             variant="primary"
@@ -1063,7 +1093,12 @@ export default function RollDetailPage() {
             title={!canDevelop ? 'Add at least 10 photos to develop this roll' : undefined}
             onClick={() => {
               if (canDevelop) {
-                router.push(`/roll/develop?rollId=${rollId}`);
+                if (!roll.name) {
+                  setEditName('');
+                  setIsEditingName(true);
+                } else {
+                  router.push(`/roll/develop?rollId=${rollId}`);
+                }
               }
             }}
           >

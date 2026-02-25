@@ -324,15 +324,6 @@ export default function CirclePage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
-      {/* Header */}
-      <div className="flex items-center justify-end">
-        {isPlus && (
-          <Button variant="secondary" size="sm" onClick={() => setCreateModalOpen(true)}>
-            <Plus size={16} className="mr-1" /> New Circle
-          </Button>
-        )}
-      </div>
-
       {/* View toggle: Feed / Shared (profile) / Circles */}
       <ContentModePills
         activeMode={activeView}
@@ -516,6 +507,13 @@ export default function CirclePage() {
       {/* Circles list view */}
       {!loading && circles.length > 0 && activeView === 'circles' && (
         <section className="flex flex-col gap-[var(--space-component)]">
+          {isPlus && (
+            <div className="flex justify-end">
+              <Button variant="secondary" size="sm" onClick={() => setCreateModalOpen(true)}>
+                <Plus size={16} className="mr-1" /> New Circle
+              </Button>
+            </div>
+          )}
           {circles.map((circle) => (
             <button
               key={circle.id}

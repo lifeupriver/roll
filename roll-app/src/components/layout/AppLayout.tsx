@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3X3, Image, Users, User, FolderOpen, Menu, X } from 'lucide-react';
+import { Grid3X3, Image, Users, User, FolderOpen, BookOpen, Menu, X } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -36,6 +36,7 @@ const navItems = [
   { href: '/feed', label: 'Photos', icon: Grid3X3 },
   { href: '/library', label: 'Gallery', icon: Image },
   { href: '/projects', label: 'Projects', icon: FolderOpen },
+  { href: '/projects/magazines', label: 'Magazines', icon: BookOpen },
   { href: '/circle', label: 'Circle', icon: Users },
   { href: '/account', label: 'Account', icon: User },
 ];
@@ -86,7 +87,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="flex items-center justify-between px-[var(--space-element)]">
             <Link
               href="/feed"
-              className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] tracking-[0.15em] text-[var(--color-ink)]"
+              className="font-[family-name:var(--font-display)] font-bold text-[2.5rem] tracking-[0.15em] text-[var(--color-ink)]"
             >
               ROLL
             </Link>
@@ -134,7 +135,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </button>
           <Link
             href="/feed"
-            className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-body)] tracking-[0.15em] text-[var(--color-ink)]"
+            className="font-[family-name:var(--font-display)] font-bold text-[2rem] tracking-[0.15em] text-[var(--color-ink)]"
           >
             ROLL
           </Link>
@@ -164,7 +165,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Link
                 href="/feed"
                 onClick={closeDrawer}
-                className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-body)] tracking-[0.15em] text-[var(--color-ink)]"
+                className="font-[family-name:var(--font-display)] font-bold text-[2rem] tracking-[0.15em] text-[var(--color-ink)]"
               >
                 ROLL
               </Link>
