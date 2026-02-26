@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Globe, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -48,42 +48,49 @@ export function PublishModal({
   const [allowBook, setAllowBook] = useState(false);
 
   // Create draft post when modal opens
-  const createDraft = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/blog/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rollId }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        toast(err.error || 'Failed to create draft', 'error');
-        return;
-      }
-      const { data } = await res.json();
-      const blogPost = data as BlogPost;
-      setPost(blogPost);
-      setTitle(blogPost.title);
-      setExcerpt(blogPost.excerpt || '');
-      setSelectedCoverId(blogPost.cover_photo_id);
-      setTags(blogPost.tags || []);
-      setAllowPrints(blogPost.allow_print_orders);
-    } catch {
-      toast('Something went wrong', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [rollId, toast]);
+  const draftInFlight = useRef(false);
 
   useEffect(() => {
-    if (isOpen && !post) {
-      setTitle(rollTitle);
-      setExcerpt(rollStory ? rollStory.split(/[.!?]/)[0]?.trim() || '' : '');
-      setSelectedCoverId(rollPhotos[0]?.photo_id ?? null);
-      createDraft();
-    }
-  }, [isOpen, post, rollTitle, rollStory, rollPhotos, createDraft]);
+    if (!isOpen || post || draftInFlight.current) return;
+
+    // Populate initial field values from roll data
+    setTitle(rollTitle);
+    setExcerpt(rollStory ? rollStory.split(/[.!?]/)[0]?.trim() || '' : '');
+    setSelectedCoverId(rollPhotos[0]?.photo_id ?? null);
+
+    // Create the draft
+    draftInFlight.current = true;
+    setLoading(true);
+
+    (async () => {
+      try {
+        const res = await fetch('/api/blog/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rollId }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          toast(err.error || 'Failed to create draft', 'error');
+          return;
+        }
+        const { data } = await res.json();
+        const blogPost = data as BlogPost;
+        setPost(blogPost);
+        setTitle(blogPost.title);
+        setExcerpt(blogPost.excerpt || '');
+        setSelectedCoverId(blogPost.cover_photo_id);
+        setTags(blogPost.tags || []);
+        setAllowPrints(blogPost.allow_print_orders);
+      } catch {
+        toast('Something went wrong', 'error');
+      } finally {
+        setLoading(false);
+        draftInFlight.current = false;
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleSaveDraft = async () => {
     if (!post) return;

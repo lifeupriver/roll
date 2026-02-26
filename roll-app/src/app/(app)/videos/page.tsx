@@ -2,45 +2,22 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Film, Play, MousePointerClick, X, Users, Send } from 'lucide-react';
+import { Film, MousePointerClick, X, Send } from 'lucide-react';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { Empty } from '@/components/ui/Empty';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
 import { track } from '@/lib/analytics';
-import type { Reel } from '@/types/reel';
-
-type VideoSection = 'clips' | 'reels';
-
-const SECTION_OPTIONS = [
-  { value: 'clips', label: 'Clips' },
-  { value: 'reels', label: 'Reels' },
-];
 
 const CLIP_FILTER_OPTIONS = [
-  { value: 'all', label: 'All Clips' },
+  { value: 'all', label: 'All' },
   { value: 'people', label: 'People' },
 ];
-
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  building: { label: 'Building', color: 'var(--color-processing)' },
-  ready: { label: 'Ready', color: 'var(--color-processing)' },
-  processing: { label: 'Processing', color: 'var(--color-processing)' },
-  developed: { label: 'Developed', color: 'var(--color-developed)' },
-  error: { label: 'Error', color: 'var(--color-error)' },
-  archived: { label: 'Archived', color: 'var(--color-ink-tertiary)' },
-};
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
 
 export default function VideosPage() {
   const router = useRouter();
@@ -65,13 +42,10 @@ export default function VideosPage() {
 
   const { toast } = useToast();
 
-  const [section, setSection] = useState<VideoSection>('clips');
   const [clipFilter, setClipFilter] = useState<'all' | 'people'>('all');
   const [selectMode, setSelectMode] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
-  const [reels, setReels] = useState<Reel[]>([]);
-  const [reelsLoading, setReelsLoading] = useState(false);
 
   // Set content mode to 'clips' on mount to fetch videos
   useEffect(() => {
@@ -86,26 +60,6 @@ export default function VideosPage() {
     }
     return clips;
   }, [photos, clipFilter]);
-
-  // Fetch reels when switching to reels tab
-  useEffect(() => {
-    if (section !== 'reels') return;
-    async function fetchReels() {
-      setReelsLoading(true);
-      try {
-        const res = await fetch('/api/reels');
-        if (res.ok) {
-          const json = await res.json();
-          setReels(json.data ?? []);
-        }
-      } catch {
-        // Non-critical
-      } finally {
-        setReelsLoading(false);
-      }
-    }
-    fetchReels();
-  }, [section]);
 
   // Load active reel on mount
   useEffect(() => {
@@ -223,42 +177,19 @@ export default function VideosPage() {
     });
   }, [reelCount, currentReel, toast]);
 
-  const activeReels = reels.filter((r) => r.status !== 'archived');
-
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      {/* Section toggle: Clips / Reels */}
+      {/* Content mode pills + grid size selector */}
       <div className="flex items-center justify-between">
         <ContentModePills
-          activeMode={section}
-          onChange={(s) => setSection(s as VideoSection)}
-          options={SECTION_OPTIONS}
+          activeMode={clipFilter}
+          onChange={(mode) => setClipFilter(mode as 'all' | 'people')}
+          options={CLIP_FILTER_OPTIONS}
         />
-        {section === 'clips' && <GridSizeSelector value={gridColumns} onChange={setGridColumns} />}
+        <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
       </div>
 
-      {/* Clips section */}
-      {section === 'clips' && (
-        <div className="flex flex-col gap-[var(--space-component)]">
-          {/* Sub-filter: All Clips / People */}
-          <div className="flex items-center gap-[var(--space-element)]">
-            {CLIP_FILTER_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setClipFilter(opt.value as 'all' | 'people')}
-                className={`px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                  clipFilter === opt.value
-                    ? 'bg-[var(--color-ink)] text-[var(--color-ink-inverse)]'
-                    : 'text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]'
-                }`}
-              >
-                {opt.value === 'people' && <Users size={12} className="inline mr-1" />}
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
+      <div className="flex flex-col gap-[var(--space-component)]">
           {/* Reel builder banner */}
           <div
             className={`rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
@@ -393,96 +324,11 @@ export default function VideosPage() {
             />
           )}
         </div>
-      )}
-
-      {/* Reels section */}
-      {section === 'reels' && (
-        <div className="flex flex-col gap-[var(--space-element)]">
-          {reelsLoading && (
-            <div className="flex items-center justify-center py-[var(--space-hero)]">
-              <Spinner size="md" />
-            </div>
-          )}
-
-          {!reelsLoading && activeReels.length === 0 && (
-            <Empty
-              icon={Film}
-              title="No reels yet"
-              description="Select clips and develop them into reels. Reels are your edited video compilations."
-              action={
-                <Button variant="primary" size="md" onClick={() => setSection('clips')}>
-                  Browse Clips
-                </Button>
-              }
-            />
-          )}
-
-          {!reelsLoading && activeReels.length > 0 && (
-            <div
-              className="grid gap-[var(--space-element)]"
-              style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
-            >
-              {activeReels.map((reel) => {
-                const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
-                return (
-                  <button
-                    key={reel.id}
-                    type="button"
-                    onClick={() => router.push(`/library/reels/${reel.id}`)}
-                    className="text-left group cursor-pointer"
-                  >
-                    <div className="relative aspect-video bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                      {reel.poster_storage_key ? (
-                        <img
-                          src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Film size={24} className="text-[var(--color-ink-tertiary)]" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                          <Play
-                            size={18}
-                            className="text-white ml-0.5"
-                            fill="white"
-                            fillOpacity={0.9}
-                          />
-                        </div>
-                      </div>
-                      <span
-                        className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
-                        style={{
-                          backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`,
-                          color: status.color,
-                        }}
-                      >
-                        {status.label}
-                      </span>
-                    </div>
-                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                      {reel.name || 'Untitled Reel'}
-                    </p>
-                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                      {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot;{' '}
-                      {formatDate(reel.created_at)}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Fixed bottom action bar — slides up when clips are selected */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ease-out ${
-          selectMode && reelCount > 0 && section === 'clips' ? 'translate-y-0' : 'translate-y-full'
+          selectMode && reelCount > 0 ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         <div className="bg-[var(--color-surface)] border-t border-[var(--color-border)] px-[var(--space-component)] py-[var(--space-element)] safe-area-bottom">

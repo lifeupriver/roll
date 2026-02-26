@@ -210,10 +210,11 @@ export default function FeedPage() {
           isChecked={isChecked}
           onCheck={handleCheck}
           onPhotoTap={handlePhotoTap}
+          columns={gridColumns}
         />
       );
     },
-    [stackMode, stackMap, isChecked, handleCheck, handlePhotoTap]
+    [stackMode, stackMap, isChecked, handleCheck, handlePhotoTap, gridColumns]
   );
 
   // Roll status helpers

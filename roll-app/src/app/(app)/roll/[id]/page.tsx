@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -113,6 +113,16 @@ export default function RollDetailPage() {
   const [peopleFilter, setPeopleFilter] = useState<'all' | 'people'>('all');
 
   const rollId = params.id;
+
+  // Stable reference for PublishModal — avoids re-creating on every render
+  const rollPhotosForPublish = useMemo(
+    () =>
+      photos.map((rp) => ({
+        photo_id: rp.photo_id,
+        photos: rp.photos ? { thumbnail_url: rp.photos.thumbnail_url } : null,
+      })),
+    [photos]
+  );
 
   // ------------------------------------------------------------------
   // Fetch roll data
@@ -985,10 +995,7 @@ export default function RollDetailPage() {
             rollId={roll.id}
             rollTitle={roll.theme_name || roll.name || 'Untitled'}
             rollStory={roll.story}
-            rollPhotos={photos.map((rp) => ({
-              photo_id: rp.photo_id,
-              photos: rp.photos ? { thumbnail_url: rp.photos.thumbnail_url } : null,
-            }))}
+            rollPhotos={rollPhotosForPublish}
           />
         )}
 

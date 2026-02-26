@@ -9,6 +9,7 @@ interface PhotoStackProps {
   isChecked: (photoId: string) => boolean;
   onCheck: (photoId: string) => void;
   onPhotoTap?: (photoId: string) => void;
+  columns?: number;
 }
 
 // Stagger delay for cascading photos (ms)
@@ -19,6 +20,7 @@ export function PhotoStack({
   isChecked,
   onCheck,
   onPhotoTap: _onPhotoTap,
+  columns = 3,
 }: PhotoStackProps) {
   const [expanded, setExpanded] = useState(false);
   const [animatingExpand, setAnimatingExpand] = useState(false);
@@ -105,7 +107,10 @@ export function PhotoStack({
           </div>
         </div>
         {/* Grid of all photos — staggered cascade entrance */}
-        <div className="grid grid-cols-3 gap-1 rounded-[var(--radius-card)] overflow-hidden border border-[var(--color-border)] mb-[var(--space-element)]">
+        <div
+          className="grid gap-1 rounded-[var(--radius-card)] overflow-hidden border border-[var(--color-border)] mb-[var(--space-element)]"
+          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+        >
           {stack.photos.map((photo, i) => {
             const checked = isChecked(photo.id);
             const isTop = photo.id === stack.topPhoto.id;

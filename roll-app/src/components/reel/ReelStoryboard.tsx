@@ -15,9 +15,10 @@ interface ReelStoryboardProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onRemove: (photoId: string) => void;
   onEditTrim: (clipId: string) => void;
+  readOnly?: boolean;
 }
 
-export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim }: ReelStoryboardProps) {
+export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim, readOnly = false }: ReelStoryboardProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
@@ -48,9 +49,12 @@ export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim }: ReelS
 
   if (clips.length === 0) {
     return (
-      <div className="flex items-center justify-center py-[var(--space-hero)] text-[var(--color-ink-tertiary)]">
-        <p className="text-[length:var(--text-body)] font-[family-name:var(--font-body)]">
-          No clips yet. Checkmark clips from your feed to add them.
+      <div className="flex flex-col items-center justify-center py-[var(--space-section)] gap-[var(--space-element)] text-center">
+        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] font-[family-name:var(--font-body)]">
+          No clips yet
+        </p>
+        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)]">
+          Go to the Videos tab to select clips for your reel. Drag to reorder, use the scissors to trim, or tap X to remove.
         </p>
       </div>
     );
@@ -73,11 +77,11 @@ export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim }: ReelS
         return (
           <div
             key={clip.id}
-            draggable
-            onDragStart={() => handleDragStart(index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDrop={() => handleDrop(index)}
-            onDragEnd={handleDragEnd}
+            draggable={!readOnly}
+            onDragStart={readOnly ? undefined : () => handleDragStart(index)}
+            onDragOver={readOnly ? undefined : (e) => handleDragOver(e, index)}
+            onDrop={readOnly ? undefined : () => handleDrop(index)}
+            onDragEnd={readOnly ? undefined : handleDragEnd}
             className={[
               'flex items-center gap-[var(--space-element)]',
               'p-[var(--space-tight)] pr-[var(--space-element)]',
@@ -89,9 +93,11 @@ export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim }: ReelS
             ].join(' ')}
           >
             {/* Drag handle */}
-            <div className="shrink-0 cursor-grab active:cursor-grabbing p-1 text-[var(--color-ink-tertiary)]">
-              <GripVertical size={16} />
-            </div>
+            {!readOnly && (
+              <div className="shrink-0 cursor-grab active:cursor-grabbing p-1 text-[var(--color-ink-tertiary)]">
+                <GripVertical size={16} />
+              </div>
+            )}
 
             {/* Thumbnail */}
             <div className="relative shrink-0 w-[120px] h-[68px] rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
@@ -128,24 +134,26 @@ export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim }: ReelS
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-[var(--space-micro)] shrink-0">
-              <button
-                type="button"
-                onClick={() => onEditTrim(clip.id)}
-                aria-label="Edit trim"
-                className="p-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] transition-colors rounded-[var(--radius-sharp)]"
-              >
-                <Scissors size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => onRemove(clip.photo_id)}
-                aria-label="Remove clip"
-                className="p-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] transition-colors rounded-[var(--radius-sharp)]"
-              >
-                <X size={14} />
-              </button>
-            </div>
+            {!readOnly && (
+              <div className="flex items-center gap-[var(--space-micro)] shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onEditTrim(clip.id)}
+                  aria-label="Edit trim"
+                  className="p-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] transition-colors rounded-[var(--radius-sharp)]"
+                >
+                  <Scissors size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onRemove(clip.photo_id)}
+                  aria-label="Remove clip"
+                  className="p-1.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] transition-colors rounded-[var(--radius-sharp)]"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
           </div>
         );
       })}
