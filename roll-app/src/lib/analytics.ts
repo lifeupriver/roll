@@ -50,9 +50,11 @@ export type AnalyticsEvent =
   | { event: 'reel_filled'; properties: { reelId: string } }
   | { event: 'reel_trim_opened'; properties: { reelId: string; clipId: string } }
   | { event: 'reel_developed'; properties: { reelId: string; filmProfile: string; audioMood: string } }
+  | { event: 'reel_config_saved'; properties: { reelId: string; defaultClipLength: number } }
   | { event: 'reel_favorited'; properties: { reelId: string } }
   | { event: 'reel_unfavorited'; properties: { reelId: string } }
   | { event: 'reel_share_initiated'; properties: { reelId: string } }
+  | { event: 'clips_added_to_reel'; properties: { reelId: string; clipCount: number } }
   // Favorites
   | { event: 'photo_hearted'; properties: { photoId: string; rollId: string } }
   | { event: 'photo_unhearted'; properties: { photoId: string } }
