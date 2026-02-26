@@ -31,6 +31,7 @@ import {
   Info,
   Shield,
   Printer,
+  Globe,
 } from 'lucide-react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
@@ -268,6 +269,24 @@ export default function AccountPage() {
           </button>
         </div>
       </Card>
+
+      {/* Blog Management */}
+      <Link href="/account/blog">
+        <Card className="flex items-center justify-between cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
+          <div className="flex items-center gap-[var(--space-element)]">
+            <Globe size={20} className="text-[var(--color-action)]" />
+            <div>
+              <p className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                Blog
+              </p>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Manage posts, settings, and subscribers
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-[var(--color-ink-tertiary)]" />
+        </Card>
+      </Link>
 
       {/* Subscription Section */}
       <Card>
