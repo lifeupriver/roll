@@ -689,24 +689,6 @@ export default function RollDetailPage() {
           </span>
         </div>
 
-        {/* Print This Roll — prominent CTA at top */}
-        <Link href={`/roll/${rollId}/order`} className="block">
-          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
-            <div className="flex items-center gap-[var(--space-element)]">
-              <Printer size={24} />
-              <div>
-                <p className="text-[length:var(--text-body)] font-medium">Print This Roll</p>
-                <p className="text-[length:var(--text-caption)] opacity-80">
-                  Prints or book delivered to your door
-                </p>
-              </div>
-            </div>
-            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
-              Order
-            </div>
-          </div>
-        </Link>
-
         {/* Share options + Add a story */}
         <div className="flex items-center gap-[var(--space-element)] flex-wrap">
           <Button variant="secondary" size="md" onClick={handleOpenCirclePicker}>
@@ -729,6 +711,24 @@ export default function RollDetailPage() {
             {savedStory ? 'Edit Story' : 'Add a Story'}
           </Button>
         </div>
+
+        {/* Print This Roll */}
+        <Link href={`/roll/${rollId}/order`} className="block">
+          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Printer size={24} />
+              <div>
+                <p className="text-[length:var(--text-body)] font-medium">Print This Roll</p>
+                <p className="text-[length:var(--text-caption)] opacity-80">
+                  Prints or book delivered to your door
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
+              Order
+            </div>
+          </div>
+        </Link>
 
         {/* Display saved story */}
         {savedStory && (

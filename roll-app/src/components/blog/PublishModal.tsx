@@ -34,6 +34,7 @@ export function PublishModal({
   const { toast } = useToast();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(false);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -50,45 +51,47 @@ export function PublishModal({
   // Create draft post when modal opens
   const draftInFlight = useRef(false);
 
-  useEffect(() => {
-    if (!isOpen || post || draftInFlight.current) return;
+  const createDraft = useCallback(async () => {
+    if (draftInFlight.current) return;
+    draftInFlight.current = true;
+    setLoading(true);
+    setDraftError(null);
 
     // Populate initial field values from roll data
     setTitle(rollTitle);
     setExcerpt(rollStory ? rollStory.split(/[.!?]/)[0]?.trim() || '' : '');
     setSelectedCoverId(rollPhotos[0]?.photo_id ?? null);
 
-    // Create the draft
-    draftInFlight.current = true;
-    setLoading(true);
-
-    (async () => {
-      try {
-        const res = await fetch('/api/blog/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rollId }),
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          toast(err.error || 'Failed to create draft', 'error');
-          return;
-        }
-        const { data } = await res.json();
-        const blogPost = data as BlogPost;
-        setPost(blogPost);
-        setTitle(blogPost.title);
-        setExcerpt(blogPost.excerpt || '');
-        setSelectedCoverId(blogPost.cover_photo_id);
-        setTags(blogPost.tags || []);
-        setAllowPrints(blogPost.allow_print_orders);
-      } catch {
-        toast('Something went wrong', 'error');
-      } finally {
-        setLoading(false);
-        draftInFlight.current = false;
+    try {
+      const res = await fetch('/api/blog/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rollId }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setDraftError(err.error || 'Failed to create draft');
+        return;
       }
-    })();
+      const { data } = await res.json();
+      const blogPost = data as BlogPost;
+      setPost(blogPost);
+      setTitle(blogPost.title || rollTitle);
+      setExcerpt(blogPost.excerpt || '');
+      setSelectedCoverId(blogPost.cover_photo_id);
+      setTags(blogPost.tags || []);
+      setAllowPrints(blogPost.allow_print_orders ?? true);
+    } catch {
+      setDraftError('Could not connect to create a draft. Please try again.');
+    } finally {
+      setLoading(false);
+      draftInFlight.current = false;
+    }
+  }, [rollId, rollTitle, rollStory, rollPhotos]);
+
+  useEffect(() => {
+    if (!isOpen || post || draftInFlight.current) return;
+    createDraft();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
@@ -192,6 +195,15 @@ export function PublishModal({
         {loading ? (
           <div className="flex items-center justify-center py-[var(--space-section)]">
             <div className="animate-spin w-6 h-6 border-2 border-[var(--color-action)] border-t-transparent rounded-full" />
+          </div>
+        ) : draftError ? (
+          <div className="flex flex-col items-center gap-[var(--space-element)] py-[var(--space-section)] text-center">
+            <p className="text-[length:var(--text-body)] text-[var(--color-error)]">
+              {draftError}
+            </p>
+            <Button variant="primary" size="sm" onClick={createDraft}>
+              Try Again
+            </Button>
           </div>
         ) : (
           <>

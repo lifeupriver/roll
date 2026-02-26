@@ -273,6 +273,8 @@ const MOCK_ROLLS = [
     id: uuid(200),
     user_id: MOCK_USER_ID,
     name: 'Weekend at the Park',
+    theme_name: 'A Weekend at the Park',
+    story: 'Golden hour at Prospect Park with the whole crew. We brought sandwiches and a frisbee and stayed until the lampposts flickered on.',
     status: 'developed',
     film_profile: null,
     photo_count: 24,
@@ -289,6 +291,8 @@ const MOCK_ROLLS = [
     id: uuid(201),
     user_id: MOCK_USER_ID,
     name: 'Birthday Party',
+    theme_name: 'Turning 30',
+    story: 'Threw a surprise party for Sam at the loft. Everyone showed up early for once. The cake was lopsided but the night was perfect.',
     status: 'developed',
     film_profile: null,
     photo_count: 36,
@@ -817,6 +821,9 @@ const TABLE_DATA: Record<string, unknown[]> = {
   tags: [],
   photo_tags: [],
   photo_stacks: generatePhotoStacks(),
+  blog_posts: [],
+  blog_settings: [],
+  email_subscribers: [],
 };
 
 // ── Chainable mock query builder ─────────────────────────────────────
