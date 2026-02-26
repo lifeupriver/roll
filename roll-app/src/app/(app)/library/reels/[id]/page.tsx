@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Play, Heart, Share2, MessageSquare, Wand2 } from 'lucide-react';
+import { Play, Heart, Share2, MessageSquare, Wand2, Film } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { ReelStoryboard } from '@/components/reel/ReelStoryboard';
 import { AudioMoodSelector } from '@/components/reel/AudioMoodSelector';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
@@ -48,6 +49,13 @@ export default function ReelDetailPage() {
 
   // Reel favorites
   const [isFavorited, setIsFavorited] = useState(false);
+
+  // Post-development configuration
+  const [showConfig, setShowConfig] = useState(false);
+  const [configName, setConfigName] = useState('');
+  const [defaultClipLengthS, setDefaultClipLengthS] = useState(3);
+  const [clipTrims, setClipTrims] = useState<Map<string, { startMs: number; endMs: number | null }>>(new Map());
+  const [savingConfig, setSavingConfig] = useState(false);
 
   // Load reel data
   useEffect(() => {
@@ -188,14 +196,61 @@ export default function ReelDetailPage() {
 
       updateReelStatus(currentReel.id, { status: 'developed' });
       track({ event: 'reel_developed', properties: { reelId: currentReel.id, filmProfile, audioMood } });
-      router.push(`/library/reels/${currentReel.id}/screen`);
+
+      // Initialize config screen with suggested name and existing trim points
+      const suggestedName = currentReel.name || `Reel — ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+      setConfigName(suggestedName);
+      setDefaultClipLengthS(3);
+      const trims = new Map<string, { startMs: number; endMs: number | null }>();
+      for (const clip of reelClips) {
+        trims.set(clip.photo_id, { startMs: clip.trim_start_ms, endMs: clip.trim_end_ms });
+      }
+      setClipTrims(trims);
+      setShowConfig(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Development failed');
       updateReelStatus(currentReel.id, { status: 'error' });
     } finally {
       setDeveloping(false);
     }
-  }, [currentReel, filmProfile, audioMood, updateReelStatus, router]);
+  }, [currentReel, filmProfile, audioMood, updateReelStatus, reelClips]);
+
+  const handleSaveConfig = useCallback(async () => {
+    if (!currentReel) return;
+    setSavingConfig(true);
+    try {
+      // Save reel name
+      await fetch(`/api/reels/${currentReel.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: configName.trim() || currentReel.name }),
+      });
+
+      // Save trim points for clips
+      for (const [photoId, trim] of clipTrims.entries()) {
+        const clip = reelClips.find((c) => c.photo_id === photoId);
+        if (clip && (clip.trim_start_ms !== trim.startMs || clip.trim_end_ms !== trim.endMs)) {
+          const { setTrim } = useReelStore.getState();
+          setTrim(photoId, trim.startMs, trim.endMs);
+        }
+      }
+
+      toast('Reel saved', 'success');
+      track({ event: 'reel_config_saved', properties: { reelId: currentReel.id, defaultClipLength: defaultClipLengthS } });
+      setShowConfig(false);
+      router.push(`/library/reels/${currentReel.id}/screen`);
+    } catch {
+      toast('Failed to save reel settings', 'error');
+    } finally {
+      setSavingConfig(false);
+    }
+  }, [currentReel, configName, clipTrims, reelClips, defaultClipLengthS, toast, router]);
+
+  const handleSkipConfig = useCallback(() => {
+    if (!currentReel) return;
+    setShowConfig(false);
+    router.push(`/library/reels/${currentReel.id}/screen`);
+  }, [currentReel, router]);
 
   if (loading) {
     return (
@@ -358,6 +413,143 @@ export default function ReelDetailPage() {
             Share to Circle
           </Button>
         </div>
+      )}
+
+      {/* Post-development configuration modal */}
+      {showConfig && (
+        <Modal onClose={handleSkipConfig}>
+          <div className="flex flex-col gap-[var(--space-section)] max-h-[85vh] overflow-y-auto">
+            <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
+              Configure Your Reel
+            </h2>
+
+            {/* Reel Name Input */}
+            <div className="flex flex-col gap-[var(--space-tight)]">
+              <label htmlFor="reel-name" className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                Reel name
+              </label>
+              <input
+                id="reel-name"
+                type="text"
+                value={configName}
+                onChange={(e) => setConfigName(e.target.value)}
+                placeholder="Name your reel"
+                className="w-full px-[var(--space-element)] py-[var(--space-element)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-ink)] text-[length:var(--text-body)] focus:outline-none focus:border-[var(--color-action)] min-h-[44px]"
+              />
+            </div>
+
+            {/* Default Clip Length */}
+            <div className="flex flex-col gap-[var(--space-tight)]">
+              <label className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                Default clip length
+              </label>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Each clip will play for this duration unless you trim it individually
+              </p>
+              <div className="flex gap-[var(--space-tight)]">
+                {[2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setDefaultClipLengthS(s)}
+                    className={`flex-1 px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] text-[length:var(--text-label)] font-medium min-h-[44px] transition-colors ${
+                      defaultClipLengthS === s
+                        ? 'bg-[#C45D3E] text-white'
+                        : 'bg-[var(--color-surface-raised)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-sunken)]'
+                    }`}
+                  >
+                    {s}s
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Clip Trimming */}
+            <div className="flex flex-col gap-[var(--space-element)]">
+              <label className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                Clip trimming
+              </label>
+              <div className="flex flex-col gap-[var(--space-tight)] max-h-60 overflow-y-auto">
+                {reelClips.map((clip) => {
+                  const trim = clipTrims.get(clip.photo_id) ?? { startMs: clip.trim_start_ms, endMs: clip.trim_end_ms };
+                  const effectiveEnd = trim.endMs ?? clip.trimmed_duration_ms + clip.trim_start_ms;
+                  const clipDuration = effectiveEnd - trim.startMs;
+                  const totalDuration = clip.trimmed_duration_ms + clip.trim_start_ms + (clip.trim_end_ms ? (clip.trimmed_duration_ms + clip.trim_start_ms - clip.trim_end_ms) : 0);
+                  const maxMs = Math.max(totalDuration, effectiveEnd, 10000);
+
+                  return (
+                    <div key={clip.id} className="flex items-center gap-[var(--space-element)] bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)] p-[var(--space-tight)]">
+                      {/* Thumbnail */}
+                      <div className="relative shrink-0 w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
+                        {(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos?.thumbnail_url ? (
+                          <img
+                            src={(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos!.thumbnail_url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Film size={12} className="text-[var(--color-ink-tertiary)]" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Trim slider */}
+                      <div className="flex-1 min-w-0">
+                        <div className="relative h-6 bg-[var(--color-surface-sunken)] rounded-sm overflow-hidden cursor-pointer">
+                          <div
+                            className="absolute top-0 bottom-0 bg-[#C45D3E]/20 border-x-2 border-[#C45D3E]"
+                            style={{
+                              left: `${(trim.startMs / maxMs) * 100}%`,
+                              width: `${(clipDuration / maxMs) * 100}%`,
+                            }}
+                          />
+                          {/* Start handle */}
+                          <input
+                            type="range"
+                            min={0}
+                            max={maxMs}
+                            value={trim.startMs}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              const newTrims = new Map(clipTrims);
+                              newTrims.set(clip.photo_id, { ...trim, startMs: Math.min(val, effectiveEnd - 1000) });
+                              setClipTrims(newTrims);
+                            }}
+                            className="absolute inset-0 w-full opacity-0 cursor-pointer"
+                            aria-label={`Trim start for clip ${clip.position}`}
+                          />
+                        </div>
+                        <span className="text-[length:var(--text-caption)] font-[family-name:var(--font-mono)] text-[var(--color-ink-tertiary)] tabular-nums">
+                          {formatDuration(clipDuration)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-[var(--space-element)] pt-[var(--space-element)]">
+              <button
+                type="button"
+                onClick={handleSkipConfig}
+                className="flex-1 px-[var(--space-component)] py-[var(--space-element)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] text-[var(--color-ink-secondary)] text-[length:var(--text-label)] font-medium min-h-[44px] transition-colors hover:bg-[var(--color-surface-raised)]"
+              >
+                Save with defaults
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveConfig}
+                disabled={savingConfig}
+                className="flex-1 px-[var(--space-component)] py-[var(--space-element)] rounded-[var(--radius-sharp)] bg-[#C45D3E] text-white text-[length:var(--text-label)] font-semibold min-h-[44px] transition-colors hover:bg-[#B04E32] disabled:opacity-50"
+              >
+                {savingConfig ? 'Saving...' : 'Save Reel'}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
