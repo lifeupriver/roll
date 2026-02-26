@@ -2,10 +2,19 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Play, Heart, Share2, Wand2, Film } from 'lucide-react';
+import {
+  Play,
+  Heart,
+  Share2,
+  Wand2,
+  Film,
+  Volume2,
+  VolumeX,
+  FileText,
+} from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { ReelStoryboard } from '@/components/reel/ReelStoryboard';
-import { AudioMoodSelector } from '@/components/reel/AudioMoodSelector';
+import { TrimControls } from '@/components/reel/TrimControls';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -17,6 +26,36 @@ import type { Reel, ReelClip } from '@/types/reel';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
 
+// Mock clips shown when building a reel with no real clips yet
+const MOCK_CLIPS: Array<ReelClip & { photos?: { thumbnail_url?: string; filename?: string; date_taken?: string } }> = [
+  {
+    id: 'mock-1', reel_id: '', photo_id: 'mock-p1', position: 1,
+    trim_start_ms: 0, trim_end_ms: null, trimmed_duration_ms: 3200,
+    processed_storage_key: null, correction_applied: false, transition_type: 'crossfade', created_at: '',
+    photos: { filename: 'Beach sunset.mov', date_taken: '2026-02-10T00:00:00Z' },
+  },
+  {
+    id: 'mock-2', reel_id: '', photo_id: 'mock-p2', position: 2,
+    trim_start_ms: 0, trim_end_ms: 4500, trimmed_duration_ms: 4500,
+    processed_storage_key: null, correction_applied: false, transition_type: 'crossfade', created_at: '',
+    photos: { filename: 'Morning walk.mov', date_taken: '2026-02-12T00:00:00Z' },
+  },
+  {
+    id: 'mock-3', reel_id: '', photo_id: 'mock-p3', position: 3,
+    trim_start_ms: 1000, trim_end_ms: 3800, trimmed_duration_ms: 2800,
+    processed_storage_key: null, correction_applied: false, transition_type: 'cut', created_at: '',
+    photos: { filename: 'Coffee shop.mov', date_taken: '2026-02-15T00:00:00Z' },
+  },
+  {
+    id: 'mock-4', reel_id: '', photo_id: 'mock-p4', position: 4,
+    trim_start_ms: 0, trim_end_ms: null, trimmed_duration_ms: 5200,
+    processed_storage_key: null, correction_applied: false, transition_type: 'dip_to_black', created_at: '',
+    photos: { filename: 'Park pigeons.mov', date_taken: '2026-02-18T00:00:00Z' },
+  },
+];
+
+const CLIP_DURATION_OPTIONS = [2, 3, 5, 8, 10];
+
 export default function ReelDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -27,20 +66,22 @@ export default function ReelDetailPage() {
     currentReel,
     reelClips,
     filmProfile,
-    audioMood,
+    ambientAudio,
+    transcribeAudio,
     setReel,
     setReelClips,
     setFilmProfile,
-    setAudioMood,
+    setAmbientAudio,
+    setTranscribeAudio,
     reorderClips,
     removeClip,
+    setTrim,
     updateReelStatus,
   } = useReelStore();
 
   const [loading, setLoading] = useState(true);
   const [developing, setDeveloping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userTier, _setUserTier] = useState<'free' | 'plus'>('free');
 
   // Reel caption editing
   const [isEditingName, setIsEditingName] = useState(false);
@@ -49,10 +90,15 @@ export default function ReelDetailPage() {
   // Reel favorites
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // Clip trim editing
+  const [trimmingClipId, setTrimmingClipId] = useState<string | null>(null);
+
+  // Default clip duration for building
+  const [defaultClipLengthS, setDefaultClipLengthS] = useState(3);
+
   // Post-development configuration
   const [showConfig, setShowConfig] = useState(false);
   const [configName, setConfigName] = useState('');
-  const [defaultClipLengthS, setDefaultClipLengthS] = useState(3);
   const [clipTrims, setClipTrims] = useState<
     Map<string, { startMs: number; endMs: number | null }>
   >(new Map());
@@ -66,10 +112,13 @@ export default function ReelDetailPage() {
         const res = await fetch(`/api/reels/${reelId}`);
         if (!res.ok) throw new Error('Failed to load reel');
         const { data } = await res.json();
-        setReel(data.reel as Reel);
+        const reel = data.reel as Reel;
+        setReel(reel);
         setReelClips(data.clips as ReelClip[]);
-        if (data.reel.film_profile) setFilmProfile(data.reel.film_profile);
-        if (data.reel.audio_mood) setAudioMood(data.reel.audio_mood);
+        if (reel.film_profile) setFilmProfile(reel.film_profile);
+        setAmbientAudio(reel.ambient_audio ?? true);
+        setTranscribeAudio(reel.transcribe_audio ?? false);
+        if (reel.default_clip_length_s) setDefaultClipLengthS(reel.default_clip_length_s);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
@@ -77,7 +126,7 @@ export default function ReelDetailPage() {
       }
     }
     loadReel();
-  }, [reelId, setReel, setReelClips, setFilmProfile, setAudioMood]);
+  }, [reelId, setReel, setReelClips, setFilmProfile, setAmbientAudio, setTranscribeAudio]);
 
   // Check if reel is favorited
   useEffect(() => {
@@ -138,14 +187,10 @@ export default function ReelDetailPage() {
     setIsFavorited(newVal);
     try {
       if (newVal) {
-        const res = await fetch(`/api/reels/${reelId}/favorite`, {
-          method: 'POST',
-        });
+        const res = await fetch(`/api/reels/${reelId}/favorite`, { method: 'POST' });
         if (!res.ok) throw new Error();
       } else {
-        const res = await fetch(`/api/reels/${reelId}/favorite`, {
-          method: 'DELETE',
-        });
+        const res = await fetch(`/api/reels/${reelId}/favorite`, { method: 'DELETE' });
         if (!res.ok) throw new Error();
       }
     } catch {
@@ -180,10 +225,65 @@ export default function ReelDetailPage() {
 
   const handleEditTrim = useCallback(
     (clipId: string) => {
+      setTrimmingClipId(clipId);
       track({ event: 'reel_trim_opened', properties: { reelId, clipId } });
     },
     [reelId]
   );
+
+  const handleTrimConfirm = useCallback(
+    (startMs: number, endMs: number | null) => {
+      if (!trimmingClipId) return;
+      const clip = reelClips.find((c) => c.id === trimmingClipId);
+      if (clip) {
+        setTrim(clip.photo_id, startMs, endMs);
+        // Persist to API
+        fetch(`/api/reels/${reelId}/clips/${trimmingClipId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trimStartMs: startMs, trimEndMs: endMs }),
+        }).catch(() => {});
+      }
+      setTrimmingClipId(null);
+    },
+    [trimmingClipId, reelClips, reelId, setTrim]
+  );
+
+  // Audio settings
+  const handleAmbientAudioToggle = useCallback(async () => {
+    if (!currentReel) return;
+    const newVal = !ambientAudio;
+    setAmbientAudio(newVal);
+    try {
+      await fetch(`/api/reels/${reelId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ambient_audio: newVal,
+          audio_mood: newVal ? 'original' : 'silent_film',
+        }),
+      });
+    } catch {
+      setAmbientAudio(!newVal);
+      toast('Failed to update audio setting', 'error');
+    }
+  }, [currentReel, ambientAudio, reelId, setAmbientAudio, toast]);
+
+  const handleTranscribeToggle = useCallback(async () => {
+    if (!currentReel) return;
+    const newVal = !transcribeAudio;
+    setTranscribeAudio(newVal);
+    try {
+      await fetch(`/api/reels/${reelId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcribe_audio: newVal }),
+      });
+    } catch {
+      setTranscribeAudio(!newVal);
+      toast('Failed to update transcription setting', 'error');
+    }
+  }, [currentReel, transcribeAudio, reelId, setTranscribeAudio, toast]);
 
   const handleDevelop = useCallback(async () => {
     if (!currentReel || !filmProfile) return;
@@ -195,7 +295,7 @@ export default function ReelDetailPage() {
         body: JSON.stringify({
           reelId: currentReel.id,
           filmProfileId: filmProfile,
-          audioMood,
+          audioMood: ambientAudio ? 'original' : 'silent_film',
         }),
       });
 
@@ -207,15 +307,14 @@ export default function ReelDetailPage() {
       updateReelStatus(currentReel.id, { status: 'developed' });
       track({
         event: 'reel_developed',
-        properties: { reelId: currentReel.id, filmProfile, audioMood },
+        properties: { reelId: currentReel.id, filmProfile, audioMood: ambientAudio ? 'original' : 'silent_film' },
       });
 
-      // Initialize config screen with suggested name and existing trim points
+      // Initialize config screen
       const suggestedName =
         currentReel.name ||
         `Reel — ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
       setConfigName(suggestedName);
-      setDefaultClipLengthS(3);
       const trims = new Map<string, { startMs: number; endMs: number | null }>();
       for (const clip of reelClips) {
         trims.set(clip.photo_id, { startMs: clip.trim_start_ms, endMs: clip.trim_end_ms });
@@ -228,13 +327,12 @@ export default function ReelDetailPage() {
     } finally {
       setDeveloping(false);
     }
-  }, [currentReel, filmProfile, audioMood, updateReelStatus, reelClips]);
+  }, [currentReel, filmProfile, ambientAudio, updateReelStatus, reelClips]);
 
   const handleSaveConfig = useCallback(async () => {
     if (!currentReel) return;
     setSavingConfig(true);
     try {
-      // Save reel name
       const res = await fetch(`/api/reels/${currentReel.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -252,8 +350,8 @@ export default function ReelDetailPage() {
       for (const [photoId, trim] of clipTrims.entries()) {
         const clip = reelClips.find((c) => c.photo_id === photoId);
         if (clip && (clip.trim_start_ms !== trim.startMs || clip.trim_end_ms !== trim.endMs)) {
-          const { setTrim } = useReelStore.getState();
-          setTrim(photoId, trim.startMs, trim.endMs);
+          const { setTrim: storeTrim } = useReelStore.getState();
+          storeTrim(photoId, trim.startMs, trim.endMs);
         }
       }
 
@@ -273,7 +371,6 @@ export default function ReelDetailPage() {
 
   const handleSkipConfig = useCallback(async () => {
     if (!currentReel) return;
-    // Persist default clip length even when skipping
     try {
       await fetch(`/api/reels/${currentReel.id}`, {
         method: 'PATCH',
@@ -281,7 +378,7 @@ export default function ReelDetailPage() {
         body: JSON.stringify({ default_clip_length_s: defaultClipLengthS }),
       });
     } catch {
-      // Non-critical — continue to screen
+      // Non-critical
     }
     setShowConfig(false);
     router.push(`/library/reels/${currentReel.id}/screen`);
@@ -316,6 +413,15 @@ export default function ReelDetailPage() {
     label: p.name,
     count: undefined,
   }));
+
+  // Use mock clips when building with no real clips
+  const showMockClips = isReady && reelClips.length === 0;
+  const displayClips = showMockClips ? MOCK_CLIPS : reelClips;
+
+  // Clip being trimmed
+  const trimmingClip = trimmingClipId
+    ? reelClips.find((c) => c.id === trimmingClipId)
+    : null;
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
@@ -383,18 +489,93 @@ export default function ReelDetailPage() {
         </div>
       )}
 
+      {/* Mock Finished Reel Preview — shown for developed reels */}
+      {isDeveloped && (
+        <section>
+          <button
+            type="button"
+            onClick={() => router.push(`/library/reels/${reelId}/screen`)}
+            className="relative w-full aspect-[9/16] max-h-[480px] bg-gradient-to-br from-[var(--color-surface-sunken)] via-[var(--color-ink)]/80 to-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden group cursor-pointer"
+          >
+            {/* Poster image if available */}
+            {currentReel.poster_storage_key && (
+              <img
+                src={`/api/photos/serve?key=${encodeURIComponent(currentReel.poster_storage_key)}`}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            {/* Play overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors">
+              <div className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Play size={28} className="text-white ml-1" fill="white" fillOpacity={0.9} />
+              </div>
+            </div>
+            {/* Film profile badge */}
+            {currentReel.film_profile && (
+              <span className="absolute top-3 left-3 px-[var(--space-tight)] py-[var(--space-micro)] bg-white/10 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] text-white/80 font-medium capitalize backdrop-blur-sm">
+                {currentReel.film_profile}
+              </span>
+            )}
+            {/* Duration badge */}
+            <span className="absolute bottom-3 right-3 px-[var(--space-tight)] py-[var(--space-micro)] bg-black/60 rounded-[var(--radius-pill)] font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-white/80 tabular-nums backdrop-blur-sm">
+              {formatDuration(currentReel.assembled_duration_ms ?? currentReel.current_duration_ms)}
+            </span>
+            {/* Mock timeline bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+              <div className="h-full bg-white/60 w-0" />
+            </div>
+          </button>
+        </section>
+      )}
+
       {/* Storyboard */}
       {isReady && (
         <section>
           <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
             Storyboard
           </h2>
-          <ReelStoryboard
-            clips={reelClips as (ReelClip & { photos?: any })[]}
-            onReorder={handleReorder}
-            onRemove={handleRemoveClip}
-            onEditTrim={handleEditTrim}
-          />
+          {showMockClips && (
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)] italic">
+              Example clips — add your own from the Videos page
+            </p>
+          )}
+          <div className={showMockClips ? 'opacity-50 pointer-events-none' : ''}>
+            <ReelStoryboard
+              clips={displayClips as (ReelClip & { photos?: any })[]}
+              onReorder={handleReorder}
+              onRemove={handleRemoveClip}
+              onEditTrim={handleEditTrim}
+            />
+          </div>
+        </section>
+      )}
+
+      {/* Clip Duration & Trim — available during building */}
+      {isReady && reelClips.length > 0 && (
+        <section>
+          <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
+            Clip Duration
+          </h2>
+          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
+            Set the default length for each clip. Trim individual clips from the storyboard.
+          </p>
+          <div className="flex gap-[var(--space-tight)]">
+            {CLIP_DURATION_OPTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setDefaultClipLengthS(s)}
+                className={`flex-1 px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] text-[length:var(--text-label)] font-medium min-h-[44px] transition-colors ${
+                  defaultClipLengthS === s
+                    ? 'bg-[#C45D3E] text-white'
+                    : 'bg-[var(--color-surface-raised)] text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-sunken)]'
+                }`}
+              >
+                {s}s
+              </button>
+            ))}
+          </div>
         </section>
       )}
 
@@ -412,17 +593,73 @@ export default function ReelDetailPage() {
         </section>
       )}
 
-      {/* Audio Mood Selector */}
+      {/* Audio Settings — replaces old Audio Mood */}
       {isReady && (
         <section>
           <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
-            Audio Mood
+            Audio
           </h2>
-          <AudioMoodSelector
-            selected={audioMood}
-            onChange={(mood) => setAudioMood(mood)}
-            userTier={userTier}
-          />
+          <div className="flex flex-col gap-[var(--space-element)] p-[var(--space-component)] bg-[var(--color-surface-raised)] rounded-[var(--radius-card)]">
+            {/* Ambient audio toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                {ambientAudio ? (
+                  <Volume2 size={16} className="text-[var(--color-ink-secondary)]" />
+                ) : (
+                  <VolumeX size={16} className="text-[var(--color-ink-secondary)]" />
+                )}
+                <div>
+                  <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                    Ambient Audio
+                  </span>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Keep original audio from your video clips
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleAmbientAudioToggle}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+                  ambientAudio ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    ambientAudio ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Transcribe audio toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <FileText size={16} className="text-[var(--color-ink-secondary)]" />
+                <div>
+                  <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                    Transcribe Audio
+                  </span>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Generate captions from spoken audio in clips
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleTranscribeToggle}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+                  transcribeAudio ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    transcribeAudio ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
         </section>
       )}
 
@@ -454,6 +691,22 @@ export default function ReelDetailPage() {
             <Share2 size={18} className="mr-2" />
             Share to Circle
           </Button>
+        </div>
+      )}
+
+      {/* Trim Controls overlay */}
+      {trimmingClip && (
+        <div className="fixed inset-x-0 bottom-0 z-40">
+          <TrimControls
+            durationMs={trimmingClip.trimmed_duration_ms + trimmingClip.trim_start_ms + (trimmingClip.trim_end_ms ? 0 : 0)}
+            initialStartMs={trimmingClip.trim_start_ms}
+            initialEndMs={trimmingClip.trim_end_ms}
+            thumbnailUrl={
+              (trimmingClip as ReelClip & { photos?: { thumbnail_url?: string } }).photos?.thumbnail_url || ''
+            }
+            onConfirm={handleTrimConfirm}
+            onCancel={() => setTrimmingClipId(null)}
+          />
         </div>
       )}
 
@@ -492,7 +745,7 @@ export default function ReelDetailPage() {
                 Each clip will play for this duration unless you trim it individually
               </p>
               <div className="flex gap-[var(--space-tight)]">
-                {[2, 3, 4, 5].map((s) => (
+                {CLIP_DURATION_OPTIONS.map((s) => (
                   <button
                     key={s}
                     type="button"

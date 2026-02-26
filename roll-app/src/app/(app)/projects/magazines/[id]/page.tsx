@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pencil, Eye, ShoppingCart, Trash2 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
@@ -15,6 +15,8 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const router = useRouter();
   const { toast } = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const [magazine, setMagazine] = useState<Magazine | null>(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<'read' | 'edit'>('read');
@@ -29,7 +31,7 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
         const res = await fetch(`/api/magazines/${id}`);
         if (!res.ok) {
           const errJson = await res.json().catch(() => ({}));
-          toast(errJson.error || 'Failed to load magazine', 'error');
+          toastRef.current(errJson.error || 'Failed to load magazine', 'error');
           return;
         }
 
@@ -39,30 +41,31 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
         const parsedPages = typeof mag.pages === 'string' ? JSON.parse(mag.pages) : mag.pages;
         setPages(parsedPages);
 
-        // Fetch photo URLs for all photos in the magazine
+        // Fetch photo storage keys to build URL map
         const photoIds = parsedPages
           .flatMap((p: MagazinePage) => p.photos.map((ph) => ph.id))
           .filter(Boolean);
 
         if (photoIds.length > 0) {
-          const photoRes = await fetch(`/api/photos?ids=${photoIds.join(',')}`);
+          const photoRes = await fetch(`/api/photos/batch?ids=${photoIds.join(',')}`);
           if (photoRes.ok) {
             const photoJson = await photoRes.json();
             const map = new Map<string, string>();
-            (photoJson.data ?? []).forEach((p: { id: string; thumbnail_url: string }) => {
-              map.set(p.id, p.thumbnail_url);
+            (photoJson.data ?? []).forEach((p: { id: string; storage_key: string; thumbnail_url: string }) => {
+              const url = p.thumbnail_url || (p.storage_key ? `/api/photos/serve?key=${encodeURIComponent(p.storage_key)}` : '');
+              if (url) map.set(p.id, url);
             });
             setPhotoUrlMap(map);
           }
         }
       } catch {
-        toast('Failed to load magazine', 'error');
+        toastRef.current('Failed to load magazine', 'error');
       } finally {
         setLoading(false);
       }
     }
     fetchMagazine();
-  }, [id, toast]);
+  }, [id]);
 
   const handleReorder = useCallback((fromIndex: number, toIndex: number) => {
     setPages((prev) => {

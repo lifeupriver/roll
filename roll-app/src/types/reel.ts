@@ -64,6 +64,8 @@ export interface Reel {
   current_duration_ms: number;
   clip_count: number;
   default_clip_length_s: number | null;
+  ambient_audio: boolean;
+  transcribe_audio: boolean;
   processing_started_at: string | null;
   processing_completed_at: string | null;
   processing_error: string | null;

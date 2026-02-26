@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { MagazineCover } from '@/components/magazine/MagazineCover';
+import { useToast } from '@/stores/toastStore';
 import type { Magazine } from '@/types/magazine';
 
 export default function MagazinesPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,14 +23,17 @@ export default function MagazinesPage() {
         if (res.ok) {
           const json = await res.json();
           setMagazines(json.data ?? []);
+        } else {
+          toast('Failed to load magazines', 'error');
         }
       } catch {
-        // Silently fail
+        toast('Failed to load magazines', 'error');
       } finally {
         setLoading(false);
       }
     }
     fetchMagazines();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

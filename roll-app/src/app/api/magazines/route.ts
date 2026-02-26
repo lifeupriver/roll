@@ -69,15 +69,15 @@ export async function POST(request: NextRequest) {
     const start = dateRangeStart ? new Date(dateRangeStart) : defaultRange.start;
     const end = dateRangeEnd ? new Date(dateRangeEnd) : defaultRange.end;
 
-    // Fetch user's favorites within date range
+    // Fetch user's favorites within date range (filter by photo date_taken, not when favorited)
     const { data: favorites, error: favError } = await supabase
       .from('favorites')
       .select(
-        'id, photo_id, photos(id, thumbnail_url, storage_key, width, height, date_taken, aesthetic_score, face_count)'
+        'id, photo_id, photos!inner(id, thumbnail_url, storage_key, width, height, date_taken, aesthetic_score, face_count)'
       )
       .eq('user_id', user.id)
-      .gte('created_at', start.toISOString())
-      .lte('created_at', end.toISOString())
+      .gte('photos.date_taken', start.toISOString())
+      .lte('photos.date_taken', end.toISOString())
       .order('created_at', { ascending: true });
 
     if (favError) {

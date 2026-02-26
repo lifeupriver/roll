@@ -2,13 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Film, Play, Volume2, VolumeX, Scissors, Clock } from 'lucide-react';
+import { Film, Play, Volume2, VolumeX, FileText, Scissors, Clock } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
-import type { Reel, ReelClip, AudioMood } from '@/types/reel';
+import type { Reel, ReelClip } from '@/types/reel';
 
 interface Photo {
   id: string;
@@ -31,13 +31,6 @@ const CLIP_LENGTH_OPTIONS = [
   { value: 15000, label: '15s' },
 ];
 
-const AUDIO_OPTIONS: Array<{ id: AudioMood; label: string }> = [
-  { id: 'original', label: 'Original Audio' },
-  { id: 'quiet_film', label: 'Quiet Film' },
-  { id: 'silent_film', label: 'Silent (No Audio)' },
-  { id: 'ambient', label: 'Ambient' },
-];
-
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
@@ -58,7 +51,8 @@ export default function ReelDetailPage() {
 
   // Settings
   const [defaultClipLength, setDefaultClipLength] = useState(5000);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [ambientAudio, setAmbientAudio] = useState(true);
+  const [transcribeAudio, setTranscribeAudio] = useState(false);
 
   const fetchReel = useCallback(async () => {
     try {
@@ -70,7 +64,8 @@ export default function ReelDetailPage() {
       const { data } = await res.json();
       setReel(data.reel);
       setClips(data.clips ?? []);
-      setAudioEnabled(data.reel.audio_mood !== 'silent_film');
+      setAmbientAudio(data.reel.ambient_audio ?? data.reel.audio_mood !== 'silent_film');
+      setTranscribeAudio(data.reel.transcribe_audio ?? false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load reel');
     } finally {
@@ -82,21 +77,40 @@ export default function ReelDetailPage() {
     fetchReel();
   }, [fetchReel]);
 
-  const handleAudioToggle = useCallback(async () => {
+  const handleAmbientAudioToggle = useCallback(async () => {
     if (!reel) return;
-    const newMood: AudioMood = audioEnabled ? 'silent_film' : 'original';
-    setAudioEnabled(!audioEnabled);
+    const newVal = !ambientAudio;
+    setAmbientAudio(newVal);
     try {
       await fetch(`/api/reels/${reelId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audio_mood: newMood }),
+        body: JSON.stringify({
+          ambient_audio: newVal,
+          audio_mood: newVal ? 'original' : 'silent_film',
+        }),
       });
     } catch {
       toast('Failed to update audio setting', 'error');
-      setAudioEnabled(audioEnabled);
+      setAmbientAudio(!newVal);
     }
-  }, [reel, reelId, audioEnabled, toast]);
+  }, [reel, reelId, ambientAudio, toast]);
+
+  const handleTranscribeToggle = useCallback(async () => {
+    if (!reel) return;
+    const newVal = !transcribeAudio;
+    setTranscribeAudio(newVal);
+    try {
+      await fetch(`/api/reels/${reelId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcribe_audio: newVal }),
+      });
+    } catch {
+      toast('Failed to update transcription setting', 'error');
+      setTranscribeAudio(!newVal);
+    }
+  }, [reel, reelId, transcribeAudio, toast]);
 
   if (loading) {
     return (
@@ -169,61 +183,65 @@ export default function ReelDetailPage() {
           </div>
         </div>
 
-        {/* Audio toggle */}
+        {/* Ambient audio toggle */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-[var(--space-element)]">
-            {audioEnabled ? (
+            {ambientAudio ? (
               <Volume2 size={16} className="text-[var(--color-ink-secondary)]" />
             ) : (
               <VolumeX size={16} className="text-[var(--color-ink-secondary)]" />
             )}
-            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Audio</span>
+            <div>
+              <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                Ambient Audio
+              </span>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Keep original audio from your video clips
+              </p>
+            </div>
           </div>
           <button
             type="button"
-            onClick={handleAudioToggle}
-            className={`relative w-11 h-6 rounded-full transition-colors ${
-              audioEnabled ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
+            onClick={handleAmbientAudioToggle}
+            className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+              ambientAudio ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
             }`}
           >
             <span
               className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                audioEnabled ? 'translate-x-5' : 'translate-x-0'
+                ambientAudio ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
           </button>
         </div>
 
-        {/* Audio mood selector (when audio is on) */}
-        {audioEnabled && (
-          <div className="flex items-center gap-1 pl-7">
-            {AUDIO_OPTIONS.filter((o) => o.id !== 'silent_film').map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={async () => {
-                  try {
-                    await fetch(`/api/reels/${reelId}`, {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ audio_mood: opt.id }),
-                    });
-                    setReel((prev) => (prev ? { ...prev, audio_mood: opt.id } : prev));
-                  } catch {
-                    toast('Failed to update audio mood', 'error');
-                  }
-                }}
-                className={`px-2 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                  reel.audio_mood === opt.id
-                    ? 'bg-[var(--color-action)] text-white'
-                    : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+        {/* Transcribe audio toggle */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[var(--space-element)]">
+            <FileText size={16} className="text-[var(--color-ink-secondary)]" />
+            <div>
+              <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                Transcribe Audio
+              </span>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Generate captions from spoken audio in clips
+              </p>
+            </div>
           </div>
-        )}
+          <button
+            type="button"
+            onClick={handleTranscribeToggle}
+            className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+              transcribeAudio ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                transcribeAudio ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Clips list */}

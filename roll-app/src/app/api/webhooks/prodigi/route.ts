@@ -112,12 +112,21 @@ export async function POST(request: NextRequest) {
           shipped: 'shipped',
           delivered: 'delivered',
           in_production: 'ordered',
+          cancelled: 'draft',
         };
         const magazineStatus = magazineStatusMap[updateData.status as string];
         if (magazineStatus) {
+          const magazineUpdate: Record<string, unknown> = {
+            status: magazineStatus,
+            updated_at: new Date().toISOString(),
+          };
+          // Clear the Prodigi order reference if cancelled so it can be re-ordered
+          if (magazineStatus === 'draft') {
+            magazineUpdate.prodigi_order_id = null;
+          }
           await supabase
             .from('magazines')
-            .update({ status: magazineStatus, updated_at: new Date().toISOString() })
+            .update(magazineUpdate)
             .eq('id', magazine.id);
         }
       }

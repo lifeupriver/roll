@@ -977,6 +977,16 @@ class MockQueryBuilder {
         TABLE_DATA[this.tableName] = [];
       }
       for (const row of this.insertData) {
+        // Auto-generate id, created_at, updated_at like real Postgres defaults
+        if (!row.id) {
+          row.id = crypto.randomUUID();
+        }
+        if (!row.created_at) {
+          row.created_at = new Date().toISOString();
+        }
+        if (!row.updated_at) {
+          row.updated_at = new Date().toISOString();
+        }
         (TABLE_DATA[this.tableName] as Record<string, unknown>[]).push({ ...row });
       }
       // When .select().single() is chained, return the first item (not an array)
