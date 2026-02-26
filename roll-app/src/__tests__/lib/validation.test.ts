@@ -170,9 +170,9 @@ describe('presignUploadSchema', () => {
     }).success).toBe(false);
   });
 
-  it('rejects files exceeding 50MB', () => {
+  it('rejects files exceeding 500MB', () => {
     expect(presignUploadSchema.safeParse({
-      files: [{ filename: 'big.jpg', contentType: 'image/jpeg', sizeBytes: 51 * 1024 * 1024 }],
+      files: [{ filename: 'big.mov', contentType: 'video/quicktime', sizeBytes: 501 * 1024 * 1024 }],
     }).success).toBe(false);
   });
 
