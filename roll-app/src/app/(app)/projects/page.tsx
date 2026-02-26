@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { CreateBookModal } from '@/components/book/CreateBookModal';
+import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import { useToast } from '@/stores/toastStore';
 type ProjectSection = 'albums' | 'reels';
 
@@ -278,6 +279,9 @@ function ProjectsContent() {
           />
         </div>
       )}
+
+      {/* Nudge banner */}
+      <NudgeBanner context="projects" />
 
       {/* Section toggle + grid toggle */}
       <div className="flex items-center justify-between">

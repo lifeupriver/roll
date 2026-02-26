@@ -31,6 +31,7 @@ import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { PublishModal } from '@/components/blog/PublishModal';
+import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
@@ -1041,6 +1042,9 @@ export default function RollDetailPage() {
           .develop-pulse { animation: none; background-color: var(--color-action-subtle); }
         }
       `}</style>
+
+      {/* Share nudge for developed rolls */}
+      {roll?.status === 'developed' && <NudgeBanner context="roll" />}
 
       {/* Header: back + counter */}
       <div className="flex items-center gap-[var(--space-element)]">
