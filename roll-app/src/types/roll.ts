@@ -16,6 +16,7 @@ export interface Roll {
   photos_processed: number;
   correction_skipped_count: number;
   story: string | null;
+  theme_name: string | null;
   created_at: string;
   updated_at: string;
 }

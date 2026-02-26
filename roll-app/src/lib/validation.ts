@@ -25,6 +25,8 @@ export const updateRollSchema = z
     name: z.string().trim().min(1).max(100).optional(),
     status: z.enum(['building', 'ready', 'processing', 'developed', 'error']).optional(),
     film_profile: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']).optional(),
+    theme_name: z.string().trim().min(1).max(200).optional(),
+    story: z.string().max(2000).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',

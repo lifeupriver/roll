@@ -87,7 +87,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const parsed = await parseBody(request, updateRollSchema);
     if (parsed.error) return parsed.error;
-    const { name, status, film_profile } = parsed.data;
+    const { name, status, film_profile, theme_name, story } = parsed.data;
 
     // Validate status transition if status is being changed
     if (status) {
@@ -108,6 +108,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (name !== undefined) updateData.name = name;
     if (status !== undefined) updateData.status = status;
     if (film_profile !== undefined) updateData.film_profile = film_profile;
+    if (theme_name !== undefined) updateData.theme_name = theme_name;
+    if (story !== undefined) updateData.story = story;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

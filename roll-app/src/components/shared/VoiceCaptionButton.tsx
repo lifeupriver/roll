@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Mic, MicOff } from 'lucide-react';
 
 interface VoiceCaptionButtonProps {
@@ -10,16 +10,30 @@ interface VoiceCaptionButtonProps {
 
 export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButtonProps) {
   const [isListening, setIsListening] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isSupported =
-    typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+  useEffect(() => {
+    setIsSupported(
+      typeof window !== 'undefined' &&
+        ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+    );
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setIsListening(false);
+  }, []);
 
   const toggleListening = useCallback(() => {
     if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
+      stopListening();
       return;
     }
 
@@ -27,20 +41,33 @@ export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButto
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = 'en-US';
 
+    let fullTranscript = '';
+
     recognition.onresult = (event) => {
-      const transcript = event.results[0]?.[0]?.transcript;
-      if (transcript) {
-        onTranscript(transcript);
+      // Reset silence timer on speech
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(stopListening, 3000);
+
+      let interim = '';
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result[0]) {
+          if (result.isFinal) {
+            fullTranscript += result[0].transcript;
+          } else {
+            interim += result[0].transcript;
+          }
+        }
       }
-      setIsListening(false);
+      onTranscript(fullTranscript + interim);
     };
 
     recognition.onerror = () => {
-      setIsListening(false);
+      stopListening();
     };
 
     recognition.onend = () => {
@@ -50,7 +77,18 @@ export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButto
     recognitionRef.current = recognition;
     recognition.start();
     setIsListening(true);
-  }, [isListening, onTranscript]);
+
+    // Auto-stop after 3 seconds of silence
+    silenceTimerRef.current = setTimeout(stopListening, 3000);
+  }, [isListening, onTranscript, stopListening]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    };
+  }, []);
 
   if (!isSupported) return null;
 
@@ -60,23 +98,35 @@ export function VoiceCaptionButton({ onTranscript, disabled }: VoiceCaptionButto
       onClick={toggleListening}
       disabled={disabled}
       className={[
-        'p-1.5 rounded-full transition-colors',
+        'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors relative',
         isListening
-          ? 'bg-[var(--color-error)]/10 text-[var(--color-error)] animate-pulse'
+          ? 'bg-[var(--color-heart)] text-white'
           : 'text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)] hover:bg-[var(--color-surface-sunken)]',
         disabled ? 'opacity-40 pointer-events-none' : '',
       ].join(' ')}
       aria-label={isListening ? 'Stop recording' : 'Record voice caption'}
       title={isListening ? 'Stop recording' : 'Speak your caption'}
     >
-      {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+      {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+      {isListening && (
+        <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-[var(--color-heart)] animate-pulse" />
+      )}
     </button>
   );
 }
 
 // Add SpeechRecognition types for browsers that support it
+interface SpeechRecognitionResult {
+  readonly isFinal: boolean;
+  readonly [index: number]: { transcript: string } | undefined;
+}
+
 interface SpeechRecognitionEvent extends Event {
-  results: { [index: number]: { [index: number]: { transcript: string } } };
+  readonly results: {
+    readonly length: number;
+    readonly [index: number]: SpeechRecognitionResult;
+  };
+  readonly resultIndex: number;
 }
 
 interface SpeechRecognitionInstance {

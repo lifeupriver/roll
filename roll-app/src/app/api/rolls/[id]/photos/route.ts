@@ -2,7 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 import { parseBody, addRollPhotoSchema } from '@/lib/validation';
+import { z } from 'zod';
 import type { RollPhoto } from '@/types/roll';
+
+const batchUpdateCaptionsSchema = z.object({
+  captions: z.array(
+    z.object({
+      photoId: z.string().uuid(),
+      caption: z.string().max(500),
+      captionSource: z.enum(['manual', 'voice', 'auto_draft', 'auto_accepted']),
+    })
+  ).min(1),
+});
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -96,6 +107,65 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ data: rollPhoto as RollPhoto, rollStatus }, { status: 201 });
   } catch (err) {
     captureError(err, { context: 'roll-photos' });
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: rollId } = await params;
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify roll ownership
+    const { data: roll, error: rollError } = await supabase
+      .from('rolls')
+      .select('id')
+      .eq('id', rollId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (rollError || !roll) {
+      return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
+    }
+
+    const parsed = await parseBody(request, batchUpdateCaptionsSchema);
+    if (parsed.error) return parsed.error;
+    const { captions } = parsed.data;
+
+    const results: RollPhoto[] = [];
+    for (const item of captions) {
+      const { data, error } = await supabase
+        .from('roll_photos')
+        .update({
+          caption: item.caption,
+          caption_source: item.captionSource,
+          caption_updated_at: new Date().toISOString(),
+        })
+        .eq('roll_id', rollId)
+        .eq('photo_id', item.photoId)
+        .select()
+        .single();
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      if (data) results.push(data as RollPhoto);
+    }
+
+    return NextResponse.json({ data: results });
+  } catch (err) {
+    captureError(err, { context: 'roll-photos-batch-update' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
