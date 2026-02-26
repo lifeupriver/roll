@@ -31,10 +31,10 @@ export async function GET(
       return NextResponse.json({ error: 'Gallery not found' }, { status: 404 });
     }
 
-    // Fetch business profile info
+    // Fetch business profile info (including blog slug for migration)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('business_name, business_logo_url, business_accent_color, display_name')
+      .select('business_name, business_logo_url, business_accent_color, display_name, blog_slug, blog_enabled')
       .eq('id', roll.user_id)
       .single();
 
@@ -69,6 +69,7 @@ export async function GET(
         settings: roll.public_settings || {},
         business_name: profile?.business_name || profile?.display_name || null,
         business_logo_url: profile?.business_logo_url || null,
+        blog_slug: profile?.blog_enabled ? profile?.blog_slug : null,
         photos,
       },
     });

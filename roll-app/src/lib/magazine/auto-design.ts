@@ -181,6 +181,123 @@ export function autoDesignMagazine(
 }
 
 /**
+ * Roll-based magazine section for autoDesignFromRolls.
+ */
+export interface MagazineSection {
+  rollId: string;
+  title: string;
+  story: string | null;
+  photos: FavoritePhoto[];
+}
+
+/**
+ * Auto-design a magazine from selected rolls (new roll-based flow).
+ * Each roll becomes a section with: divider page → story page (if story) → photo pages.
+ */
+export function autoDesignFromRolls(
+  sections: MagazineSection[],
+  _template: MagazineTemplate,
+  _options: { font?: string }
+): MagazinePage[] {
+  const pages: MagazinePage[] = [];
+  let lastLayout = '';
+
+  for (const section of sections) {
+    // Section divider page with roll title
+    pages.push({
+      layout: 'section_divider',
+      photos: [],
+      type: 'divider',
+      title: section.title,
+    });
+
+    // Story page if the roll has a story
+    if (section.story) {
+      pages.push({
+        layout: 'story_page',
+        photos: [],
+        type: 'divider',
+        caption: section.story,
+        title: section.title,
+      });
+    }
+
+    // Photo pages using the existing scoring algorithm
+    const scored = [...section.photos].sort((a, b) => scorePhoto(b) - scorePhoto(a));
+    let i = 0;
+
+    while (i < scored.length) {
+      const remaining = scored.length - i;
+      const photo = scored[i];
+
+      // High-scoring photos get full-page treatment
+      if (scorePhoto(photo) >= 8 && lastLayout !== 'full_bleed') {
+        pages.push({
+          layout: 'full_bleed',
+          photos: [{ id: photo.photo_id, position: 0 }],
+          caption: photo.caption,
+          type: 'photo',
+        });
+        lastLayout = 'full_bleed';
+        i++;
+        continue;
+      }
+
+      // Photos with long captions get caption-spread layout
+      if (photo.caption && photo.caption.length > 100 && lastLayout !== 'caption_heavy') {
+        pages.push({
+          layout: 'caption_heavy',
+          photos: [{ id: photo.photo_id, position: 0 }],
+          caption: photo.caption,
+          type: 'photo',
+        });
+        lastLayout = 'caption_heavy';
+        i++;
+        continue;
+      }
+
+      // Group remaining photos into pages
+      let pageSize: number;
+      if (remaining >= 4) {
+        pageSize = 4;
+      } else if (remaining >= 3) {
+        pageSize = 3;
+      } else if (remaining >= 2) {
+        pageSize = 2;
+      } else {
+        pageSize = 1;
+      }
+
+      const pagePhotos = scored.slice(i, i + pageSize);
+      const orientations = pagePhotos.map(getOrientation);
+      let layout = selectLayout(pageSize, orientations);
+
+      // Avoid consecutive same layouts
+      if (layout === lastLayout) {
+        if (pageSize === 1) layout = 'caption_heavy';
+        else if (pageSize === 2)
+          layout = layout === 'two_up_vertical' ? 'two_up_horizontal' : 'two_up_vertical';
+      }
+
+      pages.push({
+        layout,
+        photos: pagePhotos.map((p, idx) => ({
+          id: p.photo_id,
+          position: idx,
+        })),
+        caption: pagePhotos[0]?.caption,
+        type: 'photo',
+      });
+
+      lastLayout = layout;
+      i += pageSize;
+    }
+  }
+
+  return pages;
+}
+
+/**
  * Auto-select the best photo for the magazine cover.
  */
 export function selectCoverPhoto(favorites: FavoritePhoto[]): string | null {

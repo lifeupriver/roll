@@ -10,7 +10,6 @@ import {
   X,
   Film,
   Printer,
-  Share2,
   AlertCircle,
   Wand2,
   MessageSquare,
@@ -21,6 +20,7 @@ import {
   Video,
   UserRound,
   Images,
+  Globe,
 } from 'lucide-react';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { BackButton } from '@/components/ui/BackButton';
@@ -29,6 +29,8 @@ import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 // import { BeforeAfterCompare } from '@/components/photo/BeforeAfterCompare';
 import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
+import { PublishModal } from '@/components/blog/PublishModal';
+import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
@@ -97,6 +99,9 @@ export default function RollDetailPage() {
   const [circles, setCircles] = useState<Circle[]>([]);
   const [circlesLoading, setCirclesLoading] = useState(false);
   const [shareCircleId, setShareCircleId] = useState<string | null>(null);
+
+  // Publish modal state
+  const [showPublishModal, setShowPublishModal] = useState(false);
 
   // Story modal state
   const [showStoryModal, setShowStoryModal] = useState(false);
@@ -640,6 +645,9 @@ export default function RollDetailPage() {
   if (roll.status === 'developed') {
     return (
       <div className="flex flex-col gap-[var(--space-section)] pb-8">
+        {/* Share nudge for developed rolls */}
+        <NudgeBanner context="roll" />
+
         {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
           <BackButton href="/library" />
@@ -689,11 +697,15 @@ export default function RollDetailPage() {
           </div>
         </Link>
 
-        {/* Share to circle + Add a story */}
-        <div className="flex items-center gap-[var(--space-element)]">
+        {/* Share options + Add a story */}
+        <div className="flex items-center gap-[var(--space-element)] flex-wrap">
           <Button variant="secondary" size="md" onClick={handleOpenCirclePicker}>
-            <Share2 size={18} className="mr-2" />
+            <Users size={18} className="mr-2" />
             Share to Circle
+          </Button>
+          <Button variant="secondary" size="md" onClick={() => setShowPublishModal(true)}>
+            <Globe size={18} className="mr-2" />
+            Publish as Public Post
           </Button>
           <Button
             variant="secondary"
@@ -962,6 +974,21 @@ export default function RollDetailPage() {
             isOpen={true}
             onClose={() => setShareCircleId(null)}
             circleId={shareCircleId}
+          />
+        )}
+
+        {/* Publish as Public Post modal */}
+        {roll && (
+          <PublishModal
+            isOpen={showPublishModal}
+            onClose={() => setShowPublishModal(false)}
+            rollId={roll.id}
+            rollTitle={roll.theme_name || roll.name || 'Untitled'}
+            rollStory={roll.story}
+            rollPhotos={photos.map((rp) => ({
+              photo_id: rp.photo_id,
+              photos: rp.photos ? { thumbnail_url: rp.photos.thumbnail_url } : null,
+            }))}
           />
         )}
 

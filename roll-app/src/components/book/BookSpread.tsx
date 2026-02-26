@@ -72,9 +72,9 @@ export function BookSpread({
         <div className="flex-1 min-w-0">
           {leftPage && (
             <CaptionEditor
-              caption={leftPage.caption}
+              caption={leftPage.caption ?? ''}
               editable={editable}
-              onSave={(c) => onCaptionChange(leftPage.photoId, c)}
+              onSave={(c) => onCaptionChange(leftPage.photoId ?? '', c)}
               placeholder="Add caption..."
             />
           )}
@@ -82,9 +82,9 @@ export function BookSpread({
         <div className="flex-1 min-w-0">
           {rightPage && (
             <CaptionEditor
-              caption={rightPage.caption}
+              caption={rightPage.caption ?? ''}
               editable={editable}
-              onSave={(c) => onCaptionChange(rightPage.photoId, c)}
+              onSave={(c) => onCaptionChange(rightPage.photoId ?? '', c)}
               placeholder="Add caption..."
             />
           )}
@@ -133,7 +133,7 @@ function SpreadPage({
     <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] overflow-hidden group">
       {/* Photo */}
       <img
-        src={page.thumbnailUrl}
+        src={page.thumbnailUrl ?? ''}
         alt={`Page ${pageIndex + 1}`}
         className="w-full h-full object-cover"
       />
@@ -149,7 +149,7 @@ function SpreadPage({
         {onPhotoTap && (
           <button
             type="button"
-            onClick={() => onPhotoTap(page.photoId)}
+            onClick={() => onPhotoTap(page.photoId ?? '')}
             className="absolute top-2 right-2 p-2.5 rounded-[var(--radius-sharp)] bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity touch-target"
           >
             <Maximize2 size={16} />
@@ -182,7 +182,7 @@ function SpreadPage({
             {onRemovePage && (
               <button
                 type="button"
-                onClick={() => onRemovePage(page.photoId)}
+                onClick={() => onRemovePage(page.photoId ?? '')}
                 className="p-2.5 rounded-[var(--radius-sharp)] bg-black/40 text-red-300 hover:bg-red-500/60 hover:text-white transition-colors touch-target"
                 title="Remove page"
               >

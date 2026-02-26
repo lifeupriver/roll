@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { FavoritesRollPrompt } from '@/components/roll/FavoritesRollPrompt';
+import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import Link from 'next/link';
 import type { Roll } from '@/types/roll';
 import type { Reel } from '@/types/reel';
@@ -172,9 +174,15 @@ export default function GalleryPage() {
         variant="primary"
       />
 
+      {/* Nudge banner */}
+      <NudgeBanner context="library" />
+
       {/* Rolls section */}
       {activeSection === 'rolls' && (
         <section className="flex flex-col gap-[var(--space-section)] tab-content-enter">
+          {/* Favorites roll prompt */}
+          {!isLoading && !error && <FavoritesRollPrompt />}
+
           {isLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />

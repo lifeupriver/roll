@@ -667,7 +667,7 @@ function BookDetailContent() {
                   {currentPages[0] && (
                     <>
                       <img
-                        src={currentPages[0].thumbnailUrl}
+                        src={currentPages[0].thumbnailUrl ?? ''}
                         alt={`Page ${currentSpread + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -676,7 +676,7 @@ function BookDetailContent() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setLightboxPhotoId(currentPages[0]!.photoId)}
+                        onClick={() => setLightboxPhotoId(currentPages[0]!.photoId ?? null)}
                         className="absolute top-2 right-2 p-1.5 rounded-[var(--radius-sharp)] bg-black/40 text-white opacity-0 hover:opacity-100 transition-opacity"
                       >
                         <Maximize2 size={14} />
@@ -687,9 +687,9 @@ function BookDetailContent() {
                 {currentPages[0] && (
                   <div className="max-w-sm mx-auto w-full">
                     <CaptionEditor
-                      caption={currentPages[0].caption}
+                      caption={currentPages[0].caption ?? ''}
                       editable={mode === 'edit'}
-                      onSave={(c) => handleCaptionChange(currentPages[0]!.photoId, c)}
+                      onSave={(c) => handleCaptionChange(currentPages[0]!.photoId ?? '', c)}
                       placeholder="Add caption..."
                     />
                   </div>

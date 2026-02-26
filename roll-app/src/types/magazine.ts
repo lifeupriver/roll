@@ -37,6 +37,16 @@ export interface MagazinePage {
   title?: string;
 }
 
+export type MagazineFont =
+  | 'default'
+  | 'garamond'
+  | 'futura'
+  | 'courier'
+  | 'playfair'
+  | 'lora'
+  | 'jakarta'
+  | 'baskerville';
+
 export interface Magazine {
   id: string;
   user_id: string;
@@ -48,6 +58,10 @@ export interface Magazine {
   date_range_end: string | null;
   page_count: number;
   format: MagazineFormat;
+  font: MagazineFont;
+  roll_ids: string[] | null;
+  is_public: boolean;
+  public_slug: string | null;
   pages: MagazinePage[];
   prodigi_order_id: string | null;
   price_cents: number | null;
