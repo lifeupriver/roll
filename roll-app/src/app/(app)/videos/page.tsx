@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Film, Play, MousePointerClick, X, ChevronRight, Users, Wand2,
+  Film, Play, MousePointerClick, X, ChevronRight, Users, Wand2, Send,
 } from 'lucide-react';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
+import { useToast } from '@/stores/toastStore';
 import { track } from '@/lib/analytics';
 import type { ContentMode } from '@/types/photo';
 import type { Reel } from '@/types/reel';
@@ -57,6 +58,8 @@ export default function VideosPage() {
     removeClip,
     setReel: setReelState,
   } = useReelStore();
+
+  const { toast } = useToast();
 
   const [section, setSection] = useState<VideoSection>('clips');
   const [clipFilter, setClipFilter] = useState<'all' | 'people'>('all');
@@ -205,6 +208,13 @@ export default function VideosPage() {
     },
     [videoClips]
   );
+
+  const handleAddToReel = useCallback(() => {
+    const count = reelCount;
+    setSelectMode(false);
+    toast(`${count} clip${count !== 1 ? 's' : ''} added to your reel`, 'success');
+    track({ event: 'clips_added_to_reel', properties: { reelId: currentReel?.id || '', clipCount: count } });
+  }, [reelCount, currentReel, toast]);
 
   const activeReels = reels.filter((r) => r.status !== 'archived');
 
@@ -451,6 +461,32 @@ export default function VideosPage() {
           )}
         </div>
       )}
+
+      {/* Fixed bottom action bar — slides up when clips are selected */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ease-out ${
+          selectMode && reelCount > 0 ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className="bg-[var(--color-surface)] border-t border-[var(--color-border)] px-[var(--space-component)] py-[var(--space-element)] safe-area-bottom">
+          <div className="flex items-center justify-between max-w-screen-lg mx-auto">
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Film size={18} className="text-[var(--color-action)]" />
+              <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                {reelCount} clip{reelCount !== 1 ? 's' : ''} selected
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddToReel}
+              className="flex items-center gap-[var(--space-tight)] px-[var(--space-component)] py-[var(--space-element)] rounded-[var(--radius-sharp)] bg-[#C45D3E] text-white text-[length:var(--text-label)] font-semibold min-h-[44px] transition-colors hover:bg-[#B04E32] active:scale-[0.98]"
+            >
+              <Send size={16} />
+              Add to Reel
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
