@@ -8,6 +8,8 @@ import {
   DevelopVisual,
   PrintsVisual,
 } from '@/components/landing/FeatureVisuals';
+import { MagazineDemo } from '@/components/landing/MagazineDemo';
+import { BookDemo } from '@/components/landing/BookDemo';
 import Link from 'next/link';
 
 export const dynamic = 'force-static';
@@ -45,8 +47,8 @@ const SECONDARY_FEATURES = [
     desc: 'Share your best photos with family and friends in a private feed. No ads, no algorithm.',
   },
   {
-    title: 'Books',
-    desc: 'Turn your favorites into a hardcover photo book. Flip through pages in the app, then order a printed copy.',
+    title: 'Magazines',
+    desc: 'Auto-designed from your favorites — monthly, quarterly, or annual. Choose a template and we lay out every page.',
   },
   {
     title: 'Video',
@@ -344,16 +346,31 @@ export default function LandingPage() {
           Section 6: The Result — Physical prints
           ================================================ */}
       <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20 bg-[var(--color-surface-raised)]">
-        <div className="max-w-[900px] mx-auto">
-          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-region)]">
+        <div className="max-w-[1100px] mx-auto">
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-element)]">
             From screen to something real
           </h2>
+          <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center max-w-[50ch] mx-auto mb-[var(--space-region)]">
+            Click to explore each product — see exactly what you get.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-[var(--space-section)]">
+            {/* Prints card */}
             <div className="text-center flex flex-col items-center gap-[var(--space-element)]">
-              <div className="w-full aspect-[4/3] rounded-[var(--radius-card)] bg-[var(--color-surface-sunken)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] tracking-wide uppercase">
-                  Prints photo
-                </span>
+              <div className="w-full aspect-[3/4] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] relative group">
+                <img
+                  src="/photos/IMG_3518 Large.jpeg"
+                  alt="Prints preview"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 inset-x-0 p-4">
+                  <p className="font-[family-name:var(--font-display)] font-semibold text-white text-[length:var(--text-lead)] leading-tight">
+                    Prints
+                  </p>
+                  <p className="text-white/60 text-[length:var(--text-caption)] mt-1 font-[family-name:var(--font-mono)]">
+                    4×6 · Matte or Glossy
+                  </p>
+                </div>
               </div>
               <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)]">
                 Prints
@@ -363,35 +380,11 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="text-center flex flex-col items-center gap-[var(--space-element)]">
-              <div className="w-full aspect-[4/3] rounded-[var(--radius-card)] bg-[var(--color-surface-sunken)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] tracking-wide uppercase">
-                  Books photo
-                </span>
-              </div>
-              <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)]">
-                Books
-              </h3>
-              <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
-                Turn your favorites into a hardcover photo book. Flip through it in the app or order
-                a printed copy.
-              </p>
-            </div>
+            {/* Magazine demo (interactive) */}
+            <MagazineDemo />
 
-            <div className="text-center flex flex-col items-center gap-[var(--space-element)]">
-              <div className="w-full aspect-[4/3] rounded-[var(--radius-card)] bg-[var(--color-surface-sunken)] border border-[var(--color-border)] flex items-center justify-center overflow-hidden">
-                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] tracking-wide uppercase">
-                  Circle photo
-                </span>
-              </div>
-              <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)]">
-                Circle
-              </h3>
-              <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
-                Share your best photos with family and friends in a private feed. No ads. No
-                algorithm.
-              </p>
-            </div>
+            {/* Book demo (interactive) */}
+            <BookDemo />
           </div>
         </div>
       </section>
