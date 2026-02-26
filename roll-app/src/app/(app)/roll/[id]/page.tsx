@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, Grid2x2, Grid3x3, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
+import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
+import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { BackButton } from '@/components/ui/BackButton';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { BeforeAfterCompare } from '@/components/photo/BeforeAfterCompare';
@@ -717,21 +718,8 @@ export default function RollDetailPage() {
             </div>
           </div>
 
-          {/* Grid size slider */}
-          <div className="flex items-center gap-[var(--space-tight)]">
-            <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-            <input
-              type="range"
-              min="2"
-              max="6"
-              step="1"
-              value={gridColumns}
-              onChange={(e) => setGridColumns(parseInt(e.target.value, 10))}
-              className="w-20 accent-[var(--color-action)] cursor-pointer"
-              aria-label="Grid columns"
-            />
-            <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
-          </div>
+          {/* Grid size toggle */}
+          <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
         </div>
 
         {/* Photo count info */}
@@ -967,21 +955,10 @@ export default function RollDetailPage() {
         </p>
       )}
 
-      {/* Grid size slider */}
+      {/* Grid size toggle */}
       {photos.length > 0 && (
-        <div className="flex items-center justify-end gap-[var(--space-tight)]">
-          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-          <input
-            type="range"
-            min="2"
-            max="6"
-            step="1"
-            value={gridColumns}
-            onChange={(e) => setGridColumns(parseInt(e.target.value, 10))}
-            className="w-20 accent-[var(--color-action)] cursor-pointer"
-            aria-label="Grid columns"
-          />
-          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
+        <div className="flex items-center justify-end">
+          <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
         </div>
       )}
 

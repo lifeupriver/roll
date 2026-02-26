@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Film, Play, Grid2x2, Grid3x3, MousePointerClick, X, ChevronRight, Users, Wand2,
+  Film, Play, MousePointerClick, X, ChevronRight, Users, Wand2,
 } from 'lucide-react';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -217,19 +218,7 @@ export default function VideosPage() {
           options={SECTION_OPTIONS}
         />
         {section === 'clips' && (
-          <div className="flex items-center gap-[var(--space-tight)]">
-            <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-            <input
-              type="range"
-              min={2}
-              max={6}
-              value={gridColumns}
-              onChange={(e) => setGridColumns(Number(e.target.value))}
-              className="w-20 accent-[var(--color-action)]"
-              aria-label="Grid columns"
-            />
-            <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
-          </div>
+          <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
         )}
       </div>
 

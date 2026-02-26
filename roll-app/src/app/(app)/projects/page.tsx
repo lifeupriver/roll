@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  BookOpen, Film, Plus, Play, Grid2x2, Grid3x3,
+  BookOpen, Film, Plus, Play,
   MoreHorizontal, Trash2, Copy, Pencil, Search, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { Spinner } from '@/components/ui/Spinner';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { CreateBookModal } from '@/components/book/CreateBookModal';
 import { useToast } from '@/stores/toastStore';
 type ProjectSection = 'albums' | 'reels';
@@ -262,7 +263,7 @@ function ProjectsContent() {
         </div>
       )}
 
-      {/* Section toggle + grid slider */}
+      {/* Section toggle + grid toggle */}
       <div className="flex items-center justify-between">
         <ContentModePills
           activeMode={activeSection}
@@ -270,19 +271,7 @@ function ProjectsContent() {
           options={SECTION_OPTIONS}
           variant="primary"
         />
-        <div className="flex items-center gap-[var(--space-tight)]">
-          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-          <input
-            type="range"
-            min={2}
-            max={4}
-            value={gridColumns}
-            onChange={(e) => setGridColumns(Number(e.target.value))}
-            className="w-16 accent-[var(--color-action)]"
-            aria-label="Grid columns"
-          />
-          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
-        </div>
+        <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
       </div>
 
       {loading && (
