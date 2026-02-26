@@ -667,7 +667,7 @@ function BookDetailContent() {
                   {currentPages[0] && (
                     <>
                       <img
-                        src={currentPages[0].thumbnailUrl}
+                        src={currentPages[0].thumbnailUrl ?? ''}
                         alt={`Page ${currentSpread + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -687,9 +687,9 @@ function BookDetailContent() {
                 {currentPages[0] && (
                   <div className="max-w-sm mx-auto w-full">
                     <CaptionEditor
-                      caption={currentPages[0].caption}
+                      caption={currentPages[0].caption ?? ''}
                       editable={mode === 'edit'}
-                      onSave={(c) => handleCaptionChange(currentPages[0]!.photoId, c)}
+                      onSave={(c) => handleCaptionChange(currentPages[0]!.photoId ?? '', c)}
                       placeholder="Add caption..."
                     />
                   </div>

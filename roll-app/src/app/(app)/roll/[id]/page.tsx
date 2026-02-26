@@ -645,6 +645,9 @@ export default function RollDetailPage() {
   if (roll.status === 'developed') {
     return (
       <div className="flex flex-col gap-[var(--space-section)] pb-8">
+        {/* Share nudge for developed rolls */}
+        <NudgeBanner context="roll" />
+
         {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
           <BackButton href="/library" />
@@ -1041,9 +1044,6 @@ export default function RollDetailPage() {
           .develop-pulse { animation: none; background-color: var(--color-action-subtle); }
         }
       `}</style>
-
-      {/* Share nudge for developed rolls */}
-      {roll?.status === 'developed' && <NudgeBanner context="roll" />}
 
       {/* Header: back + counter */}
       <div className="flex items-center gap-[var(--space-element)]">
