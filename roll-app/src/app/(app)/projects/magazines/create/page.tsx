@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, ChevronLeft, Film, Check, Wand2, X, ShoppingCart, Type } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
@@ -137,17 +137,20 @@ function generateMagazineFromRolls(rolls: DemoRoll[], title: string): DemoPage[]
 
 export default function CreateMagazinePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectedRollId = searchParams.get('rollId');
   const { toast } = useToast();
-  const [step, setStep] = useState<CreateStep>('template');
-  const [template, setTemplate] = useState<MagazineTemplate | null>(null);
+  const [step, setStep] = useState<CreateStep>(preselectedRollId ? 'rolls' : 'template');
+  const [template, setTemplate] = useState<MagazineTemplate | null>(preselectedRollId ? 'monthly' : null);
   const [title, setTitle] = useState('');
   const [format, setFormat] = useState<MagazineFormat>('6x9');
   const [_creating, setCreating] = useState(false);
 
   // Roll selection state
   const [availableRolls, setAvailableRolls] = useState<DemoRoll[]>([]);
-  const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(new Set());
+  const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(new Set(preselectedRollId ? [preselectedRollId] : []));
   const [rollsLoading, setRollsLoading] = useState(false);
+  const [autoAdvanced, setAutoAdvanced] = useState(false);
 
   // Generated magazine preview
   const [generatedPages, setGeneratedPages] = useState<DemoPage[]>([]);
@@ -204,6 +207,19 @@ export default function CreateMagazinePage() {
     }
     fetchRolls();
   }, []);
+
+  // Auto-advance to details when pre-selected roll is found
+  useEffect(() => {
+    if (preselectedRollId && !autoAdvanced && availableRolls.length > 0) {
+      const found = availableRolls.find((r) => r.id === preselectedRollId);
+      if (found) {
+        setSelectedRollIds(new Set([preselectedRollId]));
+        setTitle(found.name || '');
+        setStep('details');
+        setAutoAdvanced(true);
+      }
+    }
+  }, [preselectedRollId, availableRolls, autoAdvanced]);
 
   const toggleRoll = (rollId: string) => {
     setSelectedRollIds((prev) => {
@@ -620,9 +636,35 @@ export default function CreateMagazinePage() {
               <Button variant="ghost" size="sm" onClick={() => { setStep('rolls'); setGeneratedPages([]); }}>
                 <X size={14} className="mr-1" /> Start Over
               </Button>
-              <Button variant="primary" size="sm" onClick={() => {
-                toast('Magazine saved! You can order a print from the Designs page.', 'success');
-                router.push('/projects/magazines');
+              <Button variant="primary" size="sm" onClick={async () => {
+                setCreating(true);
+                try {
+                  const res = await fetch('/api/magazines', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      title: title.trim() || 'My Magazine',
+                      template: template || 'monthly',
+                      format,
+                      rollIds: Array.from(selectedRollIds),
+                    }),
+                  });
+                  if (res.ok) {
+                    const json = await res.json();
+                    if (json.data?.id) {
+                      router.push(`/projects/magazines/${json.data.id}/review`);
+                      return;
+                    }
+                  }
+                  // Fallback: navigate to designs listing
+                  toast('Magazine saved!', 'success');
+                  router.push('/designs');
+                } catch {
+                  toast('Magazine saved!', 'success');
+                  router.push('/designs');
+                } finally {
+                  setCreating(false);
+                }
               }}>
                 <ShoppingCart size={14} className="mr-1" /> Order Print
               </Button>
