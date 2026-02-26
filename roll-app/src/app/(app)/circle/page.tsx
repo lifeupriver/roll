@@ -324,7 +324,7 @@ export default function CirclePage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
-      {/* Header with circles list and settings gear */}
+      {/* Header with settings gear */}
       <div className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
           Circle
@@ -341,40 +341,19 @@ export default function CirclePage() {
                 <Plus size={20} strokeWidth={1.5} />
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                if (circles.length > 0) openSettings(circles[0]);
+              }}
+              className="p-2 rounded-[var(--radius-sharp)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
+              aria-label="Circle settings"
+            >
+              <Settings size={20} strokeWidth={1.5} />
+            </button>
           </div>
         )}
       </div>
-
-      {/* Circles row — horizontal scroll of circle avatars */}
-      {!loading && circles.length > 0 && (
-        <div className="flex gap-[var(--space-component)] overflow-x-auto no-scrollbar pt-[var(--space-tight)] pb-[var(--space-tight)]">
-          {circles.map((circle) => (
-            <div
-              key={circle.id}
-              className="flex flex-col items-center gap-[var(--space-tight)] shrink-0"
-            >
-              <button
-                type="button"
-                onClick={() => router.push(`/circle/${circle.id}`)}
-                className="relative w-16 h-16 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center ring-2 ring-[var(--color-action)]/30 hover:ring-[var(--color-action)] transition-all cursor-pointer"
-              >
-                <Users size={22} className="text-[var(--color-action)]" />
-              </button>
-              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center max-w-[72px] line-clamp-2 leading-tight">
-                {circle.name}
-              </span>
-              <button
-                type="button"
-                onClick={() => openSettings(circle)}
-                className="w-11 h-11 flex items-center justify-center rounded-full text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)] transition-colors"
-                aria-label={`${circle.name} settings`}
-              >
-                <Settings size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Loading state */}
       {loading && (

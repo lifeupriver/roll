@@ -45,23 +45,57 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, description, photoIds } = body;
+    const { name, description, photoIds, magazine_ids, roll_ids } = body;
 
-    if (!photoIds || !Array.isArray(photoIds) || photoIds.length === 0) {
-      return NextResponse.json({ error: 'At least one photo is required' }, { status: 400 });
+    // Resolve photo IDs from different sources
+    let resolvedPhotoIds: string[] = photoIds || [];
+
+    if ((!resolvedPhotoIds || resolvedPhotoIds.length === 0) && roll_ids && Array.isArray(roll_ids) && roll_ids.length > 0) {
+      // Fetch photos from the specified rolls
+      const { data: rollPhotos } = await supabase
+        .from('roll_photos')
+        .select('photo_id')
+        .in('roll_id', roll_ids)
+        .order('position', { ascending: true });
+
+      resolvedPhotoIds = (rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id);
     }
 
+    if ((!resolvedPhotoIds || resolvedPhotoIds.length === 0) && magazine_ids && Array.isArray(magazine_ids) && magazine_ids.length > 0) {
+      // Fetch photos from the specified magazines' source rolls
+      const { data: mags } = await supabase
+        .from('magazines')
+        .select('roll_ids')
+        .in('id', magazine_ids);
+
+      const allRollIds = (mags || []).flatMap((m: { roll_ids: string[] | null }) => m.roll_ids || []);
+      if (allRollIds.length > 0) {
+        const { data: rollPhotos } = await supabase
+          .from('roll_photos')
+          .select('photo_id')
+          .in('roll_id', allRollIds)
+          .order('position', { ascending: true });
+
+        resolvedPhotoIds = (rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id);
+      }
+    }
+
+    // If we still have no photos, create the book anyway with metadata
     const albumId = crypto.randomUUID();
     const albumName = (name || 'Untitled Book').trim();
     const albumDescription = description ? String(description).trim() : null;
     const now = new Date().toISOString();
 
-    // Get first photo for cover
-    const { data: coverPhoto } = await supabase
-      .from('photos')
-      .select('thumbnail_url')
-      .eq('id', photoIds[0])
-      .single();
+    // Get first photo for cover if available
+    let coverUrl: string | null = null;
+    if (resolvedPhotoIds.length > 0) {
+      const { data: coverPhoto } = await supabase
+        .from('photos')
+        .select('thumbnail_url')
+        .eq('id', resolvedPhotoIds[0])
+        .single();
+      coverUrl = coverPhoto?.thumbnail_url || null;
+    }
 
     // Try to insert into collections table
     const { data: album, error: insertError } = await supabase
@@ -72,9 +106,9 @@ export async function POST(request: NextRequest) {
         type: 'album',
         name: albumName,
         description: albumDescription,
-        cover_url: coverPhoto?.thumbnail_url || null,
-        photo_ids: photoIds,
-        photo_count: photoIds.length,
+        cover_url: coverUrl,
+        photo_ids: resolvedPhotoIds,
+        photo_count: resolvedPhotoIds.length,
         captions: {},
         created_at: now,
         updated_at: now,
@@ -88,9 +122,11 @@ export async function POST(request: NextRequest) {
         id: albumId,
         name: albumName,
         description: albumDescription,
-        cover_url: coverPhoto?.thumbnail_url || null,
-        photo_count: photoIds.length,
-        photo_ids: photoIds,
+        cover_url: coverUrl,
+        photo_count: resolvedPhotoIds.length,
+        photo_ids: resolvedPhotoIds,
+        magazine_ids: magazine_ids || [],
+        roll_ids: roll_ids || [],
         captions: {},
         created_at: now,
         updated_at: now,

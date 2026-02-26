@@ -10,7 +10,6 @@ import { ContentModePills } from '@/components/photo/ContentModePills';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { Empty } from '@/components/ui/Empty';
 import { Spinner } from '@/components/ui/Spinner';
-import { Badge } from '@/components/ui/Badge';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
@@ -229,45 +228,43 @@ export default function VideosPage() {
             {developedReels.map((reel) => {
               const duration = reel.assembled_duration_ms ?? reel.current_duration_ms;
               return (
-                <button
+                <Link
                   key={reel.id}
-                  type="button"
-                  onClick={() => router.push(`/library/reels/${reel.id}`)}
-                  className="text-left shrink-0 w-56 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-element)] shadow-[var(--shadow-raised)] hover:shadow-[var(--shadow-floating)] transition-shadow duration-150 cursor-pointer"
+                  href={`/library/reels/${reel.id}`}
+                  className="text-left group shrink-0 w-36"
                   style={{ scrollSnapAlign: 'start' }}
                 >
-                  <div className="relative w-full aspect-video rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] mb-[var(--space-tight)]">
+                  <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                     {reel.poster_storage_key ? (
                       <img
                         src={reel.poster_storage_key.startsWith('/photos/') ? reel.poster_storage_key : `/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
                         alt=""
-                        className="w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Film size={20} className="text-[var(--color-ink-tertiary)]" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Film size={24} className="text-[var(--color-ink-tertiary)]" />
                       </div>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                        <Play size={14} className="text-white ml-0.5" fill="white" fillOpacity={0.8} />
+                      <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
+                        <Play size={18} className="text-white ml-0.5" fill="white" />
                       </div>
                     </div>
+                    {duration && (
+                      <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
+                        {formatDuration(duration)}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between gap-[var(--space-tight)]">
-                    <h3 className="font-[family-name:var(--font-display)] text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
-                      {reel.name || 'Untitled Reel'}
-                    </h3>
-                    <Badge variant={reel.status === 'processing' ? 'processing' : 'developed'}>
-                      {reel.status === 'processing' ? 'Processing' : 'Developed'}
-                    </Badge>
-                  </div>
-                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mt-0.5">
-                    {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
-                    {duration ? ` · ${formatDuration(duration)}` : ''}
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                    {reel.name || 'Untitled Reel'}
                   </p>
-                </button>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
+                  </p>
+                </Link>
               );
             })}
           </div>
@@ -418,58 +415,6 @@ export default function VideosPage() {
               isChecked={selectMode ? isClipAdded : undefined}
             />
           )}
-        {/* Your Reels — developed reels horizontal scroll */}
-        {developedReels.length > 0 && (
-          <div className="mt-[var(--space-element)]">
-            <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
-              Your Reels
-            </h2>
-            <div
-              className="flex flex-row gap-[var(--space-element)] overflow-x-auto pb-[var(--space-tight)] scrollbar-hide"
-              style={{ scrollSnapType: 'x mandatory' }}
-            >
-              {developedReels.map((reel) => (
-                <Link
-                  key={reel.id}
-                  href={`/library/reels/${reel.id}`}
-                  className="text-left group shrink-0 w-36"
-                  style={{ scrollSnapAlign: 'start' }}
-                >
-                  <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                    {reel.poster_storage_key ? (
-                      <img
-                        src={reel.poster_storage_key}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Film size={24} className="text-[var(--color-ink-tertiary)]" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
-                        <Play size={18} className="text-white ml-0.5" fill="white" />
-                      </div>
-                    </div>
-                    {reel.assembled_duration_ms && (
-                      <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
-                        {Math.floor(reel.assembled_duration_ms / 60000)}:{String(Math.floor((reel.assembled_duration_ms % 60000) / 1000)).padStart(2, '0')}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                    {reel.name || 'Untitled Reel'}
-                  </p>
-                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                    {reel.clip_count} clips
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
         </div>
 
       {/* Fixed bottom action bar — slides up when clips are selected */}

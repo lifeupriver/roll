@@ -10,6 +10,7 @@ const updateBlogPostSchema = z
     title: z.string().trim().min(1).max(200).optional(),
     slug: z.string().trim().min(1).max(100).optional(),
     excerpt: z.string().max(500).nullable().optional(),
+    status: z.enum(['draft', 'published', 'archived']).optional(),
     seo_title: z.string().max(200).nullable().optional(),
     seo_description: z.string().max(300).nullable().optional(),
     tags: z.array(z.string().max(50)).max(10).optional(),

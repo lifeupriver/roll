@@ -577,7 +577,7 @@ export default function RollDetailPage() {
     return (
       <div className="flex flex-col gap-[var(--space-section)]">
         <div className="flex items-center gap-[var(--space-element)]">
-          <BackButton href="/library" />
+          <BackButton href="/photos" />
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
@@ -636,7 +636,7 @@ export default function RollDetailPage() {
     return (
       <div className="flex flex-col gap-[var(--space-section)]">
         <div className="flex items-center gap-[var(--space-element)]">
-          <BackButton href="/library" />
+          <BackButton href="/photos" />
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {roll.name || 'Untitled Roll'}
           </h1>
@@ -695,7 +695,7 @@ export default function RollDetailPage() {
 
         {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
-          <BackButton href="/library" />
+          <BackButton href="/photos" />
           <div className="flex-1 min-w-0">
             {isEditingName ? (
               <input
@@ -1106,7 +1106,7 @@ export default function RollDetailPage() {
 
       {/* Header: back + counter */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <BackButton href="/library" />
+        <BackButton href="/photos" />
         <div className="flex-1 min-w-0">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             Your Roll
@@ -1139,7 +1139,7 @@ export default function RollDetailPage() {
           title="No photos yet"
           description="Head to your feed to select photos for this roll."
           action={
-            <Link href="/feed">
+            <Link href="/photos">
               <Button variant="secondary">Browse Photos</Button>
             </Link>
           }
