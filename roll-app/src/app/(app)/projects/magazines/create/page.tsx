@@ -52,6 +52,9 @@ export default function CreateMagazinePage() {
       }
 
       const json = await res.json();
+      if (!json.data?.id) {
+        throw new Error('Magazine was created but no ID was returned');
+      }
       toast('Magazine created!', 'success');
       router.push(`/projects/magazines/${json.data.id}`);
     } catch (err) {

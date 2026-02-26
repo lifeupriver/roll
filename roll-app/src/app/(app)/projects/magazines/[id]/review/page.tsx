@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Package, Minus, Plus } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
@@ -14,6 +14,8 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
   const { id } = use(params);
   const router = useRouter();
   const { toast } = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const [magazine, setMagazine] = useState<Magazine | null>(null);
   const [loading, setLoading] = useState(true);
   const [ordering, setOrdering] = useState(false);
@@ -37,13 +39,13 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
           setMagazine(json.data);
         }
       } catch {
-        toast('Failed to load magazine', 'error');
+        toastRef.current('Failed to load magazine', 'error');
       } finally {
         setLoading(false);
       }
     }
     fetchMagazine();
-  }, [id, toast]);
+  }, [id]);
 
   const handleOrder = async () => {
     if (!name || !line1 || !city || !postalCode || !country) {
