@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Eye,
   Archive,
@@ -33,7 +32,6 @@ function formatDate(dateString: string): string {
 }
 
 export function BlogPostManager() {
-  const router = useRouter();
   const { toast } = useToast();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [settings, setSettings] = useState<BlogSettings | null>(null);

@@ -10,7 +10,6 @@ import {
   X,
   Film,
   Printer,
-  Share2,
   AlertCircle,
   Wand2,
   MessageSquare,
