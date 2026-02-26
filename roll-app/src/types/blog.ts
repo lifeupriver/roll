@@ -2,6 +2,10 @@ export interface BlogPost {
   id: string;
   user_id: string;
   roll_id: string;
+  /** Additional roll IDs to include in this blog post. */
+  roll_ids: string[];
+  /** Reel IDs to embed as inline video in this blog post. */
+  reel_ids: string[];
   title: string;
   slug: string;
   excerpt: string | null;
@@ -18,6 +22,25 @@ export interface BlogPost {
   view_count: number;
   created_at: string;
   updated_at: string;
+}
+
+/** A media item (photo or video clip) for blog rendering. */
+export interface BlogMediaItem {
+  id: string;
+  type: 'photo' | 'video';
+  url: string;
+  thumbnail_url: string;
+  width: number;
+  height: number;
+  caption: string | null;
+  aesthetic_score: number | null;
+  face_count: number | null;
+  scene_classification: string[];
+  /** Video duration in ms (null for photos). */
+  duration_ms: number | null;
+  /** Source: which roll or reel this came from. */
+  source_id: string;
+  source_type: 'roll' | 'reel';
 }
 
 export interface BlogComment {

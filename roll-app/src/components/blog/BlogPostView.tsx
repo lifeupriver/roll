@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { BlogAuthorHeader } from './BlogAuthorHeader';
 import { BlogPhotoLayout } from './BlogPhotoLayout';
 import { BlogPrintCTA } from './BlogPrintCTA';
 import { BlogShareBar } from './BlogShareBar';
 import { BlogFooter } from './BlogFooter';
 import { MessageCircle } from 'lucide-react';
+import { smartDesignBlog } from '@/lib/design/design-engine';
 
 interface BlogPhoto {
   id: string;
@@ -15,6 +16,19 @@ interface BlogPhoto {
   width: number;
   height: number;
   caption: string | null;
+  aesthetic_score?: number | null;
+  face_count?: number | null;
+  scene_classification?: string[];
+}
+
+interface BlogVideo {
+  id: string;
+  thumbnail_url: string;
+  video_url: string;
+  width: number;
+  height: number;
+  caption: string | null;
+  duration_ms: number | null;
 }
 
 interface BlogComment {
@@ -54,6 +68,8 @@ interface BlogPostViewProps {
     height: number;
   } | null;
   photos: BlogPhoto[];
+  /** Video clips from reels to embed inline. */
+  videos?: BlogVideo[];
   photoCount: number;
   rollTheme: string | null;
   comments: BlogComment[];
@@ -65,6 +81,7 @@ export function BlogPostView({
   author,
   coverPhoto,
   photos,
+  videos = [],
   photoCount,
   rollTheme,
   comments,
@@ -81,6 +98,38 @@ export function BlogPostView({
     }).catch(() => {});
   }, [post.id, post.slug, author.blog_slug]);
 
+  // Use the Smart Design System to create the editorial layout
+  const blocks = useMemo(() => {
+    const mediaItems = [
+      ...photos
+        .filter(p => p.id !== coverPhoto?.id)
+        .map(p => ({
+          id: p.id,
+          type: 'photo' as const,
+          width: p.width,
+          height: p.height,
+          caption: p.caption,
+          aesthetic_score: p.aesthetic_score ?? null,
+          face_count: p.face_count ?? null,
+          scene_classification: p.scene_classification ?? [],
+          duration_ms: null,
+        })),
+      ...videos.map(v => ({
+        id: v.id,
+        type: 'video' as const,
+        width: v.width,
+        height: v.height,
+        caption: v.caption,
+        aesthetic_score: null,
+        face_count: null,
+        scene_classification: [] as string[],
+        duration_ms: v.duration_ms,
+      })),
+    ];
+
+    return smartDesignBlog(mediaItems, post.story);
+  }, [photos, videos, coverPhoto?.id, post.story]);
+
   const publishDate = new Date(post.published_at).toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
@@ -90,6 +139,21 @@ export function BlogPostView({
   const postUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/blog/${author.blog_slug}/${post.slug}`
     : '';
+
+  const totalMediaCount = photoCount + videos.length;
+
+  // Build lookup maps for rendering
+  const photoMap = useMemo(() => {
+    const map = new Map<string, BlogPhoto>();
+    for (const p of photos) map.set(p.id, p);
+    return map;
+  }, [photos]);
+
+  const videoMap = useMemo(() => {
+    const map = new Map<string, BlogVideo>();
+    for (const v of videos) map.set(v.id, v);
+    return map;
+  }, [videos]);
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)]">
@@ -101,13 +165,13 @@ export function BlogPostView({
       />
 
       <article className="max-w-3xl mx-auto px-[var(--space-component)] py-[var(--space-section)]">
-        {/* Cover photo */}
+        {/* Cover photo — full-width, natural aspect ratio, no cropping */}
         {coverPhoto && (
           <figure className="mb-[var(--space-section)]">
             <img
               src={coverPhoto.developed_url || coverPhoto.thumbnail_url}
               alt={post.title}
-              className="w-full rounded-[var(--radius-card)] object-cover"
+              className="w-full rounded-[var(--radius-card)]"
               style={{
                 aspectRatio:
                   coverPhoto.width && coverPhoto.height
@@ -122,7 +186,10 @@ export function BlogPostView({
         <div className="flex flex-wrap items-center gap-[var(--space-element)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
           <time dateTime={post.published_at}>{publishDate}</time>
           <span>&middot;</span>
-          <span>{photoCount} photos</span>
+          <span>
+            {totalMediaCount} {totalMediaCount === 1 ? 'photo' : 'photos'}
+            {videos.length > 0 && ` + ${videos.length} clip${videos.length > 1 ? 's' : ''}`}
+          </span>
           {rollTheme && (
             <>
               <span>&middot;</span>
@@ -131,21 +198,18 @@ export function BlogPostView({
           )}
         </div>
 
-        {/* Title */}
-        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] leading-tight mb-[var(--space-component)]">
+        {/* Title — generous size, tight tracking for editorial feel */}
+        <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-display)] text-[var(--color-ink)] leading-tight tracking-tight mb-[var(--space-component)]">
           {post.title}
         </h1>
 
-        {/* Story */}
-        {post.story && (
-          <div className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-relaxed whitespace-pre-line mb-[var(--space-section)]">
-            {post.story}
-          </div>
-        )}
-
-        {/* Photos */}
+        {/* Smart editorial content — photos, videos, text, pull quotes interwoven */}
         <section className="mb-[var(--space-section)]">
-          <BlogPhotoLayout photos={photos} />
+          <BlogPhotoLayout
+            blocks={blocks}
+            photoMap={photoMap}
+            videoMap={videoMap}
+          />
         </section>
 
         {/* Print CTA */}

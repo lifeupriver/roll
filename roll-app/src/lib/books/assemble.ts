@@ -1,5 +1,6 @@
 import type { BookPage } from '@/types/book';
 import type { MagazinePage } from '@/types/magazine';
+import { smartAssembleBook } from '@/lib/design/design-engine';
 
 interface MagazineForAssembly {
   id: string;
@@ -16,64 +17,21 @@ interface AssembledBook {
 
 /**
  * Assemble a book from selected magazines.
- * Creates: cover → TOC → magazine sections → back cover.
+ * Uses the Smart Design System to create:
+ *   cover → half-title → TOC → magazine sections (with breathing pages) → back cover.
+ *
+ * The smart engine ensures:
+ * - Clean section transitions with intentional whitespace
+ * - Consistent typography across magazine sections
+ * - Proper page numbering
+ * - Spread balance at section boundaries
  */
 export function assembleBook(
   title: string,
   coverPhotoId: string | null,
   magazines: MagazineForAssembly[]
 ): AssembledBook {
-  const pages: BookPage[] = [];
-
-  // 1. Cover page
-  pages.push({
-    type: 'book-cover',
-    title,
-    coverPhotoId,
-  });
-
-  // 2. Table of contents (calculate page numbers)
-  const tocEntries: { title: string; startPage: number }[] = [];
-  let currentPage = 3; // After cover + TOC
-
-  for (const mag of magazines) {
-    tocEntries.push({ title: mag.title, startPage: currentPage });
-    currentPage += 1 + (mag.pages?.length || 0); // title page + content pages
-  }
-
-  pages.push({
-    type: 'toc',
-    tocEntries,
-  });
-
-  // 3. Each magazine section
-  for (const magazine of magazines) {
-    const dateRange = formatDateRange(magazine.date_range_start, magazine.date_range_end);
-
-    // Magazine title page
-    pages.push({
-      type: 'magazine-title',
-      title: magazine.title,
-      dateRange,
-    });
-
-    // Magazine content pages
-    const magPages = magazine.pages || [];
-    for (const page of magPages) {
-      pages.push({
-        type: 'magazine-content',
-        layout: page.layout,
-        photos: page.photos,
-        caption: page.caption,
-        magazineTitle: magazine.title,
-      });
-    }
-  }
-
-  // 4. Back cover
-  pages.push({ type: 'back-cover' });
-
-  return { pages, totalPages: pages.length };
+  return smartAssembleBook(title, coverPhotoId, magazines);
 }
 
 function formatDateRange(start: string | null, end: string | null): string {
