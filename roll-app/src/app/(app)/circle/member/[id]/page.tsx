@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Grid3X3, Image } from 'lucide-react';
+import { Grid3X3 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
@@ -28,7 +28,7 @@ interface SharedPhoto {
 
 export default function MemberProfilePage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
+  const _router = useRouter();
   const memberId = params.id;
 
   const [profile, setProfile] = useState<MemberProfile | null>(null);

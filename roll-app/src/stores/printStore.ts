@@ -12,7 +12,7 @@ interface PrintState {
   reset: () => void;
 }
 
-export const usePrintStore = create<PrintState>((set, get) => ({
+export const usePrintStore = create<PrintState>((set, _get) => ({
   orders: [],
   currentOrder: null,
   loading: false,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Tag, Plus, X } from 'lucide-react';
+import { Tag, X } from 'lucide-react';
 import type { PhotoTag, Person } from '@/types/people';
 
 interface PhotoTagOverlayProps {

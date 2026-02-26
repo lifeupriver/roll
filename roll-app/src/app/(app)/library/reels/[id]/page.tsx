@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Play, Heart, Share2, MessageSquare, Wand2, Film } from 'lucide-react';
+import { Play, Heart, Share2, Wand2, Film } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { ReelStoryboard } from '@/components/reel/ReelStoryboard';
 import { AudioMoodSelector } from '@/components/reel/AudioMoodSelector';
@@ -13,9 +13,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
-import { FILM_PROFILES } from '@/types/roll';
-import type { Reel, ReelClip, AudioMood } from '@/types/reel';
-import type { FilmProfileId } from '@/types/roll';
+import type { Reel, ReelClip } from '@/types/reel';
+import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
 
 export default function ReelDetailPage() {
@@ -41,7 +40,7 @@ export default function ReelDetailPage() {
   const [loading, setLoading] = useState(true);
   const [developing, setDeveloping] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userTier, setUserTier] = useState<'free' | 'plus'>('free');
+  const [userTier, _setUserTier] = useState<'free' | 'plus'>('free');
 
   // Reel caption editing
   const [isEditingName, setIsEditingName] = useState(false);

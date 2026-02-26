@@ -202,7 +202,7 @@ export function RollCard({ roll, thumbnails, onClick }: RollCardProps) {
             }}
             aria-hidden="true"
           >
-            {thumbnails.map((url, index) => (
+            {thumbnails.map((url, _index) => (
               <img
                 key={url}
                 src={url}

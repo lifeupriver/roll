@@ -6,7 +6,6 @@ import {
   createCirclePostSchema,
   createOrderSchema,
   presignUploadSchema,
-  completeUploadSchema,
   printCheckoutSchema,
   circleInviteSchema,
 } from '@/lib/validation';

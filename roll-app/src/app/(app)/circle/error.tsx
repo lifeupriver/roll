@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/Button';
 
 export default function CircleError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error;

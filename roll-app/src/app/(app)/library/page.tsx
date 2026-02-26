@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
 import type { Roll } from '@/types/roll';
-import type { Reel, ReelClip } from '@/types/reel';
+import type { Reel } from '@/types/reel';
 
 type GallerySection = 'rolls' | 'reels';
 

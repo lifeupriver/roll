@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
-import { parseBody, createCirclePostSchema, createCircleReelPostSchema } from '@/lib/validation';
+import { createCirclePostSchema, createCircleReelPostSchema } from '@/lib/validation';
 import type { CirclePost } from '@/types/circle';
 
 export async function GET(

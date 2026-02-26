@@ -22,7 +22,7 @@ export default function CreateMagazinePage() {
   const [format, setFormat] = useState<MagazineFormat>('6x9');
   const [dateStart, setDateStart] = useState('');
   const [dateEnd, setDateEnd] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [_creating, setCreating] = useState(false);
 
   const handleCreate = async () => {
     if (!template) {

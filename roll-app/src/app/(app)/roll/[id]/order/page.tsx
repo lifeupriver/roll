@@ -44,7 +44,7 @@ export default function OrderPrintsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user: _user } = useUser();
 
   const rollId = params.id;
 

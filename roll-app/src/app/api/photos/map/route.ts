@@ -16,7 +16,7 @@ export interface MapPhoto {
  * Returns all geotagged photos for map visualization.
  * Only includes photos with valid latitude/longitude coordinates.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
-import type { Reel, ReelClip, AudioMood, AUDIO_MOODS } from '@/types/reel';
+import type { Reel, ReelClip, AudioMood } from '@/types/reel';
 
 interface Photo {
   id: string;

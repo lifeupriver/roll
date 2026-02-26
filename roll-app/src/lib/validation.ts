@@ -1,10 +1,7 @@
 import { z } from 'zod';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import {
   MAX_FILES_PER_UPLOAD,
-  MAX_FILE_SIZE_BYTES,
-  ALLOWED_CONTENT_TYPES,
   ALL_ALLOWED_CONTENT_TYPES,
   MAX_VIDEO_FILE_SIZE_BYTES,
 } from '@/lib/utils/constants';

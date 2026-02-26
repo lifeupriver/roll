@@ -33,7 +33,7 @@ export async function processVideoClip(
   onProgress?.(0);
 
   // Step 1: Extract 3 representative frames (start, middle, end)
-  const frames = await extractRepresentativeFrames(sourceUrl, clip.trimmed_duration_ms || 5000);
+  const _frames = await extractRepresentativeFrames(sourceUrl, clip.trimmed_duration_ms || 5000);
   onProgress?.(20);
 
   // Step 2: Get correction parameters from provider
@@ -51,7 +51,7 @@ export async function processVideoClip(
   onProgress?.(60);
 
   // Step 3: Build FFmpeg filter chain for film look
-  const filterChain = buildFilmFilterChain(options);
+  const _filterChain = buildFilmFilterChain(options);
   onProgress?.(80);
 
   // Step 4: Generate the processed storage key

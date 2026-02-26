@@ -144,7 +144,7 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
             {step === 'review' && 'Review Book'}
           </h2>
           <div className="flex items-center gap-1.5">
-            {(['template', 'details', 'photos', 'review'] as const).map((s, i) => (
+            {(['template', 'details', 'photos', 'review'] as const).map((s, _i) => (
               <div
                 key={s}
                 className={`w-2 h-2 rounded-full transition-colors ${

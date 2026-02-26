@@ -37,7 +37,7 @@ export default function MapPage() {
   }, []);
 
   // Compute bounding box for auto-centering
-  const bounds = useMemo(() => {
+  const _bounds = useMemo(() => {
     if (photos.length === 0) return null;
     let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
     for (const p of photos) {

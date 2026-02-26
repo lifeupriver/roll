@@ -27,7 +27,7 @@ export interface PrintSubscription {
  * POST /api/subscriptions/print — create a new print subscription
  * PATCH /api/subscriptions/print — update (pause/resume/update address)
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

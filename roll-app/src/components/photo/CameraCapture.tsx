@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Camera, X, RotateCcw, Check } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+
 import { useCameraCapture } from '@/hooks/useCameraCapture';
 
 interface CameraCaptureProps {

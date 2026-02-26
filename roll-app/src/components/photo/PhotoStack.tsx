@@ -14,7 +14,7 @@ interface PhotoStackProps {
 // Stagger delay for cascading photos (ms)
 const PHOTO_STAGGER_MS = 60;
 
-export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStackProps) {
+export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap: _onPhotoTap }: PhotoStackProps) {
   const [expanded, setExpanded] = useState(false);
   const [animatingExpand, setAnimatingExpand] = useState(false);
   const [animatingCollapse, setAnimatingCollapse] = useState(false);

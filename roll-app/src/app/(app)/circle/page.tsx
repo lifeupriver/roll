@@ -3,13 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Users, Plus, Image, Grid3X3, Grid2X2, ChevronLeft, ChevronRight,
+  Users, Plus, Image, ChevronLeft, ChevronRight,
   Send, Trash2, Settings, Bell, BellOff, Lock, Globe, UserPlus, UserMinus,
-  Shield, Eye, EyeOff, X, ChevronDown,
+  Shield, Eye, EyeOff, X,
 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Empty } from '@/components/ui/Empty';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -56,7 +55,7 @@ export default function CirclePage() {
   const [feedPosts, setFeedPosts] = useState<CirclePost[]>([]);
   const [feedLoading, setFeedLoading] = useState(false);
 
-  const [gridColumns, setGridColumns] = useState(3);
+  const [_gridColumns, _setGridColumns] = useState(3);
 
   // Settings panel state
   const [settingsOpen, setSettingsOpen] = useState(false);

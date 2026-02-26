@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Film, Play, MousePointerClick, X, ChevronRight, Users, Wand2, Send,
+  Film, Play, MousePointerClick, X, Users, Send,
 } from 'lucide-react';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -16,7 +16,6 @@ import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
 import { track } from '@/lib/analytics';
-import type { ContentMode } from '@/types/photo';
 import type { Reel } from '@/types/reel';
 
 type VideoSection = 'clips' | 'reels';
@@ -47,7 +46,7 @@ function formatDate(dateString: string): string {
 
 export default function VideosPage() {
   const router = useRouter();
-  const { photos, contentMode, setContentMode, loading, hasMore, loadMore } = usePhotos();
+  const { photos, contentMode: _contentMode, setContentMode, loading, hasMore, loadMore } = usePhotos();
 
   const {
     currentReel,

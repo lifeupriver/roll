@@ -18,7 +18,7 @@ interface CircleState {
   reset: () => void;
 }
 
-export const useCircleStore = create<CircleState>((set, get) => ({
+export const useCircleStore = create<CircleState>((set, _get) => ({
   circles: [],
   currentCircle: null,
   members: [],

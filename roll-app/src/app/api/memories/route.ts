@@ -17,7 +17,7 @@ export interface Memory {
  * Returns photos taken on this day in previous years ("On This Day" feature).
  * Looks for photos taken within ±1 day of the current month/day in any prior year.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();

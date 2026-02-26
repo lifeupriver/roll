@@ -100,7 +100,7 @@ function SpreadPage({
   onMovePage,
   onRemovePage,
   onPhotoTap,
-  side,
+  side: _side,
 }: {
   page: BookPage | null;
   pageIndex: number;

@@ -1,6 +1,5 @@
 import sharp from 'sharp';
-import type { FilterResult, FilterReason } from '@/types/photo';
-import type { DurationCategory, AudioClassification } from '@/types/photo';
+import type { FilterResult, FilterReason, DurationCategory, AudioClassification } from '@/types/photo';
 import { detectScreenshot } from './screenshotDetection';
 import { computePerceptualHash, findDuplicates } from './duplicateDetection';
 import { getObject } from '@/lib/storage/r2';

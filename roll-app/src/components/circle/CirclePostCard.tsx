@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useRef, useCallback } from 'react';
-import { Heart, Smile, Star, MessageCircle, Send, Trash2, Play, Pause, Film } from 'lucide-react';
+import { Heart, Smile, Star, MessageCircle, Send, Trash2, Play, Film } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import type { CirclePost, CircleComment, ReactionType } from '@/types/circle';

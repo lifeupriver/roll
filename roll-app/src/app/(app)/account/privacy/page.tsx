@@ -21,7 +21,7 @@ interface PrivacyData {
 }
 
 export default function PrivacyPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { toast } = useToast();
   const [data, setData] = useState<PrivacyData | null>(null);
   const [loading, setLoading] = useState(true);

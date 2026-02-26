@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { getThumbnailUrl, getThumbnailKey } from '@/lib/storage/r2';
+import { getThumbnailUrl } from '@/lib/storage/r2';
 import { parseBody, completeVideoUploadSchema } from '@/lib/validation';
 import { captureError } from '@/lib/sentry';
 import { randomUUID } from 'crypto';

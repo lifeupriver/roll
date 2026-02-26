@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/stores/toastStore';
 
 export default function PrintSubscriptionPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
