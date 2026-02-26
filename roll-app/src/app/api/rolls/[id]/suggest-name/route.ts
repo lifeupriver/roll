@@ -42,7 +42,7 @@ export async function GET(
 
     const photos = (rollPhotos ?? [])
       .map((rp: Record<string, unknown>) => rp.photos as Record<string, unknown> | null)
-      .filter((p): p is Record<string, unknown> => Boolean(p));
+      .filter((p: Record<string, unknown> | null): p is Record<string, unknown> => Boolean(p));
 
     // Find the most common scene classification
     const sceneCounts = new Map<string, number>();
@@ -67,7 +67,7 @@ export async function GET(
     // Extract date range
     const dates = photos
       .map((p: Record<string, unknown> | null) => p?.date_taken as string | null)
-      .filter((d): d is string => Boolean(d))
+      .filter((d: string | null): d is string => Boolean(d))
       .map((d: string) => new Date(d))
       .filter((d: Date) => !isNaN(d.getTime()))
       .sort((a: Date, b: Date) => a.getTime() - b.getTime());
