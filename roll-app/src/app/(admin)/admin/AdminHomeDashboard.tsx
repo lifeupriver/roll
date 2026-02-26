@@ -97,7 +97,10 @@ export function AdminHomeDashboard() {
         <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Dashboard</h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4 h-24 skeleton-pulse" />
+            <div
+              key={i}
+              className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4 h-24 skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -111,9 +114,7 @@ export function AdminHomeDashboard() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Dashboard</h1>
-        <span className="text-xs text-[var(--color-ink-tertiary)]">
-          Auto-refreshes every 30s
-        </span>
+        <span className="text-xs text-[var(--color-ink-tertiary)]">Auto-refreshes every 30s</span>
       </div>
 
       {/* Vital Signs */}
@@ -124,20 +125,14 @@ export function AdminHomeDashboard() {
           change={stats.users.newToday > 0 ? stats.users.newToday : undefined}
           changeLabel="new today"
         />
-        <StatCard
-          label="Plus Subscribers"
-          value={stats.users.plusSubscribers}
-        />
+        <StatCard label="Plus Subscribers" value={stats.users.plusSubscribers} />
         <StatCard
           label="Total Photos"
           value={stats.photos.total}
           change={stats.photos.uploadedToday > 0 ? stats.photos.uploadedToday : undefined}
           changeLabel="today"
         />
-        <StatCard
-          label="Total Rolls"
-          value={totalRolls}
-        />
+        <StatCard label="Total Rolls" value={totalRolls} />
         <StatCard
           label="Active Orders"
           value={stats.orders.pending}
@@ -148,15 +143,8 @@ export function AdminHomeDashboard() {
           value={stats.pipeline.pendingJobs}
           changeLabel="pending jobs"
         />
-        <StatCard
-          label="Storage Used"
-          value={formatBytes(stats.storage.totalBytes)}
-        />
-        <StatCard
-          label="New This Week"
-          value={stats.users.newThisWeek}
-          changeLabel="signups"
-        />
+        <StatCard label="Storage Used" value={formatBytes(stats.storage.totalBytes)} />
+        <StatCard label="New This Week" value={stats.users.newThisWeek} changeLabel="signups" />
       </div>
 
       {/* Roll Status Breakdown */}
@@ -213,12 +201,16 @@ export function AdminHomeDashboard() {
                 <div className="min-w-0">
                   <p className="text-sm truncate">{user.display_name || user.email}</p>
                   {user.display_name && (
-                    <p className="text-xs text-[var(--color-ink-tertiary)] truncate">{user.email}</p>
+                    <p className="text-xs text-[var(--color-ink-tertiary)] truncate">
+                      {user.email}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                   <StatusBadge status={user.tier} />
-                  <span className="text-[11px] text-[var(--color-ink-tertiary)]">{timeAgo(user.created_at)}</span>
+                  <span className="text-[11px] text-[var(--color-ink-tertiary)]">
+                    {timeAgo(user.created_at)}
+                  </span>
                 </div>
               </a>
             ))}
@@ -246,7 +238,9 @@ export function AdminHomeDashboard() {
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                 <StatusBadge status={roll.status} />
-                <span className="text-[11px] text-[var(--color-ink-tertiary)]">{timeAgo(roll.updated_at)}</span>
+                <span className="text-[11px] text-[var(--color-ink-tertiary)]">
+                  {timeAgo(roll.updated_at)}
+                </span>
               </div>
             </a>
           ))}

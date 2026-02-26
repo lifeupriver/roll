@@ -20,7 +20,10 @@ export interface YearInReviewData {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -33,7 +36,9 @@ export async function GET(request: NextRequest) {
     // Fetch photos uploaded this year
     const { data: photos, count: photoCount } = await supabase
       .from('photos')
-      .select('date_taken, camera_make, camera_model, scene_classification, created_at', { count: 'exact' })
+      .select('date_taken, camera_make, camera_model, scene_classification, created_at', {
+        count: 'exact',
+      })
       .eq('user_id', user.id)
       .gte('created_at', startDate)
       .lt('created_at', endDate);
@@ -104,7 +109,20 @@ export async function GET(request: NextRequest) {
     let topMonth: { month: string; count: number } | null = null;
     if (photos && photos.length > 0) {
       const monthCounts: Record<string, number> = {};
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       for (const p of photos) {
         const d = new Date(p.date_taken || p.created_at);
         const key = monthNames[d.getMonth()];

@@ -25,16 +25,22 @@ export function BeforeAfterCompare({
     setPosition(percent);
   }, []);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    isDragging.current = true;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    updatePosition(e.clientX);
-  }, [updatePosition]);
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      isDragging.current = true;
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      updatePosition(e.clientX);
+    },
+    [updatePosition]
+  );
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return;
-    updatePosition(e.clientX);
-  }, [updatePosition]);
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging.current) return;
+      updatePosition(e.clientX);
+    },
+    [updatePosition]
+  );
 
   const handlePointerUp = useCallback(() => {
     isDragging.current = false;
@@ -49,24 +55,14 @@ export function BeforeAfterCompare({
       onPointerUp={handlePointerUp}
     >
       {/* Developed (full image underneath) */}
-      <img
-        src={developedUrl}
-        alt="Developed"
-        className="w-full block"
-        draggable={false}
-      />
+      <img src={developedUrl} alt="Developed" className="w-full block" draggable={false} />
 
       {/* Original (clipped) */}
       <div
         className="absolute inset-0 overflow-hidden"
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
       >
-        <img
-          src={originalUrl}
-          alt="Original"
-          className="w-full block"
-          draggable={false}
-        />
+        <img src={originalUrl} alt="Original" className="w-full block" draggable={false} />
       </div>
 
       {/* Divider line */}
@@ -76,7 +72,15 @@ export function BeforeAfterCompare({
       >
         {/* Handle */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white shadow-[var(--shadow-floating)] flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-ink)" strokeWidth="2" strokeLinecap="round">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--color-ink)"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
             <path d="M8 6l-4 6 4 6" />
             <path d="M16 6l4 6-4 6" />
           </svg>

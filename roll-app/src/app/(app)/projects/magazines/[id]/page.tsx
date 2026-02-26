@@ -78,9 +78,7 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
   }, []);
 
   const handleCaptionChange = useCallback((pageIndex: number, caption: string) => {
-    setPages((prev) =>
-      prev.map((p, i) => (i === pageIndex ? { ...p, caption } : p))
-    );
+    setPages((prev) => prev.map((p, i) => (i === pageIndex ? { ...p, caption } : p)));
   }, []);
 
   const handleSave = async () => {

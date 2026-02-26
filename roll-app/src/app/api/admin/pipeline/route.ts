@@ -13,13 +13,17 @@ export async function GET() {
     const [allJobsRes, recentFailedRes, recentCompletedRes] = await Promise.all([
       db.from('processing_jobs').select('type, status, created_at, started_at, completed_at'),
 
-      db.from('processing_jobs')
-        .select('id, type, status, error_message, attempts, max_attempts, payload, created_at, started_at')
+      db
+        .from('processing_jobs')
+        .select(
+          'id, type, status, error_message, attempts, max_attempts, payload, created_at, started_at'
+        )
         .eq('status', 'failed')
         .order('created_at', { ascending: false })
         .limit(50),
 
-      db.from('processing_jobs')
+      db
+        .from('processing_jobs')
         .select('id, type, created_at, started_at, completed_at')
         .eq('status', 'completed')
         .order('completed_at', { ascending: false })
@@ -41,7 +45,9 @@ export async function GET() {
     if (recentCompletedRes.data) {
       for (const j of recentCompletedRes.data) {
         if (j.started_at && j.completed_at) {
-          processingTimes.push(new Date(j.completed_at).getTime() - new Date(j.started_at).getTime());
+          processingTimes.push(
+            new Date(j.completed_at).getTime() - new Date(j.started_at).getTime()
+          );
         }
       }
     }

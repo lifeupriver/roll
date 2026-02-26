@@ -3,14 +3,14 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 
 // GET /api/projects/albums/[id]/contributors — list contributors
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -57,14 +57,14 @@ export async function GET(
 }
 
 // POST /api/projects/albums/[id]/contributors — add a contributor
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -77,7 +77,10 @@ export async function POST(
       .single();
 
     if (!collection || collection.user_id !== user.id) {
-      return NextResponse.json({ error: 'Only the book owner can add contributors' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Only the book owner can add contributors' },
+        { status: 403 }
+      );
     }
 
     const body = await request.json();
@@ -89,29 +92,30 @@ export async function POST(
 
     // Mark collection as collaborative if not already
     if (!collection.is_collaborative) {
-      await supabase
-        .from('collections')
-        .update({ is_collaborative: true })
-        .eq('id', id);
+      await supabase.from('collections').update({ is_collaborative: true }).eq('id', id);
     }
 
     // Ensure the owner is in the contributors table
-    await supabase
-      .from('collection_contributors')
-      .upsert({
+    await supabase.from('collection_contributors').upsert(
+      {
         collection_id: id,
         user_id: user.id,
         role: 'owner',
-      }, { onConflict: 'collection_id,user_id' });
+      },
+      { onConflict: 'collection_id,user_id' }
+    );
 
     // Add the new contributor
     const { data: contributor, error: insertError } = await supabase
       .from('collection_contributors')
-      .upsert({
-        collection_id: id,
-        user_id: userId,
-        role: role === 'owner' ? 'owner' : 'contributor',
-      }, { onConflict: 'collection_id,user_id' })
+      .upsert(
+        {
+          collection_id: id,
+          user_id: userId,
+          role: role === 'owner' ? 'owner' : 'contributor',
+        },
+        { onConflict: 'collection_id,user_id' }
+      )
       .select('id, user_id, role, added_at, profiles(display_name, email, avatar_url)')
       .single();
 
@@ -137,7 +141,10 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -150,7 +157,10 @@ export async function DELETE(
       .single();
 
     if (!collection || collection.user_id !== user.id) {
-      return NextResponse.json({ error: 'Only the book owner can remove contributors' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Only the book owner can remove contributors' },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);

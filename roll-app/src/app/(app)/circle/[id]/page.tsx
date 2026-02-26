@@ -212,8 +212,7 @@ export default function CircleDetailPage() {
           return {
             ...p,
             reactions: (p.reactions ?? []).filter(
-              (r) =>
-                !(r.user_id === user?.id && r.reaction_type === reactionType)
+              (r) => !(r.user_id === user?.id && r.reaction_type === reactionType)
             ),
           };
         })
@@ -236,29 +235,23 @@ export default function CircleDetailPage() {
     [circleId, user?.id, fetchPosts]
   );
 
-  const handleCommentAdded = useCallback(
-    (postId: string, comment: CircleComment) => {
-      setPosts((prev) =>
-        prev.map((p) => {
-          if (p.id !== postId) return p;
-          return { ...p, comments: [...(p.comments ?? []), comment] };
-        })
-      );
-    },
-    []
-  );
+  const handleCommentAdded = useCallback((postId: string, comment: CircleComment) => {
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        return { ...p, comments: [...(p.comments ?? []), comment] };
+      })
+    );
+  }, []);
 
-  const handleCommentDeleted = useCallback(
-    (postId: string, commentId: string) => {
-      setPosts((prev) =>
-        prev.map((p) => {
-          if (p.id !== postId) return p;
-          return { ...p, comments: (p.comments ?? []).filter((c) => c.id !== commentId) };
-        })
-      );
-    },
-    []
-  );
+  const handleCommentDeleted = useCallback((postId: string, commentId: string) => {
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        return { ...p, comments: (p.comments ?? []).filter((c) => c.id !== commentId) };
+      })
+    );
+  }, []);
 
   if (loading) {
     return (
@@ -305,11 +298,17 @@ export default function CircleDetailPage() {
                   title={member.profiles?.display_name || member.profiles?.email || 'Member'}
                 >
                   {member.profiles?.avatar_url ? (
-                    <img src={member.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={member.profiles.avatar_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
                       <span className="text-[10px] font-medium text-[var(--color-action)]">
-                        {(member.profiles?.display_name || member.profiles?.email || '?').charAt(0).toUpperCase()}
+                        {(member.profiles?.display_name || member.profiles?.email || '?')
+                          .charAt(0)
+                          .toUpperCase()}
                       </span>
                     </div>
                   )}
@@ -317,7 +316,9 @@ export default function CircleDetailPage() {
               ))}
               {overflowCount > 0 && (
                 <div className="w-8 h-8 rounded-full border-2 border-[var(--color-surface)] bg-[var(--color-surface-sunken)] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-medium text-[var(--color-ink-secondary)]">+{overflowCount}</span>
+                  <span className="text-[10px] font-medium text-[var(--color-ink-secondary)]">
+                    +{overflowCount}
+                  </span>
                 </div>
               )}
             </div>
@@ -408,7 +409,13 @@ export default function CircleDetailPage() {
                       if (e.key === 'Enter') handleEmailInvite();
                     }}
                   />
-                  <Button variant="primary" size="sm" onClick={handleEmailInvite} isLoading={emailSending} disabled={!inviteEmail}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleEmailInvite}
+                    isLoading={emailSending}
+                    disabled={!inviteEmail}
+                  >
                     <Mail size={14} className="mr-1" /> Send
                   </Button>
                 </div>
@@ -416,7 +423,9 @@ export default function CircleDetailPage() {
 
               <div className="flex items-center gap-[var(--space-element)]">
                 <div className="flex-1 h-px bg-[var(--color-border)]" />
-                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">or</span>
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  or
+                </span>
                 <div className="flex-1 h-px bg-[var(--color-border)]" />
               </div>
 
@@ -456,14 +465,23 @@ export default function CircleDetailPage() {
               const initial = name.charAt(0).toUpperCase();
               const isSelf = member.user_id === user?.id;
               return (
-                <div key={member.id} className="flex items-center justify-between py-[var(--space-tight)]">
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between py-[var(--space-tight)]"
+                >
                   <div className="flex items-center gap-[var(--space-element)]">
                     <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
                       {member.profiles?.avatar_url ? (
-                        <img src={member.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                        <img
+                          src={member.profiles.avatar_url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
-                          <span className="text-[12px] font-medium text-[var(--color-action)]">{initial}</span>
+                          <span className="text-[12px] font-medium text-[var(--color-action)]">
+                            {initial}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -478,10 +496,13 @@ export default function CircleDetailPage() {
                         }}
                         className={`text-left text-[length:var(--text-body)] text-[var(--color-ink)] ${!isSelf ? 'hover:text-[var(--color-action)] hover:underline' : ''}`}
                       >
-                        {name}{isSelf ? ' (you)' : ''}
+                        {name}
+                        {isSelf ? ' (you)' : ''}
                       </button>
                       {member.role === 'creator' && (
-                        <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Creator</span>
+                        <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          Creator
+                        </span>
                       )}
                     </div>
                   </div>

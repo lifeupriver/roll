@@ -3,8 +3,16 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  BookOpen, Film, Plus, Play,
-  MoreHorizontal, Trash2, Copy, Pencil, Search, X,
+  BookOpen,
+  Film,
+  Plus,
+  Play,
+  MoreHorizontal,
+  Trash2,
+  Copy,
+  Pencil,
+  Search,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
@@ -96,35 +104,40 @@ function ProjectsContent() {
               photo_count: (a.photo_count as number) || 0,
               captions: (a.captions as Record<string, string>) || {},
               created_at: (a.created_at as string) || new Date().toISOString(),
-              updated_at: (a.updated_at as string) || (a.created_at as string) || new Date().toISOString(),
+              updated_at:
+                (a.updated_at as string) || (a.created_at as string) || new Date().toISOString(),
             }));
           setAlbums([...localAlbums, ...apiAlbums]);
         } else {
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
-          setAlbums(stored.map((a: Record<string, unknown>) => ({
-            id: a.id as string,
-            name: (a.name as string) || 'Untitled Book',
-            description: (a.description as string) || null,
-            cover_url: (a.cover_url as string) || null,
-            photo_count: (a.photo_count as number) || 0,
-            captions: (a.captions as Record<string, string>) || {},
-            created_at: (a.created_at as string) || new Date().toISOString(),
-            updated_at: (a.updated_at as string) || new Date().toISOString(),
-          })));
+          setAlbums(
+            stored.map((a: Record<string, unknown>) => ({
+              id: a.id as string,
+              name: (a.name as string) || 'Untitled Book',
+              description: (a.description as string) || null,
+              cover_url: (a.cover_url as string) || null,
+              photo_count: (a.photo_count as number) || 0,
+              captions: (a.captions as Record<string, string>) || {},
+              created_at: (a.created_at as string) || new Date().toISOString(),
+              updated_at: (a.updated_at as string) || new Date().toISOString(),
+            }))
+          );
         }
       } catch {
         try {
           const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
-          setAlbums(stored.map((a: Record<string, unknown>) => ({
-            id: a.id as string,
-            name: (a.name as string) || 'Untitled Book',
-            description: (a.description as string) || null,
-            cover_url: (a.cover_url as string) || null,
-            photo_count: (a.photo_count as number) || 0,
-            captions: (a.captions as Record<string, string>) || {},
-            created_at: (a.created_at as string) || new Date().toISOString(),
-            updated_at: (a.updated_at as string) || new Date().toISOString(),
-          })));
+          setAlbums(
+            stored.map((a: Record<string, unknown>) => ({
+              id: a.id as string,
+              name: (a.name as string) || 'Untitled Book',
+              description: (a.description as string) || null,
+              cover_url: (a.cover_url as string) || null,
+              photo_count: (a.photo_count as number) || 0,
+              captions: (a.captions as Record<string, string>) || {},
+              created_at: (a.created_at as string) || new Date().toISOString(),
+              updated_at: (a.updated_at as string) || new Date().toISOString(),
+            }))
+          );
         } catch {
           // Albums not available
         }
@@ -251,7 +264,10 @@ function ProjectsContent() {
       {/* Search bar */}
       {showSearch && (
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]" />
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]"
+          />
           <input
             type="text"
             placeholder="Search books..."
@@ -297,7 +313,10 @@ function ProjectsContent() {
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => { setInitialPhotoIds([]); setShowCreateModal(true); }}
+                    onClick={() => {
+                      setInitialPhotoIds([]);
+                      setShowCreateModal(true);
+                    }}
                   >
                     <Plus size={16} className="mr-1" />
                     Create Your First Book
@@ -361,11 +380,13 @@ function ProjectsContent() {
                       <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
                         {formatRelativeDate(album.updated_at || album.created_at)}
                       </p>
-                      {album.captions && Object.values(album.captions).filter(Boolean).length > 0 && (
-                        <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                          {Object.values(album.captions).filter(Boolean).length} caption{Object.values(album.captions).filter(Boolean).length !== 1 ? 's' : ''}
-                        </span>
-                      )}
+                      {album.captions &&
+                        Object.values(album.captions).filter(Boolean).length > 0 && (
+                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                            {Object.values(album.captions).filter(Boolean).length} caption
+                            {Object.values(album.captions).filter(Boolean).length !== 1 ? 's' : ''}
+                          </span>
+                        )}
                     </div>
                   </button>
 
@@ -444,7 +465,12 @@ function ProjectsContent() {
                 >
                   <div className="relative aspect-video bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                     {reel.poster_url ? (
-                      <img src={reel.poster_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img
+                        src={reel.poster_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Film size={24} className="text-[var(--color-ink-tertiary)]" />
@@ -452,7 +478,12 @@ function ProjectsContent() {
                     )}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                        <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
+                        <Play
+                          size={18}
+                          className="text-white ml-0.5"
+                          fill="white"
+                          fillOpacity={0.9}
+                        />
                       </div>
                     </div>
                   </div>
@@ -460,7 +491,8 @@ function ProjectsContent() {
                     {reel.name}
                   </p>
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                    {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
+                    {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot;{' '}
+                    {formatDate(reel.created_at)}
                   </p>
                 </button>
               ))}
@@ -471,10 +503,7 @@ function ProjectsContent() {
 
       {/* Close context menu on click outside */}
       {contextMenuId && (
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setContextMenuId(null)}
-        />
+        <div className="fixed inset-0 z-10" onClick={() => setContextMenuId(null)} />
       )}
 
       {/* Create book modal */}

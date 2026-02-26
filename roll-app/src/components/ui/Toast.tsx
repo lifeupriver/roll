@@ -15,7 +15,14 @@ interface ToastItemInternalProps extends ToastProps {
   onDismiss: (id: string) => void;
 }
 
-function ToastItem({ id, message, type, duration = 3000, action, onDismiss }: ToastItemInternalProps) {
+function ToastItem({
+  id,
+  message,
+  type,
+  duration = 3000,
+  action,
+  onDismiss,
+}: ToastItemInternalProps) {
   const [exiting, setExiting] = useState(false);
 
   const dismiss = useCallback(() => {
@@ -76,7 +83,16 @@ function ToastItem({ id, message, type, duration = 3000, action, onDismiss }: To
         aria-label="Dismiss notification"
         className="shrink-0 bg-transparent border-none text-[var(--color-ink-tertiary)] cursor-pointer p-2.5 -mr-1.5 hover:text-[var(--color-ink)] transition-colors duration-150 touch-target"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>

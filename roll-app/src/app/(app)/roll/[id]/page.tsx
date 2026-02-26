@@ -6,7 +6,22 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { HeartButton } from '@/components/roll/HeartButton';
-import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, Users, ChevronRight, BookOpen, Camera, Video, UserRound, Images } from 'lucide-react';
+import {
+  X,
+  Film,
+  Printer,
+  Share2,
+  AlertCircle,
+  Wand2,
+  MessageSquare,
+  Users,
+  ChevronRight,
+  BookOpen,
+  Camera,
+  Video,
+  UserRound,
+  Images,
+} from 'lucide-react';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { BackButton } from '@/components/ui/BackButton';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -208,10 +223,13 @@ export default function RollDetailPage() {
   // ------------------------------------------------------------------
   // Photo caption
   // ------------------------------------------------------------------
-  const handleStartCaptionEdit = useCallback((photoId: string) => {
-    setCaptionText(photoCaptions.get(photoId) || '');
-    setEditingCaptionId(photoId);
-  }, [photoCaptions]);
+  const handleStartCaptionEdit = useCallback(
+    (photoId: string) => {
+      setCaptionText(photoCaptions.get(photoId) || '');
+      setEditingCaptionId(photoId);
+    },
+    [photoCaptions]
+  );
 
   const handleSaveCaption = useCallback(async () => {
     if (!editingCaptionId) return;
@@ -443,9 +461,12 @@ export default function RollDetailPage() {
     }).catch(() => {});
   }, []);
 
-  const getLightboxCaption = useCallback((photoId: string) => {
-    return photoCaptions.get(photoId) || '';
-  }, [photoCaptions]);
+  const getLightboxCaption = useCallback(
+    (photoId: string) => {
+      return photoCaptions.get(photoId) || '';
+    },
+    [photoCaptions]
+  );
 
   // ------------------------------------------------------------------
   // Helpers
@@ -513,7 +534,10 @@ export default function RollDetailPage() {
         </div>
 
         <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)] text-center">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full" style={{ backgroundColor: 'oklch(0.62 0.15 45 / 0.1)' }}>
+          <div
+            className="flex items-center justify-center w-16 h-16 rounded-full"
+            style={{ backgroundColor: 'oklch(0.62 0.15 45 / 0.1)' }}
+          >
             <AlertCircle size={32} strokeWidth={1.5} className="text-[var(--color-error)]" />
           </div>
           <div className="flex flex-col gap-[var(--space-tight)]">
@@ -524,15 +548,25 @@ export default function RollDetailPage() {
               {roll.processing_error || 'An unexpected error occurred while developing your roll.'}
             </p>
           </div>
-          <Button variant="primary" onClick={handleRetry}>Try Again</Button>
+          <Button variant="primary" onClick={handleRetry}>
+            Try Again
+          </Button>
         </div>
 
         {photos.length > 0 && (
           <div className="opacity-50">
-            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+            <div
+              className="grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+            >
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
-                  <img src={rp.photos.thumbnail_url} alt="" loading="lazy" className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]" />
+                  <img
+                    src={rp.photos.thumbnail_url}
+                    alt=""
+                    loading="lazy"
+                    className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                  />
                 </div>
               ))}
             </div>
@@ -560,10 +594,18 @@ export default function RollDetailPage() {
 
         <div className="relative">
           <div className="opacity-50">
-            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+            <div
+              className="grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+            >
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
-                  <img src={rp.photos.thumbnail_url} alt="" loading="lazy" className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]" />
+                  <img
+                    src={rp.photos.thumbnail_url}
+                    alt=""
+                    loading="lazy"
+                    className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                  />
                 </div>
               ))}
             </div>
@@ -575,7 +617,11 @@ export default function RollDetailPage() {
               .film-reel-rotate { animation: film-reel-spin 2s linear infinite; }
               @media (prefers-reduced-motion: reduce) { .film-reel-rotate { animation: none; } }
             `}</style>
-            <Film size={48} strokeWidth={1.5} className="film-reel-rotate text-[var(--color-processing)]" />
+            <Film
+              size={48}
+              strokeWidth={1.5}
+              className="film-reel-rotate text-[var(--color-processing)]"
+            />
             <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-lead)] text-[var(--color-ink)] tracking-[0.02em]">
               Developing photo {processed} of {total}...
             </p>
@@ -612,7 +658,9 @@ export default function RollDetailPage() {
             ) : (
               <button type="button" onClick={handleStartEditing} className="text-left w-full">
                 <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] truncate">
-                  {roll.name || <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>}
+                  {roll.name || (
+                    <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>
+                  )}
                 </h1>
               </button>
             )}
@@ -629,9 +677,7 @@ export default function RollDetailPage() {
             <div className="flex items-center gap-[var(--space-element)]">
               <Printer size={24} />
               <div>
-                <p className="text-[length:var(--text-body)] font-medium">
-                  Print This Roll
-                </p>
+                <p className="text-[length:var(--text-body)] font-medium">Print This Roll</p>
                 <p className="text-[length:var(--text-caption)] opacity-80">
                   Prints or book delivered to your door
                 </p>
@@ -649,7 +695,14 @@ export default function RollDetailPage() {
             <Share2 size={18} className="mr-2" />
             Share to Circle
           </Button>
-          <Button variant="secondary" size="md" onClick={() => { setStoryText(savedStory); setShowStoryModal(true); }}>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              setStoryText(savedStory);
+              setShowStoryModal(true);
+            }}
+          >
             <BookOpen size={18} className="mr-2" />
             {savedStory ? 'Edit Story' : 'Add a Story'}
           </Button>
@@ -678,11 +731,13 @@ export default function RollDetailPage() {
           {/* Media type toggle: Photo / Video */}
           <div className="flex items-center gap-[var(--space-tight)]">
             <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
-              {([
-                { value: 'all', icon: Images, label: 'All' },
-                { value: 'photo', icon: Camera, label: 'Photos' },
-                { value: 'video', icon: Video, label: 'Videos' },
-              ] as const).map(({ value, icon: Icon, label }) => (
+              {(
+                [
+                  { value: 'all', icon: Images, label: 'All' },
+                  { value: 'photo', icon: Camera, label: 'Photos' },
+                  { value: 'video', icon: Video, label: 'Videos' },
+                ] as const
+              ).map(({ value, icon: Icon, label }) => (
                 <button
                   key={value}
                   type="button"
@@ -701,10 +756,12 @@ export default function RollDetailPage() {
 
             {/* People toggle: All / People */}
             <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
-              {([
-                { value: 'all', icon: Images, label: 'All' },
-                { value: 'people', icon: UserRound, label: 'People' },
-              ] as const).map(({ value, icon: Icon, label }) => (
+              {(
+                [
+                  { value: 'all', icon: Images, label: 'All' },
+                  { value: 'people', icon: UserRound, label: 'People' },
+                ] as const
+              ).map(({ value, icon: Icon, label }) => (
                 <button
                   key={value}
                   type="button"
@@ -736,7 +793,11 @@ export default function RollDetailPage() {
         {/* Developed photo grid with hearts and captions */}
         <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
           {filteredPhotos.map((rp, index) => (
-            <div key={rp.id} className="relative overflow-hidden group cursor-pointer" onClick={() => setLightboxIndex(index)}>
+            <div
+              key={rp.id}
+              className="relative overflow-hidden group cursor-pointer"
+              onClick={() => setLightboxIndex(index)}
+            >
               <img
                 src={rp.processed_storage_key || rp.photos.thumbnail_url}
                 alt=""
@@ -767,7 +828,9 @@ export default function RollDetailPage() {
                       className="flex-1 px-2 py-1.5 bg-transparent text-[length:var(--text-caption)] text-white placeholder:text-white/50 focus:outline-none"
                     />
                     <VoiceCaptionButton
-                      onTranscript={(text) => setCaptionText((prev) => prev ? `${prev} ${text}` : text)}
+                      onTranscript={(text) =>
+                        setCaptionText((prev) => (prev ? `${prev} ${text}` : text))
+                      }
                     />
                   </div>
                 ) : (
@@ -775,7 +838,9 @@ export default function RollDetailPage() {
                     type="button"
                     onClick={() => handleStartCaptionEdit(rp.photo_id)}
                     className={`w-full text-left px-2 py-1.5 transition-opacity ${
-                      photoCaptions.get(rp.photo_id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      photoCaptions.get(rp.photo_id)
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100'
                     }`}
                   >
                     <span className="text-[length:var(--text-caption)] text-white/80">
@@ -823,8 +888,14 @@ export default function RollDetailPage() {
 
         {/* Circle picker modal */}
         {showCirclePicker && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowCirclePicker(false)}>
-            <div className="bg-[var(--color-surface)] rounded-[var(--radius-modal)] shadow-[var(--shadow-overlay)] w-[min(90vw,380px)] max-h-[60vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowCirclePicker(false)}
+          >
+            <div
+              className="bg-[var(--color-surface)] rounded-[var(--radius-modal)] shadow-[var(--shadow-overlay)] w-[min(90vw,380px)] max-h-[60vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
                 <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)]">
                   Share to Circle
@@ -862,14 +933,22 @@ export default function RollDetailPage() {
                             {circle.member_count} member{circle.member_count !== 1 ? 's' : ''}
                           </p>
                         </div>
-                        <ChevronRight size={16} className="text-[var(--color-ink-tertiary)] shrink-0" />
+                        <ChevronRight
+                          size={16}
+                          className="text-[var(--color-ink-tertiary)] shrink-0"
+                        />
                       </button>
                     ))}
                   </div>
                 )}
               </div>
               <div className="p-[var(--space-element)] border-t border-[var(--color-border)]">
-                <Button variant="ghost" size="sm" onClick={() => setShowCirclePicker(false)} className="w-full">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCirclePicker(false)}
+                  className="w-full"
+                >
                   Cancel
                 </Button>
               </div>
@@ -955,7 +1034,8 @@ export default function RollDetailPage() {
       {/* Instructions */}
       {!isFull && photoCount > 0 && (
         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-          {maxPhotos - photoCount} more photo{maxPhotos - photoCount !== 1 ? 's' : ''} needed to fill your roll. Go back to your feed to select more.
+          {maxPhotos - photoCount} more photo{maxPhotos - photoCount !== 1 ? 's' : ''} needed to
+          fill your roll. Go back to your feed to select more.
         </p>
       )}
 
@@ -981,7 +1061,11 @@ export default function RollDetailPage() {
       ) : (
         <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
           {photos.map((rp, index) => (
-            <div key={rp.id} className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer" onClick={() => setLightboxIndex(index)}>
+            <div
+              key={rp.id}
+              className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer"
+              onClick={() => setLightboxIndex(index)}
+            >
               <img
                 src={rp.photos.thumbnail_url}
                 alt={`Position ${rp.position}`}

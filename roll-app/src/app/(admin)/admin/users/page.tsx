@@ -99,7 +99,11 @@ export default function AdminUsersPage() {
       key: 'onboarding_complete',
       label: 'Onboarded',
       render: (row) => (
-        <span className={row.onboarding_complete ? 'text-emerald-400' : 'text-[var(--color-ink-tertiary)]'}>
+        <span
+          className={
+            row.onboarding_complete ? 'text-emerald-400' : 'text-[var(--color-ink-tertiary)]'
+          }
+        >
           {row.onboarding_complete ? 'Yes' : 'No'}
         </span>
       ),
@@ -120,7 +124,9 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Users</h1>
-        <span className="text-sm text-[var(--color-ink-tertiary)]">{total.toLocaleString()} total</span>
+        <span className="text-sm text-[var(--color-ink-tertiary)]">
+          {total.toLocaleString()} total
+        </span>
       </div>
 
       {/* Filters */}
@@ -129,12 +135,18 @@ export default function AdminUsersPage() {
           type="text"
           placeholder="Search by email or name..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="px-3 py-2 text-sm bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] focus:outline-none focus:border-[var(--color-border-focus)] w-64"
         />
         <select
           value={tier}
-          onChange={(e) => { setTier(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setTier(e.target.value);
+            setPage(1);
+          }}
           className="px-3 py-2 text-sm bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] text-[var(--color-ink)]"
         >
           <option value="">All Tiers</option>

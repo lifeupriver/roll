@@ -27,7 +27,16 @@ interface PhotoCardProps {
   onTap?: (sourceRect?: { top: number; left: number; width: number; height: number }) => void;
 }
 
-export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode, onCheck, onHide, onTap }: PhotoCardProps) {
+export function PhotoCard({
+  photo,
+  isChecked,
+  selectionNumber,
+  mode,
+  selectMode,
+  onCheck,
+  onHide,
+  onTap,
+}: PhotoCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -75,7 +84,11 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
     } else if (onTap) {
       // Capture bounding rect for shared element transition
       const rect = cardRef.current?.getBoundingClientRect();
-      onTap(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : undefined);
+      onTap(
+        rect
+          ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
+          : undefined
+      );
     }
   }, [mode, selectMode, onCheck, onTap]);
 
@@ -127,11 +140,7 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
               {selectionNumber}
             </span>
           ) : (
-            <Check
-              size={16}
-              strokeWidth={2.5}
-              className="text-white/80"
-            />
+            <Check size={16} strokeWidth={2.5} className="text-white/80" />
           )}
         </div>
       )}

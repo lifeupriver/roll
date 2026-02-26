@@ -53,7 +53,9 @@ export default function ReelDetailPage() {
   const [showConfig, setShowConfig] = useState(false);
   const [configName, setConfigName] = useState('');
   const [defaultClipLengthS, setDefaultClipLengthS] = useState(3);
-  const [clipTrims, setClipTrims] = useState<Map<string, { startMs: number; endMs: number | null }>>(new Map());
+  const [clipTrims, setClipTrims] = useState<
+    Map<string, { startMs: number; endMs: number | null }>
+  >(new Map());
   const [savingConfig, setSavingConfig] = useState(false);
 
   // Load reel data
@@ -152,27 +154,36 @@ export default function ReelDetailPage() {
     }
   }, [isFavorited, reelId, toast]);
 
-  const handleReorder = useCallback(async (fromIndex: number, toIndex: number) => {
-    reorderClips(fromIndex, toIndex);
-  }, [reorderClips]);
+  const handleReorder = useCallback(
+    async (fromIndex: number, toIndex: number) => {
+      reorderClips(fromIndex, toIndex);
+    },
+    [reorderClips]
+  );
 
-  const handleRemoveClip = useCallback(async (photoId: string) => {
-    if (!currentReel) return;
-    removeClip(photoId);
-    try {
-      await fetch(`/api/reels/${currentReel.id}/clips`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ photoId }),
-      });
-    } catch {
-      // Reload on error
-    }
-  }, [currentReel, removeClip]);
+  const handleRemoveClip = useCallback(
+    async (photoId: string) => {
+      if (!currentReel) return;
+      removeClip(photoId);
+      try {
+        await fetch(`/api/reels/${currentReel.id}/clips`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photoId }),
+        });
+      } catch {
+        // Reload on error
+      }
+    },
+    [currentReel, removeClip]
+  );
 
-  const handleEditTrim = useCallback((clipId: string) => {
-    track({ event: 'reel_trim_opened', properties: { reelId, clipId } });
-  }, [reelId]);
+  const handleEditTrim = useCallback(
+    (clipId: string) => {
+      track({ event: 'reel_trim_opened', properties: { reelId, clipId } });
+    },
+    [reelId]
+  );
 
   const handleDevelop = useCallback(async () => {
     if (!currentReel || !filmProfile) return;
@@ -194,10 +205,15 @@ export default function ReelDetailPage() {
       }
 
       updateReelStatus(currentReel.id, { status: 'developed' });
-      track({ event: 'reel_developed', properties: { reelId: currentReel.id, filmProfile, audioMood } });
+      track({
+        event: 'reel_developed',
+        properties: { reelId: currentReel.id, filmProfile, audioMood },
+      });
 
       // Initialize config screen with suggested name and existing trim points
-      const suggestedName = currentReel.name || `Reel — ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+      const suggestedName =
+        currentReel.name ||
+        `Reel — ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
       setConfigName(suggestedName);
       setDefaultClipLengthS(3);
       const trims = new Map<string, { startMs: number; endMs: number | null }>();
@@ -222,7 +238,10 @@ export default function ReelDetailPage() {
       const res = await fetch(`/api/reels/${currentReel.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: configName.trim() || currentReel.name, default_clip_length_s: defaultClipLengthS }),
+        body: JSON.stringify({
+          name: configName.trim() || currentReel.name,
+          default_clip_length_s: defaultClipLengthS,
+        }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -239,7 +258,10 @@ export default function ReelDetailPage() {
       }
 
       toast('Reel saved', 'success');
-      track({ event: 'reel_config_saved', properties: { reelId: currentReel.id, defaultClipLength: defaultClipLengthS } });
+      track({
+        event: 'reel_config_saved',
+        properties: { reelId: currentReel.id, defaultClipLength: defaultClipLengthS },
+      });
       setShowConfig(false);
       router.push(`/library/reels/${currentReel.id}/screen`);
     } catch {
@@ -277,14 +299,17 @@ export default function ReelDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)]">
         <p className="text-[var(--color-error)]">{error || 'Reel not found'}</p>
-        <Button variant="secondary" onClick={() => router.push('/library')}>Back to Library</Button>
+        <Button variant="secondary" onClick={() => router.push('/library')}>
+          Back to Library
+        </Button>
       </div>
     );
   }
 
   const isDeveloped = currentReel.status === 'developed';
   const isReady = currentReel.status === 'ready' || currentReel.status === 'building';
-  const canDevelop = (currentReel.status === 'ready' || reelClips.length >= 3) && filmProfile !== null;
+  const canDevelop =
+    (currentReel.status === 'ready' || reelClips.length >= 3) && filmProfile !== null;
 
   const profileOptions = FILM_PROFILES.map((p) => ({
     value: p.id,
@@ -312,12 +337,16 @@ export default function ReelDetailPage() {
           ) : (
             <button type="button" onClick={handleStartEditing} className="text-left w-full">
               <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] truncate">
-                {currentReel.name || <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>}
+                {currentReel.name || (
+                  <span className="text-[var(--color-ink-tertiary)]">Add a caption...</span>
+                )}
               </h1>
             </button>
           )}
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)] tabular-nums">
-            {reelClips.length} clip{reelClips.length !== 1 ? 's' : ''} &middot; {formatDuration(currentReel.current_duration_ms)} / {formatDuration(currentReel.target_duration_ms)}
+            {reelClips.length} clip{reelClips.length !== 1 ? 's' : ''} &middot;{' '}
+            {formatDuration(currentReel.current_duration_ms)} /{' '}
+            {formatDuration(currentReel.target_duration_ms)}
           </p>
         </div>
         <div className="flex items-center gap-[var(--space-tight)]">
@@ -438,7 +467,10 @@ export default function ReelDetailPage() {
 
             {/* Reel Name Input */}
             <div className="flex flex-col gap-[var(--space-tight)]">
-              <label htmlFor="reel-name" className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+              <label
+                htmlFor="reel-name"
+                className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]"
+              >
                 Reel name
               </label>
               <input
@@ -484,19 +516,34 @@ export default function ReelDetailPage() {
               </label>
               <div className="flex flex-col gap-[var(--space-tight)] max-h-60 overflow-y-auto">
                 {reelClips.map((clip) => {
-                  const trim = clipTrims.get(clip.photo_id) ?? { startMs: clip.trim_start_ms, endMs: clip.trim_end_ms };
+                  const trim = clipTrims.get(clip.photo_id) ?? {
+                    startMs: clip.trim_start_ms,
+                    endMs: clip.trim_end_ms,
+                  };
                   const effectiveEnd = trim.endMs ?? clip.trimmed_duration_ms + clip.trim_start_ms;
                   const clipDuration = effectiveEnd - trim.startMs;
-                  const totalDuration = clip.trimmed_duration_ms + clip.trim_start_ms + (clip.trim_end_ms ? (clip.trimmed_duration_ms + clip.trim_start_ms - clip.trim_end_ms) : 0);
+                  const totalDuration =
+                    clip.trimmed_duration_ms +
+                    clip.trim_start_ms +
+                    (clip.trim_end_ms
+                      ? clip.trimmed_duration_ms + clip.trim_start_ms - clip.trim_end_ms
+                      : 0);
                   const maxMs = Math.max(totalDuration, effectiveEnd, 10000);
 
                   return (
-                    <div key={clip.id} className="flex items-center gap-[var(--space-element)] bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)] p-[var(--space-tight)]">
+                    <div
+                      key={clip.id}
+                      className="flex items-center gap-[var(--space-element)] bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)] p-[var(--space-tight)]"
+                    >
                       {/* Thumbnail */}
                       <div className="relative shrink-0 w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
-                        {(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos?.thumbnail_url ? (
+                        {(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos
+                          ?.thumbnail_url ? (
                           <img
-                            src={(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos!.thumbnail_url}
+                            src={
+                              (clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos!
+                                .thumbnail_url
+                            }
                             alt=""
                             className="w-full h-full object-cover"
                           />
@@ -526,7 +573,10 @@ export default function ReelDetailPage() {
                             onChange={(e) => {
                               const val = parseInt(e.target.value, 10);
                               const newTrims = new Map(clipTrims);
-                              newTrims.set(clip.photo_id, { ...trim, startMs: Math.min(val, effectiveEnd - 1000) });
+                              newTrims.set(clip.photo_id, {
+                                ...trim,
+                                startMs: Math.min(val, effectiveEnd - 1000),
+                              });
                               setClipTrims(newTrims);
                             }}
                             className="absolute inset-0 w-full opacity-0 cursor-pointer"

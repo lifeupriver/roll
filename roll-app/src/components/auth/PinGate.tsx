@@ -55,11 +55,14 @@ export function PinGate({ children }: PinGateProps) {
     });
   }, []);
 
-  const handleKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  }, [digits]);
+  const handleKeyDown = useCallback(
+    (index: number, e: React.KeyboardEvent) => {
+      if (e.key === 'Backspace' && !digits[index] && index > 0) {
+        inputsRef.current[index - 1]?.focus();
+      }
+    },
+    [digits]
+  );
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault();
@@ -104,7 +107,9 @@ export function PinGate({ children }: PinGateProps) {
           {digits.map((digit, i) => (
             <input
               key={i}
-              ref={(el) => { inputsRef.current[i] = el; }}
+              ref={(el) => {
+                inputsRef.current[i] = el;
+              }}
               type="text"
               inputMode="numeric"
               maxLength={1}

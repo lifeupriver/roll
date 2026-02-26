@@ -92,7 +92,10 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
     <div className="flex flex-col gap-[var(--space-component)]">
       {/* Drop zone */}
       <div
-        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
@@ -151,7 +154,9 @@ export function PhotoUpload({ onUploadComplete }: PhotoUploadProps) {
           <div className="h-2 bg-[var(--color-surface-sunken)] rounded-full overflow-hidden">
             <div
               className="h-full bg-[var(--color-action)] transition-all duration-200 ease-out rounded-full"
-              style={{ width: `${progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}%` }}
+              style={{
+                width: `${progress.total > 0 ? (progress.completed / progress.total) * 100 : 0}%`,
+              }}
             />
           </div>
         </div>

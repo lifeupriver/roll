@@ -91,7 +91,7 @@ export function buildAssetUrl(processedStorageKey: string): string {
  */
 export async function createProdigiOrder(
   order: PrintOrder,
-  items: PrintOrderItem[],
+  items: PrintOrderItem[]
 ): Promise<ProdigiOrderResponse> {
   // ---- Build the request body ----
   const prodigiItems: ProdigiItem[] = items.map((item) => ({
@@ -166,10 +166,7 @@ export async function createProdigiOrder(
  * Verify that a webhook payload was signed by Prodigi using HMAC SHA-256.
  * Returns `true` when the computed signature matches.
  */
-export function verifyWebhookSignature(
-  body: string,
-  signature: string,
-): boolean {
+export function verifyWebhookSignature(body: string, signature: string): boolean {
   const secret = process.env.PRODIGI_WEBHOOK_SECRET;
   if (!secret) {
     throw new Error('PRODIGI_WEBHOOK_SECRET is not configured');

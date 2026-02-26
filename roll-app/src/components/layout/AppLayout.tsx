@@ -20,13 +20,52 @@ function DarkroomBulbIcon({ active }: { active: boolean }) {
         strokeLinejoin="round"
         opacity={active ? 1 : 0.7}
       />
-      <path d="M9 21h6" stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'} strokeWidth="1.5" strokeLinecap="round" opacity={active ? 1 : 0.7} />
-      <path d="M9 19h6" stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'} strokeWidth="1.5" strokeLinecap="round" opacity={active ? 1 : 0.7} />
+      <path
+        d="M9 21h6"
+        stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity={active ? 1 : 0.7}
+      />
+      <path
+        d="M9 19h6"
+        stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity={active ? 1 : 0.7}
+      />
       {active && (
         <>
-          <line x1="12" y1="0" x2="12" y2="1" stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
-          <line x1="4" y1="4" x2="4.7" y2="4.7" stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
-          <line x1="20" y1="4" x2="19.3" y2="4.7" stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+          <line
+            x1="12"
+            y1="0"
+            x2="12"
+            y2="1"
+            stroke="var(--color-action)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <line
+            x1="4"
+            y1="4"
+            x2="4.7"
+            y2="4.7"
+            stroke="var(--color-action)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <line
+            x1="20"
+            y1="4"
+            x2="19.3"
+            y2="4.7"
+            stroke="var(--color-action)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
         </>
       )}
     </svg>
@@ -69,7 +108,9 @@ export function AppLayout({ children }: AppLayoutProps) {
     } else {
       document.body.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [drawerOpen]);
 
   // Close on Escape
@@ -85,7 +126,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   // User display info
-  const userInitial = user?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
+  const userInitial =
+    user?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?';
   const userName = user?.display_name || user?.email?.split('@')[0] || 'Guest';
   const userTier = user?.tier === 'pro' ? 'Roll+' : 'Free';
 
@@ -111,7 +153,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                   const rect = e.currentTarget.getBoundingClientRect();
                   toggleWithReveal(rect.left + rect.width / 2, rect.top + rect.height / 2);
                 }}
-                aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
+                aria-label={
+                  theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'
+                }
                 className="p-1.5 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
               >
                 <DarkroomBulbIcon active={theme === 'darkroom'} />
@@ -195,7 +239,11 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="flex items-center justify-between mb-[var(--space-element)]">
                 <div className="flex items-center gap-[var(--space-element)]">
                   {user?.avatar_url ? (
-                    <img src={user.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                    <img
+                      src={user.avatar_url}
+                      alt=""
+                      className="w-10 h-10 rounded-full object-cover shrink-0"
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0">
                       <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-action)]">
@@ -237,7 +285,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                         ? 'text-[var(--color-action)] bg-[var(--color-action-subtle)]'
                         : 'text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)]'
                     }`}
-                    style={{ animationDelay: `${DRAWER_SLIDE_DURATION + index * DRAWER_ITEM_STAGGER}ms` }}
+                    style={{
+                      animationDelay: `${DRAWER_SLIDE_DURATION + index * DRAWER_ITEM_STAGGER}ms`,
+                    }}
                   >
                     <item.icon size={22} strokeWidth={1.5} />
                     {item.label}

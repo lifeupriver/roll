@@ -9,14 +9,14 @@ import crypto from 'crypto';
 import type { CircleInvite } from '@/types/circle';
 
 // POST — generate invite link, optionally send email
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -34,7 +34,10 @@ export async function POST(
     }
 
     if (membership.role !== 'creator') {
-      return NextResponse.json({ error: 'Only the creator can generate invite links' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Only the creator can generate invite links' },
+        { status: 403 }
+      );
     }
 
     const rateLimited = inviteLimiter.check(user.id);
@@ -79,11 +82,7 @@ export async function POST(
     let emailSent = false;
     if (parsedEmail) {
       // Get circle name and inviter name
-      const { data: circle } = await supabase
-        .from('circles')
-        .select('name')
-        .eq('id', id)
-        .single();
+      const { data: circle } = await supabase.from('circles').select('name').eq('id', id).single();
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -114,14 +113,14 @@ export async function POST(
 }
 
 // GET — list invite history for this circle (creator only)
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -135,7 +134,10 @@ export async function GET(
       .single();
 
     if (!membership || membership.role !== 'creator') {
-      return NextResponse.json({ error: 'Only the creator can view invite history' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Only the creator can view invite history' },
+        { status: 403 }
+      );
     }
 
     const { data: invites, error: invitesError } = await supabase

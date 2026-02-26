@@ -81,9 +81,12 @@ export function PhotoGrid({
 
   // Mark animation as done after the stagger window
   useEffect(() => {
-    const timer = setTimeout(() => {
-      hasAnimated.current = true;
-    }, MAX_ANIMATED_ITEMS * STAGGER_MS + 250);
+    const timer = setTimeout(
+      () => {
+        hasAnimated.current = true;
+      },
+      MAX_ANIMATED_ITEMS * STAGGER_MS + 250
+    );
     return () => clearTimeout(timer);
   }, [animationKey]);
 
@@ -92,7 +95,11 @@ export function PhotoGrid({
       {/* Contact sheet grid: 4px gaps, no border-radius */}
       <div
         key={animationKey}
-        className={columns ? 'grid gap-[var(--space-micro)]' : 'grid grid-cols-2 lg:grid-cols-3 gap-[var(--space-micro)]'}
+        className={
+          columns
+            ? 'grid gap-[var(--space-micro)]'
+            : 'grid grid-cols-2 lg:grid-cols-3 gap-[var(--space-micro)]'
+        }
         style={columns ? { gridTemplateColumns: `repeat(${columns}, 1fr)` } : undefined}
       >
         {photos.map((photo, index) => {
@@ -112,12 +119,18 @@ export function PhotoGrid({
               <PhotoCard
                 photo={photo}
                 isChecked={checkedIds?.has(photo.id) ?? false}
-                selectionNumber={checkedOrder ? checkedOrder.indexOf(photo.id) + 1 || undefined : undefined}
+                selectionNumber={
+                  checkedOrder ? checkedOrder.indexOf(photo.id) + 1 || undefined : undefined
+                }
                 mode={mode}
                 selectMode={selectMode}
                 onCheck={onCheck ? () => onCheck(photo.id) : undefined}
                 onHide={onHide ? () => onHide(photo.id) : undefined}
-                onTap={onPhotoTap ? (sourceRect?: PhotoSourceRect) => onPhotoTap(photo.id, sourceRect) : undefined}
+                onTap={
+                  onPhotoTap
+                    ? (sourceRect?: PhotoSourceRect) => onPhotoTap(photo.id, sourceRect)
+                    : undefined
+                }
               />
             </div>
           );

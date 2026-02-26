@@ -9,10 +9,10 @@ export interface PushSubscriptionRecord {
 }
 
 export type NotificationCategory =
-  | 'roll_ready'       // Roll has been developed
-  | 'print_shipped'    // Print order shipped
-  | 'circle_invite'    // Invited to a circle
-  | 'circle_activity'  // New photo in a circle
+  | 'roll_ready' // Roll has been developed
+  | 'print_shipped' // Print order shipped
+  | 'circle_invite' // Invited to a circle
+  | 'circle_activity' // New photo in a circle
   | 'referral_signup'; // Referral converted
 
 export interface PushPayload {

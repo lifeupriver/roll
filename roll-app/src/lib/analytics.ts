@@ -49,7 +49,10 @@ export type AnalyticsEvent =
   | { event: 'reel_created'; properties: { reelId: string } }
   | { event: 'reel_filled'; properties: { reelId: string } }
   | { event: 'reel_trim_opened'; properties: { reelId: string; clipId: string } }
-  | { event: 'reel_developed'; properties: { reelId: string; filmProfile: string; audioMood: string } }
+  | {
+      event: 'reel_developed';
+      properties: { reelId: string; filmProfile: string; audioMood: string };
+    }
   | { event: 'reel_config_saved'; properties: { reelId: string; defaultClipLength: number } }
   | { event: 'reel_favorited'; properties: { reelId: string } }
   | { event: 'reel_unfavorited'; properties: { reelId: string } }

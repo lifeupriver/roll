@@ -81,7 +81,11 @@ export default function MemberProfilePage() {
       <div className="flex items-center gap-[var(--space-component)]">
         <div className="w-20 h-20 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0 overflow-hidden">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="w-full h-full rounded-full object-cover"
+            />
           ) : (
             <span className="text-[length:var(--text-title)] font-medium text-[var(--color-action)]">
               {initial}

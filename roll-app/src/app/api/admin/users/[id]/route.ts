@@ -4,10 +4,7 @@ import { getServiceClient } from '@/lib/admin/service';
 import { logAdminAction } from '@/lib/admin/audit';
 import { captureError } from '@/lib/sentry';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
     if (!admin) {
@@ -18,36 +15,37 @@ export async function GET(
     const db = getServiceClient();
 
     // Fetch user profile + related counts in parallel
-    const [profileRes, rollsRes, ordersRes, favoritesRes, circlesRes, notesRes] = await Promise.all([
-      db.from('profiles')
-        .select('*')
-        .eq('id', id)
-        .single(),
+    const [profileRes, rollsRes, ordersRes, favoritesRes, circlesRes, notesRes] = await Promise.all(
+      [
+        db.from('profiles').select('*').eq('id', id).single(),
 
-      db.from('rolls')
-        .select('id, name, status, film_profile, photo_count, created_at, updated_at')
-        .eq('user_id', id)
-        .order('created_at', { ascending: false }),
+        db
+          .from('rolls')
+          .select('id, name, status, film_profile, photo_count, created_at, updated_at')
+          .eq('user_id', id)
+          .order('created_at', { ascending: false }),
 
-      db.from('print_orders')
-        .select('id, product, print_size, status, total_cents, created_at')
-        .eq('user_id', id)
-        .order('created_at', { ascending: false }),
+        db
+          .from('print_orders')
+          .select('id, product, print_size, status, total_cents, created_at')
+          .eq('user_id', id)
+          .order('created_at', { ascending: false }),
 
-      db.from('favorites')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', id),
+        db.from('favorites').select('id', { count: 'exact', head: true }).eq('user_id', id),
 
-      db.from('circle_members')
-        .select('circle_id, circles(id, name, member_count)')
-        .eq('user_id', id),
+        db
+          .from('circle_members')
+          .select('circle_id, circles(id, name, member_count)')
+          .eq('user_id', id),
 
-      db.from('admin_notes')
-        .select('id, body, admin_id, created_at')
-        .eq('target_type', 'user')
-        .eq('target_id', id)
-        .order('created_at', { ascending: false }),
-    ]);
+        db
+          .from('admin_notes')
+          .select('id, body, admin_id, created_at')
+          .eq('target_type', 'user')
+          .eq('target_id', id)
+          .order('created_at', { ascending: false }),
+      ]
+    );
 
     if (profileRes.error || !profileRes.data) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -67,10 +65,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
     if (!admin) {
@@ -82,11 +77,7 @@ export async function PATCH(
     const db = getServiceClient();
 
     // Get current profile for audit log
-    const { data: before } = await db
-      .from('profiles')
-      .select('tier, role')
-      .eq('id', id)
-      .single();
+    const { data: before } = await db.from('profiles').select('tier, role').eq('id', id).single();
 
     // Only allow specific field updates
     const updates: Record<string, unknown> = {};

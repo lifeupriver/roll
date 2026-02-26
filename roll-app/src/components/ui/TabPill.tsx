@@ -67,9 +67,7 @@ export function TabPill({ activeValue, onChange, options, variant = 'primary' }:
           : 'border-b-2 border-transparent text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] bg-transparent';
 
         const styles = variant === 'primary' ? primaryStyles : secondaryStyles;
-        const shapeStyles = variant === 'primary'
-          ? 'rounded-[var(--radius-pill)]'
-          : 'rounded-none';
+        const shapeStyles = variant === 'primary' ? 'rounded-[var(--radius-pill)]' : 'rounded-none';
 
         return (
           <button

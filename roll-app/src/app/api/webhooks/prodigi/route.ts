@@ -58,11 +58,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     // Check magazines table if not found in print_orders
-    const { data: magazine } = !order ? await supabase
-      .from('magazines')
-      .select('id')
-      .eq('prodigi_order_id', prodigiOrderId)
-      .single() : { data: null };
+    const { data: magazine } = !order
+      ? await supabase
+          .from('magazines')
+          .select('id')
+          .eq('prodigi_order_id', prodigiOrderId)
+          .single()
+      : { data: null };
 
     if (lookupError && !order && !magazine) {
       // We don't have this order — acknowledge anyway to stop retries
@@ -84,10 +86,7 @@ export async function POST(request: NextRequest) {
       // Extract tracking URL from shipment details
       const shipments = orderData.shipments ?? [];
       if (shipments.length > 0) {
-        const trackingUrl =
-          shipments[0].tracking?.url ??
-          shipments[0].trackingUrl ??
-          null;
+        const trackingUrl = shipments[0].tracking?.url ?? shipments[0].trackingUrl ?? null;
         if (trackingUrl) {
           updateData.tracking_url = trackingUrl;
         }

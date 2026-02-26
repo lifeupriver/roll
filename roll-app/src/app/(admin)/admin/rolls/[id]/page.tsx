@@ -37,15 +37,26 @@ export default function AdminRollDetailPage() {
         const found = data.rolls?.find((r: RollDetail) => r.id === id);
         if (found) setRoll(found);
       }
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  useEffect(() => { fetchRoll(); }, [fetchRoll]);
+  useEffect(() => {
+    fetchRoll();
+  }, [fetchRoll]);
 
   if (loading || !roll) {
     return (
       <div className="space-y-4">
-        <button onClick={() => router.back()} className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]">&larr; Back</button>
+        <button
+          onClick={() => router.back()}
+          className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+        >
+          &larr; Back
+        </button>
         <div className="h-48 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
       </div>
     );
@@ -53,18 +64,27 @@ export default function AdminRollDetailPage() {
 
   return (
     <div className="space-y-6">
-      <button onClick={() => router.push('/admin/rolls')} className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]">&larr; Back to rolls</button>
+      <button
+        onClick={() => router.push('/admin/rolls')}
+        className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+      >
+        &larr; Back to rolls
+      </button>
 
       <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="font-[family-name:var(--font-display)] text-lg font-medium">{roll.name || 'Untitled Roll'}</h1>
+          <h1 className="font-[family-name:var(--font-display)] text-lg font-medium">
+            {roll.name || 'Untitled Roll'}
+          </h1>
           <StatusBadge status={roll.status} />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-xs text-[var(--color-ink-tertiary)] uppercase">Photos</p>
-            <p className="text-lg font-medium">{roll.photo_count}/{roll.max_photos}</p>
+            <p className="text-lg font-medium">
+              {roll.photo_count}/{roll.max_photos}
+            </p>
           </div>
           <div>
             <p className="text-xs text-[var(--color-ink-tertiary)] uppercase">Film Profile</p>
@@ -76,7 +96,10 @@ export default function AdminRollDetailPage() {
           </div>
           <div>
             <p className="text-xs text-[var(--color-ink-tertiary)] uppercase">User</p>
-            <a href={`/admin/users/${roll.user_id}`} className="text-sm text-[var(--color-action)] hover:underline truncate block">
+            <a
+              href={`/admin/users/${roll.user_id}`}
+              className="text-sm text-[var(--color-action)] hover:underline truncate block"
+            >
               {roll.user_id.slice(0, 8)}...
             </a>
           </div>
@@ -84,14 +107,17 @@ export default function AdminRollDetailPage() {
 
         {roll.processing_error && (
           <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-[var(--radius-sharp)] text-sm text-red-400">
-            <span className="font-medium">Error: </span>{roll.processing_error}
+            <span className="font-medium">Error: </span>
+            {roll.processing_error}
           </div>
         )}
 
         {roll.processing_started_at && (
           <div className="mt-4 pt-4 border-t border-[var(--color-border)] grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-xs text-[var(--color-ink-tertiary)] uppercase">Processing Started</p>
+              <p className="text-xs text-[var(--color-ink-tertiary)] uppercase">
+                Processing Started
+              </p>
               <p>{new Date(roll.processing_started_at).toLocaleString()}</p>
             </div>
             {roll.processing_completed_at && (

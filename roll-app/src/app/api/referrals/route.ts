@@ -11,7 +11,10 @@ import type { ReferralStats } from '@/types/referral';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -26,10 +29,7 @@ export async function GET() {
     let referralCode = profile?.referral_code;
     if (!referralCode) {
       referralCode = crypto.randomBytes(4).toString('hex');
-      await supabase
-        .from('profiles')
-        .update({ referral_code: referralCode })
-        .eq('id', user.id);
+      await supabase.from('profiles').update({ referral_code: referralCode }).eq('id', user.id);
     }
 
     // Get referral stats
@@ -41,7 +41,9 @@ export async function GET() {
     const stats: ReferralStats = {
       totalInvited: referrals?.length ?? 0,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      totalSignedUp: referrals?.filter((r: any) => r.status === 'signed_up' || r.status === 'converted').length ?? 0,
+      totalSignedUp:
+        referrals?.filter((r: any) => r.status === 'signed_up' || r.status === 'converted')
+          .length ?? 0,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       totalConverted: referrals?.filter((r: any) => r.status === 'converted').length ?? 0,
       referralCode,
@@ -61,7 +63,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -84,10 +89,7 @@ export async function POST(request: NextRequest) {
     let referralCode = profile.referral_code;
     if (!referralCode) {
       referralCode = crypto.randomBytes(4).toString('hex');
-      await supabase
-        .from('profiles')
-        .update({ referral_code: referralCode })
-        .eq('id', user.id);
+      await supabase.from('profiles').update({ referral_code: referralCode }).eq('id', user.id);
     }
 
     // Check if already invited this email
@@ -103,14 +105,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Create referral record
-    const { error: insertError } = await supabase
-      .from('referrals')
-      .insert({
-        referrer_id: user.id,
-        referred_email: email.toLowerCase(),
-        referral_code: referralCode,
-        status: 'pending',
-      });
+    const { error: insertError } = await supabase.from('referrals').insert({
+      referrer_id: user.id,
+      referred_email: email.toLowerCase(),
+      referral_code: referralCode,
+      status: 'pending',
+    });
 
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 });

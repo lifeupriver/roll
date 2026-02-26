@@ -18,7 +18,11 @@ function getPublicDir(): string {
 let _r2Client: S3Client | null = null;
 
 function hasR2Credentials(): boolean {
-  return !!(process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY);
+  return !!(
+    process.env.R2_ACCOUNT_ID &&
+    process.env.R2_ACCESS_KEY_ID &&
+    process.env.R2_SECRET_ACCESS_KEY
+  );
 }
 
 function getR2Client(): S3Client {

@@ -77,7 +77,9 @@ export function PhotoLightbox({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
-  const [heroTransitionPhase, setHeroTransitionPhase] = useState<'entering' | 'settled' | 'exiting'>('entering');
+  const [heroTransitionPhase, setHeroTransitionPhase] = useState<
+    'entering' | 'settled' | 'exiting'
+  >('entering');
 
   const [isEditingCaption, setIsEditingCaption] = useState(false);
   const [captionDraft, setCaptionDraft] = useState('');
@@ -365,7 +367,10 @@ export function PhotoLightbox({
       {/* Main content area: photo + metadata + actions */}
       <div className="flex-1 flex flex-col items-center justify-center w-full px-[var(--space-element)] pb-[var(--space-component)]">
         {/* Image container with overlay navigation arrows */}
-        <div className="relative flex items-center justify-center w-full max-w-[1200px]" style={{ maxHeight: '80vh' }}>
+        <div
+          className="relative flex items-center justify-center w-full max-w-[1200px]"
+          style={{ maxHeight: '80vh' }}
+        >
           {/* Previous arrow — overlaid on left edge of photo */}
           {currentIndex > 0 && (
             <button
@@ -428,7 +433,11 @@ export function PhotoLightbox({
                     aria-label={isPlaying ? 'Pause' : 'Play'}
                     className="text-white/90 hover:text-white shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                   >
-                    {isPlaying ? <Pause size={18} /> : <Play size={18} fill="white" fillOpacity={0.9} />}
+                    {isPlaying ? (
+                      <Pause size={18} />
+                    ) : (
+                      <Play size={18} fill="white" fillOpacity={0.9} />
+                    )}
                   </button>
                   <div
                     className="flex-1 h-1 bg-white/30 rounded-full cursor-pointer"
@@ -554,9 +563,7 @@ export function PhotoLightbox({
               <button
                 type="button"
                 onClick={() => onAddToRoll(currentPhoto.id)}
-                aria-label={
-                  isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'
-                }
+                aria-label={isInRoll?.(currentPhoto.id) ? 'Remove from roll' : 'Add to roll'}
                 className={[
                   'flex items-center gap-[var(--space-tight)]',
                   'px-4 h-9 rounded-full min-h-[44px]',

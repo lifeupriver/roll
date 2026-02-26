@@ -88,7 +88,9 @@ describe('GET /api/photos/serve — open redirect prevention', () => {
     process.env.R2_PUBLIC_URL = 'https://cdn.example.com';
     const res = await GET(makeRequest('originals/user-123/photo.jpg'));
     expect(res.status).toBe(307);
-    expect(res.headers.get('location')).toBe('https://cdn.example.com/originals/user-123/photo.jpg');
+    expect(res.headers.get('location')).toBe(
+      'https://cdn.example.com/originals/user-123/photo.jpg'
+    );
     delete process.env.R2_PUBLIC_URL;
   });
 });

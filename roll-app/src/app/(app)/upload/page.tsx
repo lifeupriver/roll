@@ -25,7 +25,10 @@ export default function UploadPage() {
       const results = await uploadPhotos(files, () => {});
       const successCount = results.filter((r) => r.success).length;
       if (successCount > 0) {
-        toast(`${successCount} photo${successCount !== 1 ? 's' : ''} uploaded from camera`, 'success');
+        toast(
+          `${successCount} photo${successCount !== 1 ? 's' : ''} uploaded from camera`,
+          'success'
+        );
         router.push('/feed');
       }
     } catch {
@@ -38,7 +41,8 @@ export default function UploadPage() {
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
       <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-        Add photos to your library. We&apos;ll automatically filter out screenshots, blurry shots, and duplicates.
+        Add photos to your library. We&apos;ll automatically filter out screenshots, blurry shots,
+        and duplicates.
       </p>
 
       {/* Camera + Upload options */}

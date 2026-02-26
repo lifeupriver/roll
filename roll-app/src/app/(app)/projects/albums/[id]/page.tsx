@@ -3,8 +3,14 @@
 import { useEffect, useState, useCallback, useRef, useMemo, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
-  BookOpen, ChevronLeft, ChevronRight, ShoppingBag,
-  Pencil, Eye, Maximize2, X,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingBag,
+  Pencil,
+  Eye,
+  Maximize2,
+  X,
 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
@@ -79,17 +85,19 @@ function BookDetailContent() {
   // Build pages array
   const pages: BookPage[] = useMemo(() => {
     if (!album) return [];
-    return album.photo_ids.map((photoId) => {
-      const photo = photos.find((p) => p.id === photoId);
-      return {
-        photoId,
-        thumbnailUrl: photo?.thumbnail_url ?? '',
-        storageKey: photo?.storage_key ?? '',
-        caption: captions[photoId] ?? '',
-        width: photo?.width ?? 0,
-        height: photo?.height ?? 0,
-      };
-    }).filter((p) => p.thumbnailUrl); // Only pages with loaded photos
+    return album.photo_ids
+      .map((photoId) => {
+        const photo = photos.find((p) => p.id === photoId);
+        return {
+          photoId,
+          thumbnailUrl: photo?.thumbnail_url ?? '',
+          storageKey: photo?.storage_key ?? '',
+          caption: captions[photoId] ?? '',
+          width: photo?.width ?? 0,
+          height: photo?.height ?? 0,
+        };
+      })
+      .filter((p) => p.thumbnailUrl); // Only pages with loaded photos
   }, [album, photos, captions]);
 
   // Spread navigation
@@ -114,16 +122,13 @@ function BookDetailContent() {
   const rightIndex = layout === 'spread' ? currentSpread * 2 + 1 : -1;
 
   // Helper: apply loaded album data to state
-  const applyAlbumData = useCallback(
-    (albumData: AlbumData, photosData: PhotoData[]) => {
-      setAlbum(albumData);
-      setPhotos(photosData);
-      setCaptions(albumData.captions ?? {});
-      setBookName(albumData.name ?? 'Untitled Book');
-      setBookDescription(albumData.description ?? '');
-    },
-    []
-  );
+  const applyAlbumData = useCallback((albumData: AlbumData, photosData: PhotoData[]) => {
+    setAlbum(albumData);
+    setPhotos(photosData);
+    setCaptions(albumData.captions ?? {});
+    setBookName(albumData.name ?? 'Untitled Book');
+    setBookDescription(albumData.description ?? '');
+  }, []);
 
   // Helper: fetch photo details for a list of IDs
   const fetchPhotoDetails = useCallback(async (photoIds: string[]): Promise<PhotoData[]> => {
@@ -299,13 +304,10 @@ function BookDetailContent() {
   );
 
   // Caption change handler
-  const handleCaptionChange = useCallback(
-    (photoId: string, caption: string) => {
-      setCaptions((prev) => ({ ...prev, [photoId]: caption }));
-      setHasUnsavedChanges(true);
-    },
-    []
-  );
+  const handleCaptionChange = useCallback((photoId: string, caption: string) => {
+    setCaptions((prev) => ({ ...prev, [photoId]: caption }));
+    setHasUnsavedChanges(true);
+  }, []);
 
   // Name/description change handlers
   const handleNameChange = useCallback((name: string) => {
@@ -369,7 +371,9 @@ function BookDetailContent() {
     return (
       <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)]">
         <BookOpen size={40} className="text-[var(--color-ink-tertiary)]" />
-        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">Book not found</p>
+        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
+          Book not found
+        </p>
         <Button variant="secondary" size="sm" onClick={() => router.push('/projects')}>
           Back to Projects
         </Button>
@@ -414,7 +418,10 @@ function BookDetailContent() {
           editable={mode === 'edit'}
           onNameChange={handleNameChange}
           onDescriptionChange={handleDescriptionChange}
-          onOpenBook={() => { setView('pages'); setCurrentSpread(0); }}
+          onOpenBook={() => {
+            setView('pages');
+            setCurrentSpread(0);
+          }}
         />
 
         {/* Quick info */}
@@ -448,7 +455,9 @@ function BookDetailContent() {
               <ShoppingBag size={20} />
               <div>
                 <p className="text-[length:var(--text-label)] font-medium">Order Printed Book</p>
-                <p className="text-[length:var(--text-caption)] opacity-80">8&times;8 hardcover &middot; $29.99 + shipping</p>
+                <p className="text-[length:var(--text-caption)] opacity-80">
+                  8&times;8 hardcover &middot; $29.99 + shipping
+                </p>
               </div>
             </div>
             <ChevronRight size={20} className="opacity-60" />
@@ -465,7 +474,10 @@ function BookDetailContent() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setView('pages'); setCurrentSpread(0); }}
+                onClick={() => {
+                  setView('pages');
+                  setCurrentSpread(0);
+                }}
               >
                 View All
                 <ChevronRight size={14} className="ml-0.5" />
@@ -482,7 +494,12 @@ function BookDetailContent() {
                   }}
                   className="relative aspect-[3/4] rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] group"
                 >
-                  <img src={page.thumbnailUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  <img
+                    src={page.thumbnailUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                   <span className="absolute bottom-0 inset-x-0 bg-black/40 text-white text-[9px] text-center font-[family-name:var(--font-mono)] py-0.5">
                     {i + 1}
                   </span>
@@ -494,7 +511,10 @@ function BookDetailContent() {
               {pages.length > 12 && (
                 <button
                   type="button"
-                  onClick={() => { setView('pages'); setCurrentSpread(0); }}
+                  onClick={() => {
+                    setView('pages');
+                    setCurrentSpread(0);
+                  }}
                   className="aspect-[3/4] rounded-[var(--radius-sharp)] bg-[var(--color-surface-sunken)] flex items-center justify-center"
                 >
                   <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-medium">
@@ -532,25 +552,40 @@ function BookDetailContent() {
 
       {/* Top bar */}
       <div className="flex items-center justify-between">
-        <BackButton onClick={() => { if (hasUnsavedChanges) saveChanges(); setView('cover'); }} />
+        <BackButton
+          onClick={() => {
+            if (hasUnsavedChanges) saveChanges();
+            setView('cover');
+          }}
+        />
 
         <div className="flex items-center gap-[var(--space-tight)]">
           {/* Layout toggle */}
           <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
             <button
               type="button"
-              onClick={() => { setLayout('spread'); setCurrentSpread(Math.floor(currentSpread * (layout === 'single' ? 0.5 : 1))); }}
+              onClick={() => {
+                setLayout('spread');
+                setCurrentSpread(Math.floor(currentSpread * (layout === 'single' ? 0.5 : 1)));
+              }}
               className={`px-2 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                layout === 'spread' ? 'bg-[var(--color-surface)] text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-ink-tertiary)]'
+                layout === 'spread'
+                  ? 'bg-[var(--color-surface)] text-[var(--color-ink)] shadow-sm'
+                  : 'text-[var(--color-ink-tertiary)]'
               }`}
             >
               Spread
             </button>
             <button
               type="button"
-              onClick={() => { setLayout('single'); setCurrentSpread(layout === 'spread' ? currentSpread * 2 : currentSpread); }}
+              onClick={() => {
+                setLayout('single');
+                setCurrentSpread(layout === 'spread' ? currentSpread * 2 : currentSpread);
+              }}
               className={`px-2 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                layout === 'single' ? 'bg-[var(--color-surface)] text-[var(--color-ink)] shadow-sm' : 'text-[var(--color-ink-tertiary)]'
+                layout === 'single'
+                  ? 'bg-[var(--color-surface)] text-[var(--color-ink)] shadow-sm'
+                  : 'text-[var(--color-ink-tertiary)]'
               }`}
             >
               Single
@@ -609,14 +644,24 @@ function BookDetailContent() {
                 onMovePage={mode === 'edit' ? handleMovePage : undefined}
                 onRemovePage={mode === 'edit' ? handleRemovePage : undefined}
                 onPhotoTap={(id) => setLightboxPhotoId(id)}
-                flipClass={flipDirection === 'left' ? 'page-flip-left' : flipDirection === 'right' ? 'page-flip-right' : ''}
+                flipClass={
+                  flipDirection === 'left'
+                    ? 'page-flip-left'
+                    : flipDirection === 'right'
+                      ? 'page-flip-right'
+                      : ''
+                }
               />
             ) : (
               /* Single page view */
               <div className="flex flex-col gap-[var(--space-element)]">
                 <div
                   className={`relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-overlay)] mx-auto max-w-sm w-full ${
-                    flipDirection === 'left' ? 'page-flip-left' : flipDirection === 'right' ? 'page-flip-right' : ''
+                    flipDirection === 'left'
+                      ? 'page-flip-left'
+                      : flipDirection === 'right'
+                        ? 'page-flip-right'
+                        : ''
                   }`}
                 >
                   {currentPages[0] && (
@@ -676,9 +721,8 @@ function BookDetailContent() {
           {/* Thumbnail strip */}
           <div className="flex gap-1.5 overflow-x-auto pb-2 max-w-full px-1">
             {pages.map((page, i) => {
-              const isActive = layout === 'spread'
-                ? i === leftIndex || i === rightIndex
-                : i === currentSpread;
+              const isActive =
+                layout === 'spread' ? i === leftIndex || i === rightIndex : i === currentSpread;
               return (
                 <button
                   key={page.photoId}

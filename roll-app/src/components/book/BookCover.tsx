@@ -70,7 +70,9 @@ export function BookCover({
         {/* Open prompt */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="bg-white/20 backdrop-blur-sm rounded-[var(--radius-pill)] px-4 py-2">
-            <span className="text-white text-[length:var(--text-label)] font-medium">Open Book</span>
+            <span className="text-white text-[length:var(--text-label)] font-medium">
+              Open Book
+            </span>
           </div>
         </div>
       </button>
@@ -79,10 +81,7 @@ export function BookCover({
       {editable && (
         <div className="w-full max-w-sm flex flex-col gap-[var(--space-element)]">
           <div className="flex items-center gap-[var(--space-element)]">
-            <EditableTitle
-              value={name}
-              onChange={onNameChange ?? (() => {})}
-            />
+            <EditableTitle value={name} onChange={onNameChange ?? (() => {})} />
           </div>
           <CaptionEditor
             caption={description}
@@ -117,7 +116,10 @@ function EditableTitle({ value, onChange }: { value: string; onChange: (v: strin
         onBlur={handleSave}
         onKeyDown={(e) => {
           if (e.key === 'Enter') handleSave();
-          if (e.key === 'Escape') { setDraft(value); setEditing(false); }
+          if (e.key === 'Escape') {
+            setDraft(value);
+            setEditing(false);
+          }
         }}
         autoFocus
         maxLength={100}
@@ -129,13 +131,19 @@ function EditableTitle({ value, onChange }: { value: string; onChange: (v: strin
   return (
     <button
       type="button"
-      onClick={() => { setDraft(value); setEditing(true); }}
+      onClick={() => {
+        setDraft(value);
+        setEditing(true);
+      }}
       className="flex items-center gap-2 group text-left"
     >
       <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
         {value || 'Untitled Book'}
       </h2>
-      <Pencil size={14} className="text-[var(--color-ink-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Pencil
+        size={14}
+        className="text-[var(--color-ink-tertiary)] opacity-0 group-hover:opacity-100 transition-opacity"
+      />
     </button>
   );
 }

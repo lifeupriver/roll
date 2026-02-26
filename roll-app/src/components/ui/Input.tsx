@@ -25,9 +25,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={`w-full h-12 px-[var(--space-element)] bg-[var(--color-surface-sunken)] border rounded-[var(--radius-sharp)] font-[family-name:var(--font-body)] text-[length:var(--text-body)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2 ${
-            error
-              ? 'border-[var(--color-error)]'
-              : 'border-[var(--color-border)]'
+            error ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]'
           } ${className}`}
           {...props}
         />

@@ -34,7 +34,11 @@ export default function AdminPipelinePage() {
     try {
       const res = await fetch('/api/admin/pipeline');
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -46,10 +50,15 @@ export default function AdminPipelinePage() {
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Processing Pipeline</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+          Processing Pipeline
+        </h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -59,7 +68,9 @@ export default function AdminPipelinePage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Processing Pipeline</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+          Processing Pipeline
+        </h1>
         <span className="text-xs text-[var(--color-ink-tertiary)]">Auto-refreshes every 15s</span>
       </div>
 
@@ -73,7 +84,9 @@ export default function AdminPipelinePage() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Processing Times */}
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4">
-          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">Processing Latency</h2>
+          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">
+            Processing Latency
+          </h2>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-[var(--color-ink-tertiary)]">p50</p>
@@ -92,7 +105,9 @@ export default function AdminPipelinePage() {
 
         {/* Job Types */}
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4">
-          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">Job Types</h2>
+          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">
+            Job Types
+          </h2>
           <div className="space-y-2">
             {Object.entries(data.typeBreakdown).map(([type, count]) => (
               <div key={type} className="flex items-center justify-between">
@@ -111,7 +126,9 @@ export default function AdminPipelinePage() {
         </h2>
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
           {data.failedJobs.length === 0 ? (
-            <p className="p-6 text-center text-sm text-[var(--color-ink-tertiary)]">No failed jobs</p>
+            <p className="p-6 text-center text-sm text-[var(--color-ink-tertiary)]">
+              No failed jobs
+            </p>
           ) : (
             data.failedJobs.map((job) => (
               <div key={job.id} className="px-4 py-3">
@@ -127,7 +144,9 @@ export default function AdminPipelinePage() {
                   </span>
                 </div>
                 {job.error_message && (
-                  <p className="text-xs text-red-400 font-mono mt-1 truncate">{job.error_message}</p>
+                  <p className="text-xs text-red-400 font-mono mt-1 truncate">
+                    {job.error_message}
+                  </p>
                 )}
               </div>
             ))

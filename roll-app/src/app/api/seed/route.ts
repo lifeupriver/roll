@@ -67,15 +67,15 @@ const SCENES = [
 
 // City coordinates for location variety
 const LOCATIONS = [
-  { lat: 40.7128, lng: -74.006 },   // New York
+  { lat: 40.7128, lng: -74.006 }, // New York
   { lat: 34.0522, lng: -118.2437 }, // Los Angeles
-  { lat: 41.8781, lng: -87.6298 },  // Chicago
-  { lat: 48.8566, lng: 2.3522 },    // Paris
-  { lat: 35.6762, lng: 139.6503 },  // Tokyo
-  { lat: 51.5074, lng: -0.1278 },   // London
+  { lat: 41.8781, lng: -87.6298 }, // Chicago
+  { lat: 48.8566, lng: 2.3522 }, // Paris
+  { lat: 35.6762, lng: 139.6503 }, // Tokyo
+  { lat: 51.5074, lng: -0.1278 }, // London
   { lat: 37.7749, lng: -122.4194 }, // San Francisco
-  { lat: 45.4642, lng: 9.19 },      // Milan
-  { lat: 55.7558, lng: 37.6173 },   // Moscow
+  { lat: 45.4642, lng: 9.19 }, // Milan
+  { lat: 55.7558, lng: 37.6173 }, // Moscow
   { lat: -33.8688, lng: 151.2093 }, // Sydney
 ];
 
@@ -120,7 +120,10 @@ const COMMENTS = [
 
 export async function POST() {
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Seed endpoint is not available in production' }, { status: 403 });
+    return NextResponse.json(
+      { error: 'Seed endpoint is not available in production' },
+      { status: 403 }
+    );
   }
 
   try {
@@ -139,7 +142,7 @@ export async function POST() {
     if (!serviceUrl || !serviceKey) {
       return NextResponse.json(
         { error: 'SUPABASE_SERVICE_ROLE_KEY is not configured' },
-        { status: 500 },
+        { status: 500 }
       );
     }
     const admin = createClient(serviceUrl, serviceKey);
@@ -246,7 +249,14 @@ export async function POST() {
       dateTaken.setDate(dateTaken.getDate() - daysAgo);
 
       const reasons: Array<'blur' | 'screenshot' | 'duplicate' | 'exposure'> = [
-        'screenshot', 'screenshot', 'blur', 'blur', 'duplicate', 'exposure', 'screenshot', 'blur',
+        'screenshot',
+        'screenshot',
+        'blur',
+        'blur',
+        'duplicate',
+        'exposure',
+        'screenshot',
+        'blur',
       ];
 
       filteredPhotos.push({
@@ -283,7 +293,10 @@ export async function POST() {
       const batch = allPhotos.slice(i, i + 50);
       const { error } = await admin.from('photos').upsert(batch, { onConflict: 'id' });
       if (error) {
-        return NextResponse.json({ error: `Photos insert failed: ${error.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Photos insert failed: ${error.message}` },
+          { status: 500 }
+        );
       }
     }
     created.photos = allPhotos.length;
@@ -309,9 +322,7 @@ export async function POST() {
       createdDate.setDate(createdDate.getDate() - (rollConfigs.indexOf(cfg) * 30 + 10));
 
       const developedDate =
-        cfg.status === 'developed'
-          ? new Date(createdDate.getTime() + 86_400_000)
-          : null;
+        cfg.status === 'developed' ? new Date(createdDate.getTime() + 86_400_000) : null;
 
       rollData.push({
         id: rollId,
@@ -321,7 +332,9 @@ export async function POST() {
         film_profile: cfg.film_profile,
         photo_count: cfg.photoCount,
         max_photos: 36,
-        processing_started_at: developedDate ? new Date(developedDate.getTime() - 120_000).toISOString() : null,
+        processing_started_at: developedDate
+          ? new Date(developedDate.getTime() - 120_000).toISOString()
+          : null,
         processing_completed_at: developedDate?.toISOString() ?? null,
         processing_error: null,
         photos_processed: cfg.status === 'developed' ? cfg.photoCount : 0,
@@ -333,7 +346,10 @@ export async function POST() {
 
     const { error: rollError } = await admin.from('rolls').upsert(rollData, { onConflict: 'id' });
     if (rollError) {
-      return NextResponse.json({ error: `Rolls insert failed: ${rollError.message}` }, { status: 500 });
+      return NextResponse.json(
+        { error: `Rolls insert failed: ${rollError.message}` },
+        { status: 500 }
+      );
     }
     created.rolls = rollData.length;
 
@@ -372,7 +388,10 @@ export async function POST() {
       const batch = rollPhotoRows.slice(i, i + 50);
       const { error } = await admin.from('roll_photos').upsert(batch, { onConflict: 'id' });
       if (error) {
-        return NextResponse.json({ error: `Roll photos insert failed: ${error.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Roll photos insert failed: ${error.message}` },
+          { status: 500 }
+        );
       }
     }
     created.rollPhotos = rollPhotoRows.length;
@@ -419,7 +438,10 @@ export async function POST() {
     if (favoriteRows.length > 0) {
       const { error } = await admin.from('favorites').upsert(favoriteRows, { onConflict: 'id' });
       if (error) {
-        return NextResponse.json({ error: `Favorites insert failed: ${error.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Favorites insert failed: ${error.message}` },
+          { status: 500 }
+        );
       }
     }
     created.favorites = favoriteRows.length;
@@ -452,7 +474,7 @@ export async function POST() {
           photo_count: Math.floor(rand() * 50) + 10,
           storage_used_bytes: Math.floor(rand() * 1_000_000_000),
         },
-        { onConflict: 'id' },
+        { onConflict: 'id' }
       );
     }
 
@@ -485,10 +507,13 @@ export async function POST() {
           created_at: createdDate.toISOString(),
           updated_at: now.toISOString(),
         },
-        { onConflict: 'id' },
+        { onConflict: 'id' }
       );
       if (cErr) {
-        return NextResponse.json({ error: `Circle insert failed: ${cErr.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Circle insert failed: ${cErr.message}` },
+          { status: 500 }
+        );
       }
       created.circles++;
 
@@ -507,14 +532,19 @@ export async function POST() {
           user_id: mId,
           role: 'member' as const,
           joined_at: new Date(
-            createdDate.getTime() + Math.floor(rand() * 7 * 86_400_000),
+            createdDate.getTime() + Math.floor(rand() * 7 * 86_400_000)
           ).toISOString(),
         })),
       ];
 
-      const { error: mErr } = await admin.from('circle_members').upsert(memberRows, { onConflict: 'id' });
+      const { error: mErr } = await admin
+        .from('circle_members')
+        .upsert(memberRows, { onConflict: 'id' });
       if (mErr) {
-        return NextResponse.json({ error: `Circle members insert failed: ${mErr.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Circle members insert failed: ${mErr.message}` },
+          { status: 500 }
+        );
       }
       created.circleMembers += memberRows.length;
 
@@ -538,10 +568,13 @@ export async function POST() {
             caption,
             created_at: postDate.toISOString(),
           },
-          { onConflict: 'id' },
+          { onConflict: 'id' }
         );
         if (pErr) {
-          return NextResponse.json({ error: `Post insert failed: ${pErr.message}` }, { status: 500 });
+          return NextResponse.json(
+            { error: `Post insert failed: ${pErr.message}` },
+            { status: 500 }
+          );
         }
         created.circlePosts++;
 
@@ -576,7 +609,9 @@ export async function POST() {
             post_id: postId,
             user_id: reactorId,
             reaction_type: types[Math.floor(rand() * types.length)],
-            created_at: new Date(postDate.getTime() + Math.floor(rand() * 86_400_000)).toISOString(),
+            created_at: new Date(
+              postDate.getTime() + Math.floor(rand() * 86_400_000)
+            ).toISOString(),
           });
         }
         if (reactionRows.length > 0) {
@@ -593,7 +628,9 @@ export async function POST() {
             post_id: postId,
             user_id: commenterId,
             body: COMMENTS[Math.floor(rand() * COMMENTS.length)],
-            created_at: new Date(postDate.getTime() + Math.floor(rand() * 172_800_000)).toISOString(),
+            created_at: new Date(
+              postDate.getTime() + Math.floor(rand() * 172_800_000)
+            ).toISOString(),
           });
         }
         if (commentRows.length > 0) {
@@ -653,19 +690,23 @@ export async function POST() {
           prodigi_order_id: `ord_mock_${orderId.slice(0, 8)}`,
           status: cfg.status,
           tracking_url: cfg.trackingUrl,
-          estimated_delivery: cfg.status === 'shipped'
-            ? new Date(now.getTime() + 5 * 86_400_000).toISOString()
-            : null,
+          estimated_delivery:
+            cfg.status === 'shipped'
+              ? new Date(now.getTime() + 5 * 86_400_000).toISOString()
+              : null,
           subtotal_cents: cfg.isFree ? 0 : 1499,
           shipping_cents: cfg.isFree ? 0 : 499,
           total_cents: cfg.isFree ? 0 : 1998,
           created_at: createdDate.toISOString(),
           updated_at: now.toISOString(),
         },
-        { onConflict: 'id' },
+        { onConflict: 'id' }
       );
       if (oErr) {
-        return NextResponse.json({ error: `Order insert failed: ${oErr.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Order insert failed: ${oErr.message}` },
+          { status: 500 }
+        );
       }
       created.printOrders++;
     }
@@ -692,12 +733,18 @@ export async function POST() {
           status: ref.status,
           reward_granted: ref.status === 'converted',
           created_at: new Date(now.getTime() - Math.floor(rand() * 30 * 86_400_000)).toISOString(),
-          converted_at: ref.status === 'converted' ? new Date(now.getTime() - Math.floor(rand() * 10 * 86_400_000)).toISOString() : null,
+          converted_at:
+            ref.status === 'converted'
+              ? new Date(now.getTime() - Math.floor(rand() * 10 * 86_400_000)).toISOString()
+              : null,
         },
-        { onConflict: 'id' },
+        { onConflict: 'id' }
       );
       if (rErr) {
-        return NextResponse.json({ error: `Referral insert failed: ${rErr.message}` }, { status: 500 });
+        return NextResponse.json(
+          { error: `Referral insert failed: ${rErr.message}` },
+          { status: 500 }
+        );
       }
       created.referrals++;
     }
@@ -720,7 +767,10 @@ export async function POST() {
 // ---------------------------------------------------------------------------
 export async function DELETE() {
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Seed endpoint is not available in production' }, { status: 403 });
+    return NextResponse.json(
+      { error: 'Seed endpoint is not available in production' },
+      { status: 403 }
+    );
   }
 
   try {
@@ -738,7 +788,7 @@ export async function DELETE() {
     if (!serviceUrl || !serviceKey) {
       return NextResponse.json(
         { error: 'SUPABASE_SERVICE_ROLE_KEY is not configured' },
-        { status: 500 },
+        { status: 500 }
       );
     }
     const admin = createClient(serviceUrl, serviceKey);
@@ -746,10 +796,7 @@ export async function DELETE() {
 
     // Delete in dependency order (children first)
     // Get circle IDs the user created
-    const { data: circles } = await admin
-      .from('circles')
-      .select('id')
-      .eq('creator_id', userId);
+    const { data: circles } = await admin.from('circles').select('id').eq('creator_id', userId);
     const circleIds = (circles ?? []).map((c) => c.id);
 
     if (circleIds.length > 0) {
@@ -773,18 +820,12 @@ export async function DELETE() {
     }
 
     // Get roll IDs
-    const { data: rolls } = await admin
-      .from('rolls')
-      .select('id')
-      .eq('user_id', userId);
+    const { data: rolls } = await admin.from('rolls').select('id').eq('user_id', userId);
     const rollIds = (rolls ?? []).map((r) => r.id);
 
     if (rollIds.length > 0) {
       // Delete print order items for orders belonging to these rolls
-      const { data: orders } = await admin
-        .from('print_orders')
-        .select('id')
-        .in('roll_id', rollIds);
+      const { data: orders } = await admin.from('print_orders').select('id').in('roll_id', rollIds);
       const orderIds = (orders ?? []).map((o) => o.id);
       if (orderIds.length > 0) {
         await admin.from('print_order_items').delete().in('order_id', orderIds);
@@ -803,10 +844,7 @@ export async function DELETE() {
     await admin.from('profiles').delete().like('email', '%@example.com');
 
     // Reset profile counts
-    await admin
-      .from('profiles')
-      .update({ photo_count: 0, storage_used_bytes: 0 })
-      .eq('id', userId);
+    await admin.from('profiles').update({ photo_count: 0, storage_used_bytes: 0 }).eq('id', userId);
 
     return NextResponse.json({
       data: { message: 'All mock data removed for user', userId },

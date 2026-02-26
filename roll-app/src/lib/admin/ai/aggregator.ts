@@ -73,17 +73,33 @@ export async function buildSystemSnapshot(periodDays: number = 1): Promise<Syste
     activeUsersRes,
   ] = await Promise.all([
     db.from('profiles').select('id', { count: 'exact', head: true }),
-    db.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', periodStart.toISOString()),
+    db
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', periodStart.toISOString()),
     db.from('profiles').select('id', { count: 'exact', head: true }).eq('tier', 'plus'),
-    db.from('profiles').select('id', { count: 'exact', head: true }).eq('onboarding_complete', true),
+    db
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('onboarding_complete', true),
     db.from('photos').select('id', { count: 'exact', head: true }),
-    db.from('photos').select('id', { count: 'exact', head: true }).gte('created_at', periodStart.toISOString()),
+    db
+      .from('photos')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', periodStart.toISOString()),
     db.from('photos').select('filter_status'),
     db.from('photos').select('aesthetic_score').not('aesthetic_score', 'is', null).limit(5000),
     db.from('rolls').select('status, film_profile'),
-    db.from('rolls').select('id', { count: 'exact', head: true }).eq('status', 'developed').gte('updated_at', periodStart.toISOString()),
+    db
+      .from('rolls')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'developed')
+      .gte('updated_at', periodStart.toISOString()),
     db.from('print_orders').select('status, total_cents, is_free_first_roll'),
-    db.from('print_orders').select('id', { count: 'exact', head: true }).gte('created_at', periodStart.toISOString()),
+    db
+      .from('print_orders')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', periodStart.toISOString()),
     db.from('circles').select('member_count'),
     db.from('circle_posts').select('id', { count: 'exact', head: true }),
     db.from('processing_jobs').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -105,7 +121,10 @@ export async function buildSystemSnapshot(periodDays: number = 1): Promise<Syste
   let aestheticCount = 0;
   if (aestheticRes.data) {
     for (const p of aestheticRes.data) {
-      if (p.aesthetic_score != null) { aestheticSum += p.aesthetic_score; aestheticCount++; }
+      if (p.aesthetic_score != null) {
+        aestheticSum += p.aesthetic_score;
+        aestheticCount++;
+      }
     }
   }
 
@@ -135,9 +154,10 @@ export async function buildSystemSnapshot(periodDays: number = 1): Promise<Syste
 
   // Circles avg members
   const circleMembers = circlesRes.data ?? [];
-  const avgMembers = circleMembers.length > 0
-    ? circleMembers.reduce((sum, c) => sum + c.member_count, 0) / circleMembers.length
-    : 0;
+  const avgMembers =
+    circleMembers.length > 0
+      ? circleMembers.reduce((sum, c) => sum + c.member_count, 0) / circleMembers.length
+      : 0;
 
   // Referral breakdown
   const refStats = { totalSent: 0, signedUp: 0, converted: 0 };
@@ -150,7 +170,7 @@ export async function buildSystemSnapshot(periodDays: number = 1): Promise<Syste
   }
 
   // Active users (unique uploaders last 7d)
-  const activeLast7d = new Set(activeUsersRes.data?.map(p => p.user_id) ?? []).size;
+  const activeLast7d = new Set(activeUsersRes.data?.map((p) => p.user_id) ?? []).size;
 
   const totalUsers = totalUsersRes.count ?? 0;
 
@@ -181,7 +201,9 @@ export async function buildSystemSnapshot(periodDays: number = 1): Promise<Syste
       newThisPeriod: newOrdersRes.count ?? 0,
       statusBreakdown: orderStatus,
       totalRevenueCents: totalRevenue,
-      avgOrderValueCents: ordersRes.data?.length ? Math.round(totalRevenue / ordersRes.data.length) : 0,
+      avgOrderValueCents: ordersRes.data?.length
+        ? Math.round(totalRevenue / ordersRes.data.length)
+        : 0,
       freeFirstRollCount: freeFirstRolls,
     },
     circles: {

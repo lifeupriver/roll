@@ -6,19 +6,21 @@ import { captureError } from '@/lib/sentry';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Fetch aggregated stats in parallel
-    const [
-      { count: photoCount },
-      { count: circleCount },
-      { data: profile },
-    ] = await Promise.all([
+    const [{ count: photoCount }, { count: circleCount }, { data: profile }] = await Promise.all([
       supabase.from('photos').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-      supabase.from('circle_members').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase
+        .from('circle_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id),
       supabase.from('profiles').select('created_at').eq('id', user.id).single(),
     ]);
 
@@ -49,7 +51,8 @@ export async function GET() {
         account_created_at: profile?.created_at || user.created_at,
         last_login: user.last_sign_in_at,
         email: user.email,
-        privacy_statement: 'Your photos are never used for AI training. Your data is stored securely and is never sold to third parties.',
+        privacy_statement:
+          'Your photos are never used for AI training. Your data is stored securely and is never sold to third parties.',
       },
     });
   } catch (err) {
@@ -65,7 +68,10 @@ export async function GET() {
 export async function DELETE() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

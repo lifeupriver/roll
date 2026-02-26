@@ -28,7 +28,9 @@ async function fetchStory(photoId: string): Promise<StoryData | null> {
 
   const { data: photo } = await supabase
     .from('photos')
-    .select('id, developed_url, thumbnail_url, width, height, taken_at, camera_make, camera_model, film_profile')
+    .select(
+      'id, developed_url, thumbnail_url, width, height, taken_at, camera_make, camera_model, film_profile'
+    )
     .eq('id', photoId)
     .single();
 
@@ -112,9 +114,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
             alt={story.caption || 'Photo'}
             className="w-full"
             style={{
-              aspectRatio: story.photo.width && story.photo.height
-                ? `${story.photo.width}/${story.photo.height}`
-                : undefined,
+              aspectRatio:
+                story.photo.width && story.photo.height
+                  ? `${story.photo.width}/${story.photo.height}`
+                  : undefined,
             }}
           />
         </div>
@@ -127,12 +130,18 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
           <div className="flex flex-wrap gap-4 text-sm text-[#999]">
             {story.photo.taken_at && (
-              <span>{new Date(story.photo.taken_at).toLocaleDateString('en-US', {
-                month: 'long', day: 'numeric', year: 'numeric',
-              })}</span>
+              <span>
+                {new Date(story.photo.taken_at).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
             )}
             {story.photo.camera_make && (
-              <span>{story.photo.camera_make} {story.photo.camera_model || ''}</span>
+              <span>
+                {story.photo.camera_make} {story.photo.camera_model || ''}
+              </span>
             )}
             {story.photo.film_profile && (
               <span className="capitalize">{story.photo.film_profile} film</span>

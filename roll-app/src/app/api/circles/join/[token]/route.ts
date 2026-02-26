@@ -8,7 +8,10 @@ export async function POST(
   try {
     const { token } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -43,17 +46,18 @@ export async function POST(
       .single();
 
     if (existingMember) {
-      return NextResponse.json({ error: 'You are already a member of this circle' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'You are already a member of this circle' },
+        { status: 400 }
+      );
     }
 
     // Add user to circle_members
-    const { error: memberError } = await supabase
-      .from('circle_members')
-      .insert({
-        circle_id: invite.circle_id,
-        user_id: user.id,
-        role: 'member',
-      });
+    const { error: memberError } = await supabase.from('circle_members').insert({
+      circle_id: invite.circle_id,
+      user_id: user.id,
+      role: 'member',
+    });
 
     if (memberError) {
       return NextResponse.json({ error: memberError.message }, { status: 500 });

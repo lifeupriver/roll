@@ -65,7 +65,8 @@ export function BackupStatusBadge({ className }: { className?: string }) {
               <span>{formatBytes(stats.total_bytes)} total</span>
               {stats.last_backup_at && (
                 <span>
-                  Last backup: {new Date(stats.last_backup_at).toLocaleDateString('en-US', {
+                  Last backup:{' '}
+                  {new Date(stats.last_backup_at).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     hour: 'numeric',

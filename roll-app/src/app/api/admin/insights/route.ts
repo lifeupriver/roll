@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
     // Also get analysis run stats
     const { data: runs } = await db
       .from('admin_analysis_runs')
-      .select('id, type, status, insights_generated, tokens_used, cost_cents, created_at, completed_at')
+      .select(
+        'id, type, status, insights_generated, tokens_used, cost_cents, created_at, completed_at'
+      )
       .order('created_at', { ascending: false })
       .limit(10);
 

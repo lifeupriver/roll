@@ -17,12 +17,7 @@ interface ReelStoryboardProps {
   onEditTrim: (clipId: string) => void;
 }
 
-export function ReelStoryboard({
-  clips,
-  onReorder,
-  onRemove,
-  onEditTrim,
-}: ReelStoryboardProps) {
+export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim }: ReelStoryboardProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
@@ -35,13 +30,16 @@ export function ReelStoryboard({
     setOverIndex(index);
   }, []);
 
-  const handleDrop = useCallback((index: number) => {
-    if (dragIndex !== null && dragIndex !== index) {
-      onReorder(dragIndex, index);
-    }
-    setDragIndex(null);
-    setOverIndex(null);
-  }, [dragIndex, onReorder]);
+  const handleDrop = useCallback(
+    (index: number) => {
+      if (dragIndex !== null && dragIndex !== index) {
+        onReorder(dragIndex, index);
+      }
+      setDragIndex(null);
+      setOverIndex(null);
+    },
+    [dragIndex, onReorder]
+  );
 
   const handleDragEnd = useCallback(() => {
     setDragIndex(null);
@@ -64,7 +62,10 @@ export function ReelStoryboard({
         const photo = clip.photos;
         const thumbnailUrl = photo?.thumbnail_url ?? '';
         const date = photo?.date_taken
-          ? new Date(photo.date_taken).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          ? new Date(photo.date_taken).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            })
           : '';
         const isDragging = dragIndex === index;
         const isDropTarget = overIndex === index && dragIndex !== null;
@@ -118,7 +119,8 @@ export function ReelStoryboard({
                   <>
                     {' \u00B7 '}
                     <span className="font-[family-name:var(--font-mono)] tabular-nums">
-                      {formatDuration(clip.trim_start_ms)}\u2013{formatDuration(clip.trim_end_ms ?? (photo?.duration_ms ?? 0))}
+                      {formatDuration(clip.trim_start_ms)}\u2013
+                      {formatDuration(clip.trim_end_ms ?? photo?.duration_ms ?? 0)}
                     </span>
                   </>
                 ) : null}

@@ -67,7 +67,9 @@ export function DataTable<T extends Record<string, any>>({
               <th
                 key={col.key}
                 className={`text-left px-3 py-2 text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] ${
-                  col.sortable ? 'cursor-pointer select-none hover:text-[var(--color-ink-secondary)]' : ''
+                  col.sortable
+                    ? 'cursor-pointer select-none hover:text-[var(--color-ink-secondary)]'
+                    : ''
                 } ${col.className ?? ''}`}
                 onClick={col.sortable ? () => handleSort(col.key) : undefined}
               >

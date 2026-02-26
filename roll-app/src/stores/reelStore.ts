@@ -21,7 +21,12 @@ interface ReelState {
   setReel: (reel: Reel | null) => void;
   setReels: (reels: Reel[]) => void;
   setReelClips: (clips: ReelClip[]) => void;
-  addClip: (photoId: string, durationMs: number, trimStart?: number, trimEnd?: number | null) => void;
+  addClip: (
+    photoId: string,
+    durationMs: number,
+    trimStart?: number,
+    trimEnd?: number | null
+  ) => void;
   removeClip: (photoId: string) => void;
   isClipAdded: (photoId: string) => boolean;
   setTrim: (photoId: string, startMs: number, endMs: number | null) => void;
@@ -98,7 +103,12 @@ export const useReelStore = create<ReelState>((set, get) => ({
       const newClips = state.reelClips.map((c) => {
         if (c.photo_id === photoId) {
           const trimmedDuration = (endMs ?? c.trimmed_duration_ms + c.trim_start_ms) - startMs;
-          return { ...c, trim_start_ms: startMs, trim_end_ms: endMs, trimmed_duration_ms: trimmedDuration };
+          return {
+            ...c,
+            trim_start_ms: startMs,
+            trim_end_ms: endMs,
+            trimmed_duration_ms: trimmedDuration,
+          };
         }
         return c;
       });
@@ -134,12 +144,8 @@ export const useReelStore = create<ReelState>((set, get) => ({
 
   updateReelStatus: (reelId, updates) =>
     set((state) => ({
-      reels: state.reels.map((r) =>
-        r.id === reelId ? { ...r, ...updates } : r
-      ),
+      reels: state.reels.map((r) => (r.id === reelId ? { ...r, ...updates } : r)),
       currentReel:
-        state.currentReel?.id === reelId
-          ? { ...state.currentReel, ...updates }
-          : state.currentReel,
+        state.currentReel?.id === reelId ? { ...state.currentReel, ...updates } : state.currentReel,
     })),
 }));

@@ -26,17 +26,13 @@ export function BurstPicker({ photos, onPick, onDismiss }: BurstPickerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Sort by aesthetic score (best first) to suggest a default
-  const sorted = [...photos].sort(
-    (a, b) => (b.aesthetic_score ?? 0) - (a.aesthetic_score ?? 0)
-  );
+  const sorted = [...photos].sort((a, b) => (b.aesthetic_score ?? 0) - (a.aesthetic_score ?? 0));
   const suggestedId = sorted[0]?.photo_id;
 
   const handleConfirm = () => {
     const pickId = selectedId || suggestedId;
     if (!pickId) return;
-    const hiddenIds = photos
-      .filter((p) => p.photo_id !== pickId)
-      .map((p) => p.photo_id);
+    const hiddenIds = photos.filter((p) => p.photo_id !== pickId).map((p) => p.photo_id);
     onPick(pickId, hiddenIds);
   };
 
@@ -77,11 +73,7 @@ export function BurstPicker({ photos, onPick, onDismiss }: BurstPickerProps) {
                   : 'opacity-70 hover:opacity-100'
               }`}
             >
-              <img
-                src={photo.thumbnail_url}
-                alt=""
-                className="w-full h-full object-cover"
-              />
+              <img src={photo.thumbnail_url} alt="" className="w-full h-full object-cover" />
               {(isSelected || isSuggested) && (
                 <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[var(--color-action)] flex items-center justify-center">
                   <Check size={12} className="text-white" />

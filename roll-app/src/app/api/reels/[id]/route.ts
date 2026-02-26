@@ -13,14 +13,14 @@ const VALID_STATUS_TRANSITIONS: Record<ReelStatus, ReelStatus[]> = {
   archived: [],
 };
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -59,14 +59,14 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -92,7 +92,7 @@ export async function PATCH(
       if (!allowedTransitions.includes(status)) {
         return NextResponse.json(
           { error: `Invalid status transition from '${currentStatus}' to '${status}'` },
-          { status: 400 },
+          { status: 400 }
         );
       }
     }
@@ -102,7 +102,8 @@ export async function PATCH(
     if (status !== undefined) updateData.status = status;
     if (film_profile !== undefined) updateData.film_profile = film_profile;
     if (audio_mood !== undefined) updateData.audio_mood = audio_mood;
-    if (default_clip_length_s !== undefined) updateData.default_clip_length_s = default_clip_length_s;
+    if (default_clip_length_s !== undefined)
+      updateData.default_clip_length_s = default_clip_length_s;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
@@ -130,12 +131,15 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -154,15 +158,11 @@ export async function DELETE(
     if (reel.status === 'processing') {
       return NextResponse.json(
         { error: 'Cannot delete a reel that is currently processing' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    const { error } = await supabase
-      .from('reels')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
+    const { error } = await supabase.from('reels').delete().eq('id', id).eq('user_id', user.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

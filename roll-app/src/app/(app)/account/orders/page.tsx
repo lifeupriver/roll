@@ -14,7 +14,9 @@ import type { Roll } from '@/types/roll';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-function statusBadgeVariant(status: PrintOrderStatus): 'processing' | 'action' | 'developed' | 'error' {
+function statusBadgeVariant(
+  status: PrintOrderStatus
+): 'processing' | 'action' | 'developed' | 'error' {
   switch (status) {
     case 'pending':
     case 'submitted':
@@ -34,14 +36,22 @@ function statusBadgeVariant(status: PrintOrderStatus): 'processing' | 'action' |
 
 function statusLabel(status: PrintOrderStatus): string {
   switch (status) {
-    case 'pending': return 'Pending';
-    case 'submitted': return 'Submitted';
-    case 'in_production': return 'In Production';
-    case 'shipped': return 'Shipped';
-    case 'delivered': return 'Delivered';
-    case 'cancelled': return 'Cancelled';
-    case 'simulated': return 'Simulated';
-    default: return status;
+    case 'pending':
+      return 'Pending';
+    case 'submitted':
+      return 'Submitted';
+    case 'in_production':
+      return 'In Production';
+    case 'shipped':
+      return 'Shipped';
+    case 'delivered':
+      return 'Delivered';
+    case 'cancelled':
+      return 'Cancelled';
+    case 'simulated':
+      return 'Simulated';
+    default:
+      return status;
   }
 }
 
@@ -216,7 +226,11 @@ export default function OrderHistoryPage() {
             {selectedRollIds.size > 0 && (
               <Button variant="primary" size="lg" onClick={handlePrintSelected}>
                 <Printer size={16} className="mr-2" />
-                Print {selectedRollIds.size} Roll{selectedRollIds.size > 1 ? 's' : ''} ({developedRolls.filter((r) => selectedRollIds.has(r.id)).reduce((sum, r) => sum + r.photo_count, 0)} photos)
+                Print {selectedRollIds.size} Roll{selectedRollIds.size > 1 ? 's' : ''} (
+                {developedRolls
+                  .filter((r) => selectedRollIds.has(r.id))
+                  .reduce((sum, r) => sum + r.photo_count, 0)}{' '}
+                photos)
               </Button>
             )}
           </div>
@@ -298,16 +312,17 @@ export default function OrderHistoryPage() {
                   )}
 
                   {/* Reorder button */}
-                  {order.roll_id && (order.status === 'delivered' || order.status === 'simulated') && (
-                    <button
-                      type="button"
-                      onClick={() => handleReorder(order)}
-                      className="inline-flex items-center gap-[var(--space-tight)] text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium text-[var(--color-ink-secondary)] hover:text-[var(--color-action)] transition-colors"
-                    >
-                      <RotateCcw size={12} />
-                      Reorder
-                    </button>
-                  )}
+                  {order.roll_id &&
+                    (order.status === 'delivered' || order.status === 'simulated') && (
+                      <button
+                        type="button"
+                        onClick={() => handleReorder(order)}
+                        className="inline-flex items-center gap-[var(--space-tight)] text-[length:var(--text-caption)] font-[family-name:var(--font-body)] font-medium text-[var(--color-ink-secondary)] hover:text-[var(--color-action)] transition-colors"
+                      >
+                        <RotateCcw size={12} />
+                        Reorder
+                      </button>
+                    )}
                 </div>
               </div>
             </Card>

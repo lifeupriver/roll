@@ -41,9 +41,7 @@ export default function OnboardingPage() {
       )}
 
       {/* Step 2: Privacy Promise */}
-      {step === 2 && (
-        <PrivacyPromise onContinue={() => setStep(3)} />
-      )}
+      {step === 2 && <PrivacyPromise onContinue={() => setStep(3)} />}
 
       {/* Step 3: Upload */}
       {step === 3 && (
@@ -80,10 +78,12 @@ export default function OnboardingPage() {
             Your library is ready
           </h2>
           <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-            {uploadCount} photos uploaded. We filtered out the noise — here&apos;s what&apos;s worth keeping.
+            {uploadCount} photos uploaded. We filtered out the noise — here&apos;s what&apos;s worth
+            keeping.
           </p>
           <p className="text-[length:var(--text-caption)] text-[var(--color-developed)] font-medium">
-            Every photo you develop is automatically backed up and protected. Your best photos, safe forever.
+            Every photo you develop is automatically backed up and protected. Your best photos, safe
+            forever.
           </p>
           <Button variant="primary" size="lg" onClick={() => setStep(6)}>
             Continue
@@ -98,7 +98,8 @@ export default function OnboardingPage() {
             You&apos;re all set
           </h2>
           <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-            Browse your photos, select your favorites, and build your first roll of 36 — like loading a real roll of film.
+            Browse your photos, select your favorites, and build your first roll of 36 — like
+            loading a real roll of film.
           </p>
           <Button variant="primary" size="lg" onClick={() => router.push('/feed')}>
             Start browsing

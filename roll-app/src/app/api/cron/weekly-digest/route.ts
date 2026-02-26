@@ -28,7 +28,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: subError.message }, { status: 500 });
     }
 
-    const uniqueUserIds = [...new Set((subscriptions ?? []).map((s: { user_id: string }) => s.user_id))];
+    const uniqueUserIds = [
+      ...new Set((subscriptions ?? []).map((s: { user_id: string }) => s.user_id)),
+    ];
     let notificationsSent = 0;
 
     const oneWeekAgo = new Date();

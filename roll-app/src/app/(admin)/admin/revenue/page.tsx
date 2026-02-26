@@ -26,10 +26,16 @@ export default function AdminRevenuePage() {
     try {
       const res = await fetch('/api/admin/revenue');
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
@@ -37,7 +43,10 @@ export default function AdminRevenuePage() {
         <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Revenue</h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -69,11 +78,18 @@ export default function AdminRevenuePage() {
                 const max = Math.max(...data.revenueByMonth.map(([, c]) => c), 1);
                 return (
                   <div key={month} className="flex items-center gap-2">
-                    <span className="text-xs text-[var(--color-ink-secondary)] w-16 text-right font-mono">{month}</span>
+                    <span className="text-xs text-[var(--color-ink-secondary)] w-16 text-right font-mono">
+                      {month}
+                    </span>
                     <div className="flex-1 h-5 bg-[var(--color-surface-sunken)] rounded overflow-hidden">
-                      <div className="h-full bg-[var(--color-action)] rounded" style={{ width: `${(cents / max) * 100}%` }} />
+                      <div
+                        className="h-full bg-[var(--color-action)] rounded"
+                        style={{ width: `${(cents / max) * 100}%` }}
+                      />
                     </div>
-                    <span className="text-xs text-[var(--color-ink-tertiary)] w-16 text-right">{formatCents(cents)}</span>
+                    <span className="text-xs text-[var(--color-ink-tertiary)] w-16 text-right">
+                      {formatCents(cents)}
+                    </span>
                   </div>
                 );
               })}
@@ -92,14 +108,18 @@ export default function AdminRevenuePage() {
               <p className="text-2xl font-medium">{data.freeFirstRollCount}</p>
             </div>
             <div>
-              <p className="text-xs text-[var(--color-ink-tertiary)]">Estimated Cost (production + shipping)</p>
+              <p className="text-xs text-[var(--color-ink-tertiary)]">
+                Estimated Cost (production + shipping)
+              </p>
               <p className="text-2xl font-medium">{formatCents(data.estimatedFreeRollCostCents)}</p>
             </div>
             <div>
               <p className="text-xs text-[var(--color-ink-tertiary)]">Cost per Acquisition</p>
               <p className="text-2xl font-medium">
                 {data.freeFirstRollCount > 0
-                  ? formatCents(Math.round(data.estimatedFreeRollCostCents / data.freeFirstRollCount))
+                  ? formatCents(
+                      Math.round(data.estimatedFreeRollCostCents / data.freeFirstRollCount)
+                    )
                   : '—'}
               </p>
             </div>

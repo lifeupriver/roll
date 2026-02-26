@@ -13,7 +13,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || '';
 
     // Status breakdown
-    const { data: allRolls } = await db.from('rolls').select('status, film_profile, photo_count, processing_started_at, processing_completed_at');
+    const { data: allRolls } = await db
+      .from('rolls')
+      .select('status, film_profile, photo_count, processing_started_at, processing_completed_at');
 
     const statusBreakdown: Record<string, number> = {};
     const filmProfileBreakdown: Record<string, number> = {};
@@ -31,15 +33,20 @@ export async function GET(request: NextRequest) {
         photoCountDist.push(r.photo_count);
         if (r.status === 'error') errorCount++;
         if (r.processing_started_at && r.processing_completed_at) {
-          totalProcessingMs += new Date(r.processing_completed_at).getTime() - new Date(r.processing_started_at).getTime();
+          totalProcessingMs +=
+            new Date(r.processing_completed_at).getTime() -
+            new Date(r.processing_started_at).getTime();
           processedCount++;
         }
       }
     }
 
     // Recent rolls list (filterable)
-    let query = db.from('rolls')
-      .select('id, name, status, film_profile, photo_count, user_id, created_at, updated_at, processing_error')
+    let query = db
+      .from('rolls')
+      .select(
+        'id, name, status, film_profile, photo_count, user_id, created_at, updated_at, processing_error'
+      )
       .order('updated_at', { ascending: false })
       .limit(100);
 
@@ -53,9 +60,12 @@ export async function GET(request: NextRequest) {
       total: allRolls?.length ?? 0,
       statusBreakdown,
       filmProfileBreakdown: Object.entries(filmProfileBreakdown).sort(([, a], [, b]) => b - a),
-      avgProcessingTimeMins: processedCount > 0 ? (totalProcessingMs / processedCount) / 60000 : 0,
-      errorRate: allRolls?.length ? ((errorCount / allRolls.length) * 100) : 0,
-      avgPhotosPerRoll: photoCountDist.length > 0 ? photoCountDist.reduce((a, b) => a + b, 0) / photoCountDist.length : 0,
+      avgProcessingTimeMins: processedCount > 0 ? totalProcessingMs / processedCount / 60000 : 0,
+      errorRate: allRolls?.length ? (errorCount / allRolls.length) * 100 : 0,
+      avgPhotosPerRoll:
+        photoCountDist.length > 0
+          ? photoCountDist.reduce((a, b) => a + b, 0) / photoCountDist.length
+          : 0,
       rolls: recentRolls ?? [],
     });
   } catch (err) {

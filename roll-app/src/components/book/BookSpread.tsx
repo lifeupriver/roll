@@ -34,7 +34,9 @@ export function BookSpread({
   return (
     <div className="flex flex-col gap-[var(--space-element)]">
       {/* Two-page spread */}
-      <div className={`flex gap-0 rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-overlay)] ${flipClass ?? ''}`}>
+      <div
+        className={`flex gap-0 rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-overlay)] ${flipClass ?? ''}`}
+      >
         {/* Left page */}
         <SpreadPage
           page={leftPage}

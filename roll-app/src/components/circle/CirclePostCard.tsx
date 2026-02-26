@@ -88,7 +88,10 @@ export function CirclePostCard({
   );
 
   const comments = useMemo(
-    () => (post.comments ?? []).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+    () =>
+      (post.comments ?? []).sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ),
     [post.comments]
   );
 
@@ -228,9 +231,7 @@ export function CirclePostCard({
           type="button"
           onClick={onClick}
           className={`w-full text-left ${
-            photos.length === 1
-              ? ''
-              : 'grid grid-cols-2 gap-0.5'
+            photos.length === 1 ? '' : 'grid grid-cols-2 gap-0.5'
           } ${onClick ? 'cursor-pointer' : ''}`}
         >
           {photos.slice(0, 4).map((photo) => (
@@ -257,9 +258,7 @@ export function CirclePostCard({
       <div className="flex flex-col gap-[var(--space-element)] px-[var(--space-component)] pb-[var(--space-component)]">
         {/* Caption */}
         {post.caption && (
-          <p className="text-[length:var(--text-body)] text-[var(--color-ink)]">
-            {post.caption}
-          </p>
+          <p className="text-[length:var(--text-body)] text-[var(--color-ink)]">{post.caption}</p>
         )}
 
         {/* Reactions + comment toggle */}
@@ -284,7 +283,9 @@ export function CirclePostCard({
                   {count > 0 && (
                     <span
                       className={`font-[family-name:var(--font-mono)] ${
-                        isActive ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-secondary)]'
+                        isActive
+                          ? 'text-[var(--color-action)]'
+                          : 'text-[var(--color-ink-secondary)]'
                       }`}
                     >
                       {count}
@@ -301,7 +302,9 @@ export function CirclePostCard({
             className="inline-flex items-center gap-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] transition-colors"
           >
             <MessageCircle size={14} />
-            {commentCount > 0 && <span className="font-[family-name:var(--font-mono)]">{commentCount}</span>}
+            {commentCount > 0 && (
+              <span className="font-[family-name:var(--font-mono)]">{commentCount}</span>
+            )}
           </button>
         </div>
 
@@ -316,7 +319,11 @@ export function CirclePostCard({
                 <div key={c.id} className="flex gap-[var(--space-tight)] group">
                   <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden mt-0.5 ring-1 ring-[var(--color-action)]/20">
                     {c.profiles?.avatar_url ? (
-                      <img src={c.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={c.profiles.avatar_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
                         <span className="text-[8px] font-medium text-[var(--color-action)]">
@@ -327,8 +334,7 @@ export function CirclePostCard({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[length:var(--text-caption)] text-[var(--color-ink)]">
-                      <span className="font-medium">{cName}</span>{' '}
-                      {c.body}
+                      <span className="font-medium">{cName}</span> {c.body}
                     </p>
                     <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
                       {formatRelativeTime(c.created_at)}

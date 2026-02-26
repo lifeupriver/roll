@@ -8,7 +8,10 @@ import { captureError } from '@/lib/sentry';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -59,10 +62,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!profile.stripe_customer_id) {
-      await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', user.id);
+      await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id);
     }
 
     const session = await getStripe().checkout.sessions.create({

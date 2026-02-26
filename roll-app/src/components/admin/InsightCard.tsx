@@ -33,8 +33,8 @@ export function InsightCard({ insight, onAcknowledge }: InsightCardProps) {
     insight.severity === 'critical'
       ? 'border-l-red-500'
       : insight.severity === 'warning'
-      ? 'border-l-amber-500'
-      : 'border-l-blue-500';
+        ? 'border-l-amber-500'
+        : 'border-l-blue-500';
 
   const timeAgo = getTimeAgo(insight.created_at);
 
@@ -51,7 +51,9 @@ export function InsightCard({ insight, onAcknowledge }: InsightCardProps) {
             <span className="text-[11px] text-[var(--color-ink-tertiary)]">{timeAgo}</span>
           </div>
           <h4 className="text-sm font-medium mb-1">{insight.title}</h4>
-          <p className="text-xs text-[var(--color-ink-secondary)] leading-relaxed">{insight.body}</p>
+          <p className="text-xs text-[var(--color-ink-secondary)] leading-relaxed">
+            {insight.body}
+          </p>
         </div>
 
         {!insight.acknowledged && onAcknowledge && (

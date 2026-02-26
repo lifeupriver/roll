@@ -11,17 +11,14 @@ export async function GET() {
     const db = getServiceClient();
 
     const [plusRes, ordersRes, freeRollsRes] = await Promise.all([
-      db.from('profiles')
-        .select('id, stripe_subscription_id, created_at')
-        .eq('tier', 'plus'),
+      db.from('profiles').select('id, stripe_subscription_id, created_at').eq('tier', 'plus'),
 
-      db.from('print_orders')
+      db
+        .from('print_orders')
         .select('id, total_cents, is_free_first_roll, status, created_at')
         .not('status', 'eq', 'cancelled'),
 
-      db.from('print_orders')
-        .select('total_cents')
-        .eq('is_free_first_roll', true),
+      db.from('print_orders').select('total_cents').eq('is_free_first_roll', true),
     ]);
 
     const plusSubscribers = plusRes.data ?? [];

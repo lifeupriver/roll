@@ -4,14 +4,14 @@ import { captureError } from '@/lib/sentry';
 import { parseBody, addReelClipSchema } from '@/lib/validation';
 import type { ReelClip } from '@/types/reel';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: reelId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -31,7 +31,7 @@ export async function POST(
     if (reel.status !== 'building') {
       return NextResponse.json(
         { error: 'Clips can only be added to reels in building status' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -52,7 +52,10 @@ export async function POST(
     }
 
     if (photo.media_type !== 'video') {
-      return NextResponse.json({ error: 'Only video clips can be added to reels' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Only video clips can be added to reels' },
+        { status: 400 }
+      );
     }
 
     if (photo.filter_status !== 'visible') {
@@ -123,11 +126,14 @@ export async function POST(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    return NextResponse.json({
-      data: clipData as ReelClip,
-      reelStatus: newStatus,
-      currentDurationMs: newDuration,
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        data: clipData as ReelClip,
+        reelStatus: newStatus,
+        currentDurationMs: newDuration,
+      },
+      { status: 201 }
+    );
   } catch (err) {
     captureError(err, { context: 'reel-add-clip' });
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -137,12 +143,15 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id: reelId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -221,7 +230,11 @@ export async function DELETE(
       })
       .eq('id', reelId);
 
-    return NextResponse.json({ success: true, reelStatus: newStatus, currentDurationMs: newDuration });
+    return NextResponse.json({
+      success: true,
+      reelStatus: newStatus,
+      currentDurationMs: newDuration,
+    });
   } catch (err) {
     captureError(err, { context: 'reel-remove-clip' });
     const message = err instanceof Error ? err.message : 'Internal server error';

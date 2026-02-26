@@ -26,7 +26,12 @@ interface CreateBookModalProps {
   initialPhotoIds?: string[];
 }
 
-export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }: CreateBookModalProps) {
+export function CreateBookModal({
+  isOpen,
+  onClose,
+  onCreated,
+  initialPhotoIds,
+}: CreateBookModalProps) {
   const { toast } = useToast();
   const [step, setStep] = useState<CreateStep>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null);
@@ -42,7 +47,7 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
     if (!isOpen) return;
     setFavoritesLoading(true);
     fetch('/api/favorites')
-      .then((res) => res.ok ? res.json() : Promise.reject())
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((json) => setFavorites(json.data ?? []))
       .catch(() => toast('Failed to load favorites', 'error'))
       .finally(() => setFavoritesLoading(false));
@@ -159,7 +164,8 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
         {step === 'template' && (
           <div className="flex flex-col gap-[var(--space-component)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Start with a template or create a blank book. Templates auto-organize your photos by time period.
+              Start with a template or create a blank book. Templates auto-organize your photos by
+              time period.
             </p>
             <div className="grid grid-cols-2 gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
               {BOOK_TEMPLATES.map((tmpl) => (
@@ -216,8 +222,8 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
         {step === 'photos' && (
           <div className="flex flex-col gap-[var(--space-element)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Tap photos to select them. Each becomes a page in your book.
-              Selected order = page order.
+              Tap photos to select them. Each becomes a page in your book. Selected order = page
+              order.
             </p>
 
             {favoritesLoading ? (
@@ -321,9 +327,16 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
                     key={fav.photo_id}
                     className="flex items-center gap-[var(--space-element)] p-1.5 bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)]"
                   >
-                    <GripVertical size={14} className="text-[var(--color-ink-tertiary)] flex-shrink-0" />
+                    <GripVertical
+                      size={14}
+                      className="text-[var(--color-ink-tertiary)] flex-shrink-0"
+                    />
                     <div className="w-10 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0">
-                      <img src={fav.photos.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={fav.photos.thumbnail_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] flex-1">
                       Page {i + 1}
@@ -347,7 +360,9 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSelectedIds((prev) => prev.filter((id) => id !== fav.photo_id))}
+                        onClick={() =>
+                          setSelectedIds((prev) => prev.filter((id) => id !== fav.photo_id))
+                        }
                         className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)]"
                       >
                         <X size={14} />
@@ -359,7 +374,8 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
             </div>
 
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              {selectedIds.length} page{selectedIds.length !== 1 ? 's' : ''}. You can add captions and reorder pages after creation.
+              {selectedIds.length} page{selectedIds.length !== 1 ? 's' : ''}. You can add captions
+              and reorder pages after creation.
             </p>
           </div>
         )}
@@ -371,11 +387,9 @@ export function CreateBookModal({ isOpen, onClose, onCreated, initialPhotoIds }:
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setStep(
-                  step === 'review' ? 'photos' :
-                  step === 'photos' ? 'details' :
-                  'template'
-                )}
+                onClick={() =>
+                  setStep(step === 'review' ? 'photos' : step === 'photos' ? 'details' : 'template')
+                }
               >
                 <ChevronLeft size={16} className="mr-0.5" />
                 Back

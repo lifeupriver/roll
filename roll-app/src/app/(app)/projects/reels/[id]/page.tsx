@@ -109,7 +109,9 @@ export default function ReelDetailPage() {
   if (error || !reel) {
     return (
       <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)]">
-        <p className="text-[length:var(--text-body)] text-[var(--color-error)]">{error || 'Reel not found'}</p>
+        <p className="text-[length:var(--text-body)] text-[var(--color-error)]">
+          {error || 'Reel not found'}
+        </p>
         <Button variant="secondary" size="sm" onClick={() => router.push('/projects')}>
           Back to Projects
         </Button>
@@ -128,7 +130,9 @@ export default function ReelDetailPage() {
           </h1>
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
             {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
-            {reel.assembled_duration_ms && <> &middot; {formatDuration(reel.assembled_duration_ms)}</>}
+            {reel.assembled_duration_ms && (
+              <> &middot; {formatDuration(reel.assembled_duration_ms)}</>
+            )}
           </p>
         </div>
       </div>
@@ -143,7 +147,9 @@ export default function ReelDetailPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-[var(--space-element)]">
             <Scissors size={16} className="text-[var(--color-ink-secondary)]" />
-            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Default Clip Length</span>
+            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+              Default Clip Length
+            </span>
           </div>
           <div className="flex items-center gap-1">
             {CLIP_LENGTH_OPTIONS.map((opt) => (
@@ -202,7 +208,7 @@ export default function ReelDetailPage() {
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ audio_mood: opt.id }),
                     });
-                    setReel((prev) => prev ? { ...prev, audio_mood: opt.id } : prev);
+                    setReel((prev) => (prev ? { ...prev, audio_mood: opt.id } : prev));
                   } catch {
                     toast('Failed to update audio mood', 'error');
                   }

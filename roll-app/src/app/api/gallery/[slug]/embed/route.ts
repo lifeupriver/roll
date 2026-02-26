@@ -42,14 +42,17 @@ export async function GET(
       .order('position', { ascending: true })
       .limit(50);
 
-    const thumbnails = (rollPhotos ?? []).map((rp: Record<string, unknown>) => {
-      const photo = rp.photos as Record<string, unknown> | null;
-      return (photo?.thumbnail_url as string) || '';
-    }).filter(Boolean);
+    const thumbnails = (rollPhotos ?? [])
+      .map((rp: Record<string, unknown>) => {
+        const photo = rp.photos as Record<string, unknown> | null;
+        return (photo?.thumbnail_url as string) || '';
+      })
+      .filter(Boolean);
 
-    const accentColor = (roll.public_settings as Record<string, unknown>)?.accent_color
-      || profile?.business_accent_color
-      || '#1a1a1a';
+    const accentColor =
+      (roll.public_settings as Record<string, unknown>)?.accent_color ||
+      profile?.business_accent_color ||
+      '#1a1a1a';
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://roll.photos';
 
     const html = `<!DOCTYPE html>

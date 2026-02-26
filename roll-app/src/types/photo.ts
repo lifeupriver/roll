@@ -40,7 +40,16 @@ export interface Photo {
 
 export type FilterStatus = 'pending' | 'visible' | 'filtered_auto' | 'hidden_manual';
 
-export type FilterReason = 'blur' | 'screenshot' | 'duplicate' | 'exposure' | 'document' | 'accidental' | 'screen_recording' | 'too_shaky' | null;
+export type FilterReason =
+  | 'blur'
+  | 'screenshot'
+  | 'duplicate'
+  | 'exposure'
+  | 'document'
+  | 'accidental'
+  | 'screen_recording'
+  | 'too_shaky'
+  | null;
 
 export type ContentMode = 'all' | 'people' | 'clips';
 
@@ -63,15 +72,15 @@ export interface FilterResult {
 // Stack — groups of visually similar photos
 export interface PhotoStack {
   id: string;
-  topPhoto: Photo;          // Best photo (highest aesthetic score) — chosen for roll
-  photos: Photo[];           // All photos in the stack (including topPhoto)
-  similarity: number;        // 0–1 how similar the photos are
+  topPhoto: Photo; // Best photo (highest aesthetic score) — chosen for roll
+  photos: Photo[]; // All photos in the stack (including topPhoto)
+  similarity: number; // 0–1 how similar the photos are
 }
 
 export type StackMode = 'auto' | 'manual' | 'off';
 
 export interface StackSettings {
   mode: StackMode;
-  sensitivity: number;       // 0–1, higher = more aggressive grouping
-  minStackSize: number;      // Minimum photos to form a stack (default 2)
+  sensitivity: number; // 0–1, higher = more aggressive grouping
+  minStackSize: number; // Minimum photos to form a stack (default 2)
 }

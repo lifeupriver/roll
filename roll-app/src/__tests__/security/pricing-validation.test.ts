@@ -140,11 +140,13 @@ describe('POST /api/billing/print-checkout — server-side pricing', () => {
     });
 
     // Client sends a malicious body — only orderId should be used
-    const res = await POST(makeRequest({
-      orderId: ORDER_UUID_1,
-      amount: 1, // Attacker tries to set price to $0.01
-      pricePerPrint: 0,
-    }));
+    const res = await POST(
+      makeRequest({
+        orderId: ORDER_UUID_1,
+        amount: 1, // Attacker tries to set price to $0.01
+        pricePerPrint: 0,
+      })
+    );
 
     expect(res.status).toBe(200);
 

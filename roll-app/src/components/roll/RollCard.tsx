@@ -63,14 +63,7 @@ function StatusDot({ status }: { status: RollCardProps['roll']['status'] }) {
         fill="none"
         aria-hidden="true"
       >
-        <circle
-          cx="6"
-          cy="6"
-          r="5"
-          stroke={config.color}
-          strokeWidth="2"
-          opacity="0.25"
-        />
+        <circle cx="6" cy="6" r="5" stroke={config.color} strokeWidth="2" opacity="0.25" />
         <path
           d="M6 1a5 5 0 014.33 2.5"
           stroke={config.color}

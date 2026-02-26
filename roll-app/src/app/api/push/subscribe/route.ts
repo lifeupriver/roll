@@ -7,7 +7,10 @@ import { parseBody, pushSubscribeSchema, pushUnsubscribeSchema } from '@/lib/val
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -17,18 +20,16 @@ export async function POST(request: NextRequest) {
     const { endpoint, keys } = parsed.data;
 
     // Upsert subscription (one subscription per endpoint per user)
-    const { error: upsertError } = await supabase
-      .from('push_subscriptions')
-      .upsert(
-        {
-          user_id: user.id,
-          endpoint,
-          keys_p256dh: keys.p256dh,
-          keys_auth: keys.auth,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,endpoint' }
-      );
+    const { error: upsertError } = await supabase.from('push_subscriptions').upsert(
+      {
+        user_id: user.id,
+        endpoint,
+        keys_p256dh: keys.p256dh,
+        keys_auth: keys.auth,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,endpoint' }
+    );
 
     if (upsertError) {
       return NextResponse.json({ error: upsertError.message }, { status: 500 });
@@ -46,7 +47,10 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

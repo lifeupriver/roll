@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // Allowed hostnames for external URL redirects (mock data, CDN)
-const ALLOWED_REDIRECT_HOSTS = [
-  'picsum.photos',
-  'photos.roll.photos',
-];
+const ALLOWED_REDIRECT_HOSTS = ['picsum.photos', 'photos.roll.photos'];
 
 // Generate a simple SVG placeholder for fallback
 function fallbackSvg(seed: string): string {
@@ -22,7 +19,10 @@ function fallbackSvg(seed: string): string {
 // For mock data, it redirects to allowed external URLs or serves SVG data inline.
 export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -33,7 +33,11 @@ export async function GET(request: NextRequest) {
   }
 
   // Handle local static paths (mock/preview data)
-  if (key.startsWith('/placeholders/') || key.startsWith('/photos/') || key.startsWith('/corrected/')) {
+  if (
+    key.startsWith('/placeholders/') ||
+    key.startsWith('/photos/') ||
+    key.startsWith('/corrected/')
+  ) {
     const origin = request.nextUrl.origin;
     return NextResponse.redirect(`${origin}${key}`);
   }

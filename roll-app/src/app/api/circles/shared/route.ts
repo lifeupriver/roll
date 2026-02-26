@@ -6,7 +6,10 @@ import { captureError } from '@/lib/sentry';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -25,9 +28,10 @@ export async function GET() {
     const postIds = (posts ?? []).map((p: { id: string }) => p.id);
 
     // Fetch photos for those posts
-    const { data: photos } = postIds.length > 0
-      ? await supabase.from('circle_post_photos').select('*').in('post_id', postIds)
-      : { data: [] };
+    const { data: photos } =
+      postIds.length > 0
+        ? await supabase.from('circle_post_photos').select('*').in('post_id', postIds)
+        : { data: [] };
 
     const photosMap = new Map<string, typeof photos>();
     for (const photo of (photos ?? []) as Array<{ post_id: string }>) {

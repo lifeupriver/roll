@@ -78,7 +78,10 @@ export function CaptionEditor({
           />
           <button
             type="button"
-            onMouseDown={(e) => { e.preventDefault(); handleSave(); }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
             className="absolute bottom-2 right-2 p-1 rounded-[var(--radius-sharp)] bg-[var(--color-action)] text-white hover:bg-[var(--color-action-hover)] transition-colors"
           >
             <Check size={12} />
@@ -126,7 +129,10 @@ export function CaptionEditor({
         onClick={() => setIsEditing(true)}
         className="flex items-center gap-1.5 py-1 text-left group w-full"
       >
-        <Pencil size={10} className="text-[var(--color-ink-tertiary)] opacity-60 group-hover:opacity-100 transition-opacity" />
+        <Pencil
+          size={10}
+          className="text-[var(--color-ink-tertiary)] opacity-60 group-hover:opacity-100 transition-opacity"
+        />
         <span
           className={`text-[var(--color-ink-tertiary)] opacity-60 group-hover:opacity-100 transition-opacity ${
             isCover

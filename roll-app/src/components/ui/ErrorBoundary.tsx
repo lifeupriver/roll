@@ -51,11 +51,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] gap-[var(--space-component)] p-[var(--space-component)] text-center">
-          <AlertTriangle
-            size={32}
-            strokeWidth={1.5}
-            className="text-[var(--color-ink-tertiary)]"
-          />
+          <AlertTriangle size={32} strokeWidth={1.5} className="text-[var(--color-ink-tertiary)]" />
           <p className="font-[family-name:var(--font-body)] text-[length:var(--text-body)] text-[var(--color-ink)]">
             {isNetworkError
               ? 'Connection problem — check your internet and try again.'

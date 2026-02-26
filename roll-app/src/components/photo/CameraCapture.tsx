@@ -55,13 +55,7 @@ export function CameraCapture({ onPhotosReady }: CameraCaptureProps) {
       <div className="fixed inset-0 z-50 bg-black flex flex-col">
         {/* Video preview */}
         <div className="flex-1 relative overflow-hidden">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
 
           {/* Close button */}
           <button

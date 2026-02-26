@@ -40,7 +40,10 @@ export async function requireAdmin(): Promise<AdminUser | null> {
       }
     );
 
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error || !user) return null;
 
     // Check admin role via service client (bypasses RLS)

@@ -11,7 +11,10 @@ export async function GET() {
     const db = getServiceClient();
 
     const [circlesRes, postsRes, reactionsRes, commentsRes] = await Promise.all([
-      db.from('circles').select('id, name, member_count, created_at').order('member_count', { ascending: false }),
+      db
+        .from('circles')
+        .select('id, name, member_count, created_at')
+        .order('member_count', { ascending: false }),
       db.from('circle_posts').select('id, circle_id, created_at'),
       db.from('circle_reactions').select('id', { count: 'exact', head: true }),
       db.from('circle_comments').select('id', { count: 'exact', head: true }),
@@ -20,9 +23,8 @@ export async function GET() {
     const circles = circlesRes.data ?? [];
     const posts = postsRes.data ?? [];
 
-    const avgMembers = circles.length > 0
-      ? circles.reduce((sum, c) => sum + c.member_count, 0) / circles.length
-      : 0;
+    const avgMembers =
+      circles.length > 0 ? circles.reduce((sum, c) => sum + c.member_count, 0) / circles.length : 0;
 
     // Posts per circle
     const postsPerCircle: Record<string, number> = {};

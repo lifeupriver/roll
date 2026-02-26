@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Film, Play, MousePointerClick, X, Users, Send,
-} from 'lucide-react';
+import { Film, Play, MousePointerClick, X, Users, Send } from 'lucide-react';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ContentModePills } from '@/components/photo/ContentModePills';
@@ -46,7 +44,14 @@ function formatDate(dateString: string): string {
 
 export default function VideosPage() {
   const router = useRouter();
-  const { photos, contentMode: _contentMode, setContentMode, loading, hasMore, loadMore } = usePhotos();
+  const {
+    photos,
+    contentMode: _contentMode,
+    setContentMode,
+    loading,
+    hasMore,
+    loadMore,
+  } = usePhotos();
 
   const {
     currentReel,
@@ -212,7 +217,10 @@ export default function VideosPage() {
     const count = reelCount;
     setSelectMode(false);
     toast(`${count} clip${count !== 1 ? 's' : ''} added to your reel`, 'success');
-    track({ event: 'clips_added_to_reel', properties: { reelId: currentReel?.id || '', clipCount: count } });
+    track({
+      event: 'clips_added_to_reel',
+      properties: { reelId: currentReel?.id || '', clipCount: count },
+    });
   }, [reelCount, currentReel, toast]);
 
   const activeReels = reels.filter((r) => r.status !== 'archived');
@@ -226,9 +234,7 @@ export default function VideosPage() {
           onChange={(s) => setSection(s as VideoSection)}
           options={SECTION_OPTIONS}
         />
-        {section === 'clips' && (
-          <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
-        )}
+        {section === 'clips' && <GridSizeSelector value={gridColumns} onChange={setGridColumns} />}
       </div>
 
       {/* Clips section */}
@@ -412,7 +418,10 @@ export default function VideosPage() {
           )}
 
           {!reelsLoading && activeReels.length > 0 && (
-            <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+            <div
+              className="grid gap-[var(--space-element)]"
+              style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}
+            >
               {activeReels.map((reel) => {
                 const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
                 return (
@@ -437,12 +446,20 @@ export default function VideosPage() {
                       )}
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                          <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
+                          <Play
+                            size={18}
+                            className="text-white ml-0.5"
+                            fill="white"
+                            fillOpacity={0.9}
+                          />
                         </div>
                       </div>
                       <span
                         className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
-                        style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
+                        style={{
+                          backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`,
+                          color: status.color,
+                        }}
                       >
                         {status.label}
                       </span>
@@ -451,7 +468,8 @@ export default function VideosPage() {
                       {reel.name || 'Untitled Reel'}
                     </p>
                     <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                      {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
+                      {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot;{' '}
+                      {formatDate(reel.created_at)}
                     </p>
                   </button>
                 );

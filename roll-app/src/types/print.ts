@@ -1,6 +1,18 @@
-export type PrintProduct = 'roll_prints' | 'album_prints' | 'individual' | 'photo_book' | 'magazine';
+export type PrintProduct =
+  | 'roll_prints'
+  | 'album_prints'
+  | 'individual'
+  | 'photo_book'
+  | 'magazine';
 export type PrintSize = '3x5' | '4x6' | '5x7' | '8x10' | '6x6' | '6x9' | '8x8' | '10x10';
-export type PrintOrderStatus = 'pending' | 'submitted' | 'in_production' | 'shipped' | 'delivered' | 'cancelled' | 'simulated';
+export type PrintOrderStatus =
+  | 'pending'
+  | 'submitted'
+  | 'in_production'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled'
+  | 'simulated';
 
 export interface PrintOrder {
   id: string;

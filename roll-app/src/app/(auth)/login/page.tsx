@@ -73,7 +73,9 @@ export default function LoginPage() {
           </Button>
           <div className="flex items-center gap-[var(--space-element)]">
             <div className="flex-1 h-px bg-[var(--color-border)]" />
-            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">or</span>
+            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              or
+            </span>
             <div className="flex-1 h-px bg-[var(--color-border)]" />
           </div>
           <Button type="button" variant="ghost" onClick={() => setMode('password')}>

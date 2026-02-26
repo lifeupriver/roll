@@ -30,8 +30,7 @@ export const usePhotoStore = create<PhotoState>((set) => ({
   cursor: null,
   hasMore: true,
   setPhotos: (photos) => set({ photos }),
-  appendPhotos: (photos) =>
-    set((state) => ({ photos: [...state.photos, ...photos] })),
+  appendPhotos: (photos) => set((state) => ({ photos: [...state.photos, ...photos] })),
   setContentMode: (contentMode) => set({ contentMode, photos: [], cursor: null, hasMore: true }),
   togglePhotoSelection: (photoId) =>
     set((state) => {

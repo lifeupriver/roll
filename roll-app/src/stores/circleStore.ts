@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import type { Circle, CirclePost, CircleMember, CircleReaction, ReactionType } from '@/types/circle';
+import type {
+  Circle,
+  CirclePost,
+  CircleMember,
+  CircleReaction,
+  ReactionType,
+} from '@/types/circle';
 
 interface CircleState {
   circles: Circle[];
@@ -41,9 +47,7 @@ export const useCircleStore = create<CircleState>((set, _get) => ({
   addReaction: (postId, reaction) =>
     set((state) => ({
       posts: state.posts.map((post) =>
-        post.id === postId
-          ? { ...post, reactions: [...(post.reactions ?? []), reaction] }
-          : post
+        post.id === postId ? { ...post, reactions: [...(post.reactions ?? []), reaction] } : post
       ),
     })),
 
@@ -61,6 +65,5 @@ export const useCircleStore = create<CircleState>((set, _get) => ({
       ),
     })),
 
-  reset: () =>
-    set({ circles: [], currentCircle: null, members: [], posts: [], loading: false }),
+  reset: () => set({ circles: [], currentCircle: null, members: [], posts: [], loading: false }),
 }));

@@ -40,9 +40,20 @@ function StatusDot({ status }: { status: ReelCardProps['reel']['status'] }) {
 
   if (config.animation === 'spin') {
     return (
-      <svg className="h-3 w-3 shrink-0 animate-spin" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <svg
+        className="h-3 w-3 shrink-0 animate-spin"
+        viewBox="0 0 12 12"
+        fill="none"
+        aria-hidden="true"
+      >
         <circle cx="6" cy="6" r="5" stroke={config.color} strokeWidth="2" opacity="0.25" />
-        <path d="M6 1a5 5 0 014.33 2.5" stroke={config.color} strokeWidth="2" strokeLinecap="round" opacity="0.75" />
+        <path
+          d="M6 1a5 5 0 014.33 2.5"
+          stroke={config.color}
+          strokeWidth="2"
+          strokeLinecap="round"
+          opacity="0.75"
+        />
       </svg>
     );
   }
@@ -101,7 +112,12 @@ export function ReelCard({ reel, posterUrl, onClick }: ReelCardProps) {
               </h3>
               {reel.film_profile && (
                 <span className="flex items-center gap-1 shrink-0">
-                  <Film size={14} strokeWidth={1.5} className="text-[var(--color-ink-tertiary)]" aria-hidden="true" />
+                  <Film
+                    size={14}
+                    strokeWidth={1.5}
+                    className="text-[var(--color-ink-tertiary)]"
+                    aria-hidden="true"
+                  />
                   <span
                     className="inline-block h-1.5 w-1.5 rounded-full shrink-0"
                     style={{ backgroundColor: `var(--color-stock-${reel.film_profile})` }}

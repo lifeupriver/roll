@@ -20,7 +20,9 @@ export function isNativeApp(): boolean {
 /** Get the platform: 'ios', 'android', or 'web' */
 export function getPlatform(): 'ios' | 'android' | 'web' {
   if (!isNativeApp()) return 'web';
-  const cap = (window as unknown as Record<string, unknown>).Capacitor as Record<string, any> | undefined;
+  const cap = (window as unknown as Record<string, unknown>).Capacitor as
+    | Record<string, any>
+    | undefined;
   const platform = typeof cap?.getPlatform === 'function' ? cap.getPlatform() : undefined;
   if (platform === 'ios' || platform === 'android') return platform;
   return 'web';

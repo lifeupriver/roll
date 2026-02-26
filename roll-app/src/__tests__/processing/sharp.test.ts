@@ -13,7 +13,9 @@ import {
 async function createTestImage(width: number, height: number, color = { r: 128, g: 128, b: 128 }) {
   return sharp({
     create: { width, height, channels: 3, background: color },
-  }).jpeg({ quality: 80 }).toBuffer();
+  })
+    .jpeg({ quality: 80 })
+    .toBuffer();
 }
 
 describe('createThumbnail', () => {

@@ -11,7 +11,10 @@ import type { MagazineTemplate, MagazineFormat } from '@/types/magazine';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -40,7 +43,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -66,7 +72,9 @@ export async function POST(request: NextRequest) {
     // Fetch user's favorites within date range
     const { data: favorites, error: favError } = await supabase
       .from('favorites')
-      .select('id, photo_id, photos(id, thumbnail_url, storage_key, width, height, date_taken, aesthetic_score, face_count)')
+      .select(
+        'id, photo_id, photos(id, thumbnail_url, storage_key, width, height, date_taken, aesthetic_score, face_count)'
+      )
       .eq('user_id', user.id)
       .gte('created_at', start.toISOString())
       .lte('created_at', end.toISOString())

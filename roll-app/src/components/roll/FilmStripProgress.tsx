@@ -172,11 +172,11 @@ export function FilmStripProgress({
             ].join(' ')}
           >
             <span className="inline-flex items-baseline">
-              <span className="overflow-hidden inline-block h-[1.2em] relative" style={{ width: `${String(displayCount).length}ch` }}>
-                <span
-                  className={flipping ? 'number-flip-enter' : ''}
-                  style={{ display: 'block' }}
-                >
+              <span
+                className="overflow-hidden inline-block h-[1.2em] relative"
+                style={{ width: `${String(displayCount).length}ch` }}
+              >
+                <span className={flipping ? 'number-flip-enter' : ''} style={{ display: 'block' }}>
                   {displayCount}
                 </span>
               </span>

@@ -7,14 +7,19 @@ import type { Favorite } from '@/types/favorite';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data, error } = await supabase
       .from('favorites')
-      .select('*, photos(thumbnail_url, date_taken, camera_make, camera_model, width, height), rolls(name, film_profile)')
+      .select(
+        '*, photos(thumbnail_url, date_taken, camera_make, camera_model, width, height), rolls(name, film_profile)'
+      )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -33,7 +38,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

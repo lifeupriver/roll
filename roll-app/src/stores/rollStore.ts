@@ -91,12 +91,8 @@ export const useRollStore = create<RollState>((set, get) => ({
 
   updateRollStatus: (rollId, updates) =>
     set((state) => ({
-      rolls: state.rolls.map((r) =>
-        r.id === rollId ? { ...r, ...updates } : r
-      ),
+      rolls: state.rolls.map((r) => (r.id === rollId ? { ...r, ...updates } : r)),
       currentRoll:
-        state.currentRoll?.id === rollId
-          ? { ...state.currentRoll, ...updates }
-          : state.currentRoll,
+        state.currentRoll?.id === rollId ? { ...state.currentRoll, ...updates } : state.currentRoll,
     })),
 }));

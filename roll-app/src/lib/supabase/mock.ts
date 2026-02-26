@@ -345,7 +345,13 @@ function generateRollPhotos(rollId: string, count: number, offset: number = 0) {
       photo_id: photo?.id ?? uuid(100 + photoIndex),
       position: i + 1,
       // Use a scene-appropriate placeholder for processed photos
-      processed_storage_key: picsum(`corrected-${photoIndex}`, 400, 530, photo?.scene_classification as string[] ?? [], photoIndex + 5),
+      processed_storage_key: picsum(
+        `corrected-${photoIndex}`,
+        400,
+        530,
+        (photo?.scene_classification as string[]) ?? [],
+        photoIndex + 5
+      ),
       correction_applied: true,
       created_at: now,
       photos: photo ?? null,

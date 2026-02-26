@@ -16,15 +16,23 @@ export default function AdminGrowthPage() {
     try {
       const res = await fetch('/api/admin/growth');
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Growth & Funnels</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+          Growth & Funnels
+        </h1>
         <div className="h-64 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
       </div>
     );
@@ -34,7 +42,9 @@ export default function AdminGrowthPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Growth & Funnels</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+        Growth & Funnels
+      </h1>
 
       {/* Activation Funnel */}
       <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-6">
@@ -44,7 +54,8 @@ export default function AdminGrowthPage() {
         <div className="space-y-3">
           {data.funnel.map((step, i) => {
             const prevCount = i > 0 ? data.funnel[i - 1].count : step.count;
-            const conversionRate = prevCount > 0 ? ((step.count / prevCount) * 100).toFixed(1) : '—';
+            const conversionRate =
+              prevCount > 0 ? ((step.count / prevCount) * 100).toFixed(1) : '—';
             const overallRate = maxCount > 0 ? ((step.count / maxCount) * 100).toFixed(1) : '0';
             const barWidth = maxCount > 0 ? (step.count / maxCount) * 100 : 0;
 

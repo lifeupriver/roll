@@ -13,21 +13,12 @@ export function GalleryHeader({ businessName, logoUrl, accentColor }: GalleryHea
       style={{ borderColor: accentColor || '#e5e5e5' }}
     >
       {logoUrl && (
-        <img
-          src={logoUrl}
-          alt={businessName || ''}
-          className="w-8 h-8 rounded-full object-cover"
-        />
+        <img src={logoUrl} alt={businessName || ''} className="w-8 h-8 rounded-full object-cover" />
       )}
-      <span
-        className="font-semibold text-sm"
-        style={{ color: accentColor || '#1a1a1a' }}
-      >
+      <span className="font-semibold text-sm" style={{ color: accentColor || '#1a1a1a' }}>
         {businessName || 'Gallery'}
       </span>
-      <span className="ml-auto text-xs text-[#999]">
-        Powered by Roll
-      </span>
+      <span className="ml-auto text-xs text-[#999]">Powered by Roll</span>
     </header>
   );
 }

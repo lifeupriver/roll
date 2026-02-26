@@ -67,7 +67,7 @@ export function registerProcessor(type: string, processor: JobProcessor) {
 export async function enqueueJob(
   userId: string,
   type: string,
-  payload: Record<string, unknown>,
+  payload: Record<string, unknown>
 ): Promise<string> {
   const supabase = getServiceSupabase();
   const { data, error } = await supabase

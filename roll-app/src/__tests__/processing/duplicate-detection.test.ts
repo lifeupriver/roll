@@ -91,9 +91,7 @@ describe('findDuplicates', () => {
   });
 
   it('handles single photo', () => {
-    const duplicates = findDuplicates([
-      { id: 'a', phash: 'aaaa', aesthetic_score: 80 },
-    ]);
+    const duplicates = findDuplicates([{ id: 'a', phash: 'aaaa', aesthetic_score: 80 }]);
     expect(duplicates.size).toBe(0);
   });
 });

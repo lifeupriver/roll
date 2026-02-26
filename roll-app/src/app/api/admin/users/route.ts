@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .from('profiles')
-      .select('id, email, display_name, tier, role, photo_count, storage_used_bytes, onboarding_complete, created_at, updated_at, stripe_customer_id, stripe_subscription_id, referral_code', { count: 'exact' });
+      .select(
+        'id, email, display_name, tier, role, photo_count, storage_used_bytes, onboarding_complete, created_at, updated_at, stripe_customer_id, stripe_subscription_id, referral_code',
+        { count: 'exact' }
+      );
 
     // Search
     if (search) {

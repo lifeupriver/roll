@@ -3,12 +3,42 @@
 import { useState } from 'react';
 
 const PROFILES = [
-  { name: 'Classic', description: 'Clean tones with subtle warmth', color: 'var(--color-stock-classic)', filter: 'preview-classic' },
-  { name: 'Vivid', description: 'Saturated, punchy colors', color: 'var(--color-stock-vivid)', filter: 'preview-vivid' },
-  { name: 'Warmth', description: 'Golden tones, like afternoon light', color: 'var(--color-stock-warmth)', filter: 'preview-warmth' },
-  { name: 'Fade', description: 'Lifted blacks, dreamy feel', color: 'var(--color-stock-gentle)', filter: 'preview-gentle' },
-  { name: 'Mono', description: 'Rich black-and-white with grain', color: 'var(--color-stock-modern)', filter: 'preview-modern' },
-  { name: 'Cool', description: 'Crisp, blue-shifted tones', color: 'var(--color-stock-golden)', filter: 'preview-golden' },
+  {
+    name: 'Classic',
+    description: 'Clean tones with subtle warmth',
+    color: 'var(--color-stock-classic)',
+    filter: 'preview-classic',
+  },
+  {
+    name: 'Vivid',
+    description: 'Saturated, punchy colors',
+    color: 'var(--color-stock-vivid)',
+    filter: 'preview-vivid',
+  },
+  {
+    name: 'Warmth',
+    description: 'Golden tones, like afternoon light',
+    color: 'var(--color-stock-warmth)',
+    filter: 'preview-warmth',
+  },
+  {
+    name: 'Fade',
+    description: 'Lifted blacks, dreamy feel',
+    color: 'var(--color-stock-gentle)',
+    filter: 'preview-gentle',
+  },
+  {
+    name: 'Mono',
+    description: 'Rich black-and-white with grain',
+    color: 'var(--color-stock-modern)',
+    filter: 'preview-modern',
+  },
+  {
+    name: 'Cool',
+    description: 'Crisp, blue-shifted tones',
+    color: 'var(--color-stock-golden)',
+    filter: 'preview-golden',
+  },
 ];
 
 export function FilmProfileShowcase() {
@@ -55,7 +85,9 @@ export function FilmProfileShowcase() {
             style={{ scrollSnapAlign: 'start' }}
           >
             {/* Thumbnail */}
-            <div className={`w-full aspect-[4/3] bg-[var(--color-surface-sunken)] ${profile.filter}`}>
+            <div
+              className={`w-full aspect-[4/3] bg-[var(--color-surface-sunken)] ${profile.filter}`}
+            >
               <div className="w-full h-full flex items-center justify-center">
                 <div className="w-12 h-12 rounded-[var(--radius-card)] bg-[var(--color-surface)] opacity-30" />
               </div>

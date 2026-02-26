@@ -35,23 +35,22 @@ export async function GET() {
       db.from('profiles').select('id', { count: 'exact', head: true }),
 
       // New users today
-      db.from('profiles').select('id', { count: 'exact', head: true })
+      db
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
         .gte('created_at', todayStart),
 
       // New users this week
-      db.from('profiles').select('id', { count: 'exact', head: true })
-        .gte('created_at', weekAgo),
+      db.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', weekAgo),
 
       // Plus subscribers
-      db.from('profiles').select('id', { count: 'exact', head: true })
-        .eq('tier', 'plus'),
+      db.from('profiles').select('id', { count: 'exact', head: true }).eq('tier', 'plus'),
 
       // Total photos
       db.from('photos').select('id', { count: 'exact', head: true }),
 
       // Photos uploaded today
-      db.from('photos').select('id', { count: 'exact', head: true })
-        .gte('created_at', todayStart),
+      db.from('photos').select('id', { count: 'exact', head: true }).gte('created_at', todayStart),
 
       // Rolls by status
       db.from('rolls').select('status'),
@@ -60,27 +59,34 @@ export async function GET() {
       db.from('print_orders').select('id', { count: 'exact', head: true }),
 
       // Pending orders
-      db.from('print_orders').select('id', { count: 'exact', head: true })
+      db
+        .from('print_orders')
+        .select('id', { count: 'exact', head: true })
         .in('status', ['pending', 'submitted', 'in_production']),
 
       // Pending processing jobs
-      db.from('processing_jobs').select('id', { count: 'exact', head: true })
+      db
+        .from('processing_jobs')
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'pending'),
 
       // Recent signups (last 10)
-      db.from('profiles')
+      db
+        .from('profiles')
         .select('id, email, display_name, tier, created_at')
         .order('created_at', { ascending: false })
         .limit(10),
 
       // Recent rolls developed (last 10)
-      db.from('rolls')
+      db
+        .from('rolls')
         .select('id, name, status, film_profile, user_id, updated_at')
         .order('updated_at', { ascending: false })
         .limit(10),
 
       // Unacknowledged AI insights
-      db.from('admin_insights')
+      db
+        .from('admin_insights')
         .select('*')
         .eq('acknowledged', false)
         .order('created_at', { ascending: false })
@@ -98,7 +104,10 @@ export async function GET() {
     // Compute storage from profiles
     const { data: storageData } = await db.from('profiles').select('storage_used_bytes');
     const totalStorageBytes = storageData
-      ? storageData.reduce((sum: number, p: { storage_used_bytes: number }) => sum + (p.storage_used_bytes || 0), 0)
+      ? storageData.reduce(
+          (sum: number, p: { storage_used_bytes: number }) => sum + (p.storage_used_bytes || 0),
+          0
+        )
       : 0;
 
     return NextResponse.json({

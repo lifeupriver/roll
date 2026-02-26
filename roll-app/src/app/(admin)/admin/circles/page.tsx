@@ -26,18 +26,29 @@ export default function AdminCirclesPage() {
     try {
       const res = await fetch('/api/admin/circles');
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Circle Analytics</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+          Circle Analytics
+        </h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -46,7 +57,9 @@ export default function AdminCirclesPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Circle Analytics</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+        Circle Analytics
+      </h1>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <StatCard label="Total Circles" value={data.total} />
@@ -57,7 +70,9 @@ export default function AdminCirclesPage() {
       </div>
 
       <div>
-        <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-3">Top Circles</h2>
+        <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-3">
+          Top Circles
+        </h2>
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] divide-y divide-[var(--color-border)]">
           {data.topCircles.map((circle) => (
             <div key={circle.id} className="px-4 py-3 flex items-center justify-between">
@@ -74,7 +89,9 @@ export default function AdminCirclesPage() {
             </div>
           ))}
           {data.topCircles.length === 0 && (
-            <p className="p-6 text-center text-sm text-[var(--color-ink-tertiary)]">No circles yet</p>
+            <p className="p-6 text-center text-sm text-[var(--color-ink-tertiary)]">
+              No circles yet
+            </p>
           )}
         </div>
       </div>
