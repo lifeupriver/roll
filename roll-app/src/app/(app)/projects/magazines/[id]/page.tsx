@@ -126,12 +126,7 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
             photos: [
               {
                 id: photo.id || rp.photo_id,
-                photo_id: photo.id || rp.photo_id,
-                thumbnail_url: photo.thumbnail_url || '',
-                developed_url: photo.developed_url || photo.storage_key || '',
-                width: photo.width || 0,
-                height: photo.height || 0,
-                caption: rp.caption || undefined,
+                position: 0,
               },
             ],
             caption: rp.caption || '',
@@ -292,8 +287,11 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
       )}
 
       {/* Add from Rolls Modal */}
-      <Modal isOpen={showAddRolls} onClose={() => setShowAddRolls(false)} title="Add Images from Rolls">
+      <Modal isOpen={showAddRolls} onClose={() => setShowAddRolls(false)}>
         <div className="flex flex-col gap-[var(--space-component)]">
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+            Add Images from Rolls
+          </h2>
           <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
             Select developed rolls to add their photos to this magazine.
           </p>

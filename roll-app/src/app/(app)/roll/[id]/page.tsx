@@ -452,7 +452,7 @@ export default function RollDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: roll.theme_name || roll.title || 'Untitled Magazine',
+          title: roll.theme_name || roll.name || 'Untitled Magazine',
           rollIds: [rollId],
         }),
       });
