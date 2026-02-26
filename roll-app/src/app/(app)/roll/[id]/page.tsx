@@ -16,8 +16,6 @@ import {
   Users,
   ChevronRight,
   BookOpen,
-  Camera,
-  Video,
   UserRound,
   Images,
   Globe,
@@ -112,7 +110,6 @@ export default function RollDetailPage() {
   const [creatingMagazine, setCreatingMagazine] = useState(false);
 
   // Filter toggles
-  const [mediaFilter, setMediaFilter] = useState<'all' | 'photo' | 'video'>('all');
   const [peopleFilter, setPeopleFilter] = useState<'all' | 'people'>('all');
 
   const rollId = params.id;
@@ -529,8 +526,6 @@ export default function RollDetailPage() {
 
   // Filter photos by media type and people presence
   const filteredPhotos = photos.filter((rp) => {
-    if (mediaFilter === 'photo' && rp.photos.media_type === 'video') return false;
-    if (mediaFilter === 'video' && rp.photos.media_type !== 'video') return false;
     if (peopleFilter === 'people') {
       // Filter for photos that likely contain people (heuristic: check for face-related metadata)
       // Since face detection data isn't always available, we use latitude/camera as a proxy
@@ -798,32 +793,7 @@ export default function RollDetailPage() {
 
         {/* Filter toggles + grid size slider */}
         <div className="flex items-center justify-between gap-[var(--space-element)] flex-wrap">
-          {/* Media type toggle: Photo / Video */}
           <div className="flex items-center gap-[var(--space-tight)]">
-            <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
-              {(
-                [
-                  { value: 'all', icon: Images, label: 'All' },
-                  { value: 'photo', icon: Camera, label: 'Photos' },
-                  { value: 'video', icon: Video, label: 'Videos' },
-                ] as const
-              ).map(({ value, icon: Icon, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setMediaFilter(value)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                    mediaFilter === value
-                      ? 'bg-[var(--color-action)] text-white'
-                      : 'text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
-                  }`}
-                >
-                  <Icon size={12} />
-                  {label}
-                </button>
-              ))}
-            </div>
-
             {/* People toggle: All / People */}
             <div className="flex items-center bg-[var(--color-surface-sunken)] rounded-[var(--radius-pill)] p-0.5">
               {(
@@ -854,7 +824,7 @@ export default function RollDetailPage() {
         </div>
 
         {/* Photo count info */}
-        {(mediaFilter !== 'all' || peopleFilter !== 'all') && (
+        {peopleFilter !== 'all' && (
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
             Showing {filteredPhotos.length} of {photos.length} photos
           </p>
