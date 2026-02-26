@@ -220,11 +220,15 @@ export default function ReelDetailPage() {
     setSavingConfig(true);
     try {
       // Save reel name
-      await fetch(`/api/reels/${currentReel.id}`, {
+      const res = await fetch(`/api/reels/${currentReel.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: configName.trim() || currentReel.name }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || 'Failed to save reel name');
+      }
 
       // Save trim points for clips
       for (const [photoId, trim] of clipTrims.entries()) {
