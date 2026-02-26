@@ -26,34 +26,6 @@ import type { Reel, ReelClip } from '@/types/reel';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
 
-// Mock clips shown when building a reel with no real clips yet
-const MOCK_CLIPS: Array<ReelClip & { photos?: { thumbnail_url?: string; filename?: string; date_taken?: string } }> = [
-  {
-    id: 'mock-1', reel_id: '', photo_id: 'mock-p1', position: 1,
-    trim_start_ms: 0, trim_end_ms: null, trimmed_duration_ms: 3200,
-    processed_storage_key: null, correction_applied: false, transition_type: 'crossfade', created_at: '',
-    photos: { filename: 'Beach sunset.mov', date_taken: '2026-02-10T00:00:00Z' },
-  },
-  {
-    id: 'mock-2', reel_id: '', photo_id: 'mock-p2', position: 2,
-    trim_start_ms: 0, trim_end_ms: 4500, trimmed_duration_ms: 4500,
-    processed_storage_key: null, correction_applied: false, transition_type: 'crossfade', created_at: '',
-    photos: { filename: 'Morning walk.mov', date_taken: '2026-02-12T00:00:00Z' },
-  },
-  {
-    id: 'mock-3', reel_id: '', photo_id: 'mock-p3', position: 3,
-    trim_start_ms: 1000, trim_end_ms: 3800, trimmed_duration_ms: 2800,
-    processed_storage_key: null, correction_applied: false, transition_type: 'cut', created_at: '',
-    photos: { filename: 'Coffee shop.mov', date_taken: '2026-02-15T00:00:00Z' },
-  },
-  {
-    id: 'mock-4', reel_id: '', photo_id: 'mock-p4', position: 4,
-    trim_start_ms: 0, trim_end_ms: null, trimmed_duration_ms: 5200,
-    processed_storage_key: null, correction_applied: false, transition_type: 'dip_to_black', created_at: '',
-    photos: { filename: 'Park pigeons.mov', date_taken: '2026-02-18T00:00:00Z' },
-  },
-];
-
 const CLIP_DURATION_OPTIONS = [2, 3, 5, 8, 10];
 
 export default function ReelDetailPage() {
@@ -285,6 +257,23 @@ export default function ReelDetailPage() {
     }
   }, [currentReel, transcribeAudio, reelId, setTranscribeAudio, toast]);
 
+  const handleDefaultClipLengthChange = useCallback(
+    async (seconds: number) => {
+      setDefaultClipLengthS(seconds);
+      if (!currentReel) return;
+      try {
+        await fetch(`/api/reels/${reelId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ default_clip_length_s: seconds }),
+        });
+      } catch {
+        // Non-critical — value is still reflected in local state
+      }
+    },
+    [currentReel, reelId]
+  );
+
   const handleDevelop = useCallback(async () => {
     if (!currentReel || !filmProfile) return;
     setDeveloping(true);
@@ -414,10 +403,6 @@ export default function ReelDetailPage() {
     count: undefined,
   }));
 
-  // Use mock clips when building with no real clips
-  const showMockClips = isReady && reelClips.length === 0;
-  const displayClips = showMockClips ? MOCK_CLIPS : reelClips;
-
   // Clip being trimmed
   const trimmingClip = trimmingClipId
     ? reelClips.find((c) => c.id === trimmingClipId)
@@ -529,43 +514,37 @@ export default function ReelDetailPage() {
         </section>
       )}
 
-      {/* Storyboard */}
-      {isReady && (
+      {/* Storyboard — shown for building/ready and developed reels */}
+      {(isReady || isDeveloped) && (
         <section>
           <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
             Storyboard
           </h2>
-          {showMockClips && (
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)] italic">
-              Example clips — add your own from the Videos page
-            </p>
-          )}
-          <div className={showMockClips ? 'opacity-50 pointer-events-none' : ''}>
-            <ReelStoryboard
-              clips={displayClips as (ReelClip & { photos?: any })[]}
-              onReorder={handleReorder}
-              onRemove={handleRemoveClip}
-              onEditTrim={handleEditTrim}
-            />
-          </div>
+          <ReelStoryboard
+            clips={reelClips as (ReelClip & { photos?: any })[]}
+            onReorder={handleReorder}
+            onRemove={handleRemoveClip}
+            onEditTrim={handleEditTrim}
+            readOnly={isDeveloped}
+          />
         </section>
       )}
 
-      {/* Clip Duration & Trim — available during building */}
-      {isReady && reelClips.length > 0 && (
+      {/* Clip Duration — always available during building/ready */}
+      {isReady && (
         <section>
           <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
-            Clip Duration
+            Default Clip Duration
           </h2>
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mb-[var(--space-element)]">
-            Set the default length for each clip. Trim individual clips from the storyboard.
+            Each clip plays for this duration unless trimmed individually.
           </p>
           <div className="flex gap-[var(--space-tight)]">
             {CLIP_DURATION_OPTIONS.map((s) => (
               <button
                 key={s}
                 type="button"
-                onClick={() => setDefaultClipLengthS(s)}
+                onClick={() => handleDefaultClipLengthChange(s)}
                 className={`flex-1 px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] text-[length:var(--text-label)] font-medium min-h-[44px] transition-colors ${
                   defaultClipLengthS === s
                     ? 'bg-[#C45D3E] text-white'
