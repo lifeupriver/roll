@@ -275,7 +275,8 @@ export function autoDesignFromRolls(
       // Avoid consecutive same layouts
       if (layout === lastLayout) {
         if (pageSize === 1) layout = 'caption_heavy';
-        else if (pageSize === 2) layout = 'side_by_side';
+        else if (pageSize === 2)
+          layout = layout === 'two_up_vertical' ? 'two_up_horizontal' : 'two_up_vertical';
       }
 
       pages.push({
