@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/middleware';
 import { getServiceClient } from '@/lib/admin/service';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockOrdersResponse } from '@/lib/admin/mock-data';
 
 export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      const { searchParams } = new URL(request.url);
+      return NextResponse.json(getMockOrdersResponse(searchParams.get('status') || undefined));
+    }
 
     const db = getServiceClient();
     const { searchParams } = new URL(request.url);
@@ -16,7 +22,9 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Aggregate stats
-    const { data: allOrders } = await db.from('print_orders').select('status, total_cents, is_free_first_roll');
+    const { data: allOrders } = await db
+      .from('print_orders')
+      .select('status, total_cents, is_free_first_roll');
 
     const statusBreakdown: Record<string, number> = {};
     let totalRevenueCents = 0;
@@ -31,8 +39,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Paginated order list
-    let query = db.from('print_orders')
-      .select('id, user_id, product, print_size, photo_count, status, total_cents, is_free_first_roll, shipping_name, tracking_url, created_at, updated_at', { count: 'exact' })
+    let query = db
+      .from('print_orders')
+      .select(
+        'id, user_id, product, print_size, photo_count, status, total_cents, is_free_first_roll, shipping_name, tracking_url, created_at, updated_at',
+        { count: 'exact' }
+      )
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

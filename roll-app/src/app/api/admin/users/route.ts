@@ -2,12 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/middleware';
 import { getServiceClient } from '@/lib/admin/service';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockUsersResponse } from '@/lib/admin/mock-data';
 
 export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+
+    if (isAdminPreviewMode()) {
+      const { searchParams } = new URL(request.url);
+      return NextResponse.json(
+        getMockUsersResponse({
+          page: parseInt(searchParams.get('page') || '1'),
+          limit: parseInt(searchParams.get('limit') || '50'),
+          search: searchParams.get('search') || '',
+          tier: searchParams.get('tier') || '',
+          sort: searchParams.get('sort') || 'created_at',
+          order: searchParams.get('order') || 'desc',
+        })
+      );
     }
 
     const db = getServiceClient();
@@ -23,7 +38,10 @@ export async function GET(request: NextRequest) {
 
     let query = db
       .from('profiles')
-      .select('id, email, display_name, tier, role, photo_count, storage_used_bytes, onboarding_complete, created_at, updated_at, stripe_customer_id, stripe_subscription_id, referral_code', { count: 'exact' });
+      .select(
+        'id, email, display_name, tier, role, photo_count, storage_used_bytes, onboarding_complete, created_at, updated_at, stripe_customer_id, stripe_subscription_id, referral_code',
+        { count: 'exact' }
+      );
 
     // Search
     if (search) {

@@ -2,11 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/middleware';
 import { getServiceClient } from '@/lib/admin/service';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockInsightsResponse } from '@/lib/admin/mock-data';
 
 export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      const { searchParams } = new URL(request.url);
+      return NextResponse.json(
+        getMockInsightsResponse({
+          section: searchParams.get('section') || '',
+          severity: searchParams.get('severity') || '',
+          acknowledged: searchParams.get('acknowledged') || undefined,
+        })
+      );
+    }
 
     const db = getServiceClient();
     const { searchParams } = new URL(request.url);
@@ -32,7 +44,9 @@ export async function GET(request: NextRequest) {
     // Also get analysis run stats
     const { data: runs } = await db
       .from('admin_analysis_runs')
-      .select('id, type, status, insights_generated, tokens_used, cost_cents, created_at, completed_at')
+      .select(
+        'id, type, status, insights_generated, tokens_used, cost_cents, created_at, completed_at'
+      )
       .order('created_at', { ascending: false })
       .limit(10);
 
@@ -50,6 +64,10 @@ export async function PATCH(request: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      return NextResponse.json({ success: true });
+    }
 
     const body = await request.json();
     const { id, acknowledged } = body;

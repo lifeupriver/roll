@@ -3,14 +3,17 @@ import { requireAdmin } from '@/lib/admin/middleware';
 import { getServiceClient } from '@/lib/admin/service';
 import { logAdminAction } from '@/lib/admin/audit';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockOrderDetailResponse } from '@/lib/admin/mock-data';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      const { id } = await params;
+      return NextResponse.json(getMockOrderDetailResponse(id));
+    }
 
     const { id } = await params;
     const db = getServiceClient();
@@ -34,13 +37,15 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      const { id } = await params;
+      return NextResponse.json({ order: getMockOrderDetailResponse(id).order });
+    }
 
     const { id } = await params;
     const body = await request.json();
@@ -56,7 +61,12 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields' }, { status: 400 });
     }
 
-    const { data, error } = await db.from('print_orders').update(updates).eq('id', id).select().single();
+    const { data, error } = await db
+      .from('print_orders')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     await logAdminAction({
