@@ -260,7 +260,9 @@ export default function VideosPage() {
                     <h3 className="font-[family-name:var(--font-display)] text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
                       {reel.name || 'Untitled Reel'}
                     </h3>
-                    <Badge variant="developed">Developed</Badge>
+                    <Badge variant={reel.status === 'processing' ? 'processing' : 'developed'}>
+                      {reel.status === 'processing' ? 'Processing' : 'Developed'}
+                    </Badge>
                   </div>
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mt-0.5">
                     {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}

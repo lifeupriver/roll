@@ -80,56 +80,46 @@ export default function FeedPage() {
     loadClusters();
   }, []);
 
-  // Load developed rolls for "Your Rolls" section
+  // Load rolls: developed rolls for "Your Rolls" section + active roll on mount
   useEffect(() => {
-    async function fetchDevelopedRolls() {
+    async function loadRolls() {
       try {
         const res = await fetch('/api/rolls');
-        if (res.ok) {
-          const { data } = await res.json();
-          const developed = (data ?? []).filter((r: Roll) => r.status === 'developed');
-          setDevelopedRolls(developed);
-          // Fetch cover photos
+        if (!res.ok) return;
+        const { data } = await res.json();
+        const allRolls: Roll[] = data ?? [];
+
+        // Developed rolls for the "Your Rolls" section
+        const developed = allRolls.filter((r: Roll) => r.status === 'developed');
+        setDevelopedRolls(developed);
+
+        // Fetch cover photos in parallel
+        if (developed.length > 0) {
+          const coverResults = await Promise.allSettled(
+            developed.map((roll) => fetch(`/api/rolls/${roll.id}`).then((r) => r.ok ? r.json() : null))
+          );
           const covers = new Map<string, string>();
-          for (const roll of developed) {
-            try {
-              const rollRes = await fetch(`/api/rolls/${roll.id}`);
-              if (rollRes.ok) {
-                const rollJson = await rollRes.json();
-                const firstPhoto = rollJson.data?.photos?.[0];
-                if (firstPhoto) {
-                  covers.set(
-                    roll.id,
-                    firstPhoto.processed_storage_key || firstPhoto.photos?.thumbnail_url || ''
-                  );
-                }
+          coverResults.forEach((result, i) => {
+            if (result.status === 'fulfilled' && result.value) {
+              const firstPhoto = result.value.data?.photos?.[0];
+              if (firstPhoto) {
+                covers.set(
+                  developed[i].id,
+                  firstPhoto.processed_storage_key || firstPhoto.photos?.thumbnail_url || ''
+                );
               }
-            } catch {
-              // Non-critical
             }
-          }
+          });
           setRollCovers(covers);
         }
-      } catch {
-        // Non-critical
-      }
-    }
-    fetchDevelopedRolls();
-  }, []);
 
-  // Load active roll on mount
-  useEffect(() => {
-    async function loadActiveRoll() {
-      try {
-        const res = await fetch('/api/rolls');
-        if (res.ok) {
-          const { data } = await res.json();
-          const buildingRoll = data?.find(
-            (r: { status: string }) => r.status === 'building' || r.status === 'ready'
-          );
-          if (buildingRoll) {
-            setRoll(buildingRoll);
-            // Load checked photo IDs for this roll
+        // Active roll (building or ready)
+        const buildingRoll = allRolls.find(
+          (r: Roll) => r.status === 'building' || r.status === 'ready'
+        );
+        if (buildingRoll) {
+          setRoll(buildingRoll);
+          try {
             const rollRes = await fetch(`/api/rolls/${buildingRoll.id}`);
             if (rollRes.ok) {
               const rollData = await rollRes.json();
@@ -140,13 +130,15 @@ export default function FeedPage() {
                 }
               }
             }
+          } catch {
+            // Non-critical
           }
         }
       } catch {
-        // Silently fail — no active roll is fine
+        // Non-critical
       }
     }
-    loadActiveRoll();
+    loadRolls();
   }, [setRoll]);
 
   // Photos only — All and People
