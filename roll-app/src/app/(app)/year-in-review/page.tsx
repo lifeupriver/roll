@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Camera, Film, Printer, Heart, Users, Image, Calendar, Star, BookOpen } from 'lucide-react';
+import { Camera, Film, Printer, Heart, Users, Image, Calendar, Star, BookOpen } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -59,12 +60,7 @@ export default function YearInReviewPage() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          onClick={() => router.push('/account')}
-          className="p-[var(--space-tight)] -ml-[var(--space-tight)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton href="/account" />
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
           Year in Review
         </h1>

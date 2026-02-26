@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Smartphone, Grid2x2, Grid3x3, Film, ChevronRight, MousePointerClick, X, Calendar } from 'lucide-react';
+import { Smartphone, Film, ChevronRight, MousePointerClick, X, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import type { LightboxSourceRect } from '@/components/photo/PhotoLightbox';
 import { PhotoStack } from '@/components/photo/PhotoStack';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Empty } from '@/components/ui/Empty';
@@ -12,14 +13,16 @@ import { StartHereCard } from '@/components/feed/StartHereCard';
 import { MomentClusterCard } from '@/components/feed/MomentClusterCard';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useRollStore } from '@/stores/rollStore';
+import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { useStackStore } from '@/stores/stackStore';
 import { applyStacks } from '@/lib/stacking';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { track } from '@/lib/analytics';
 import type { ContentMode } from '@/types/photo';
 
 export default function FeedPage() {
   const router = useRouter();
-  const { photos, contentMode, setContentMode, loading, hasMore, loadMore, hidePhoto } =
+  const { photos, contentMode, setContentMode, loading, hasMore, loadMore, hidePhoto, refresh } =
     usePhotos();
 
   const { currentRoll, checkedPhotoIds, rollCount, checkPhoto, uncheckPhoto, isChecked, setRoll } =
@@ -28,6 +31,7 @@ export default function FeedPage() {
   const { mode: stackMode, sensitivity: stackSensitivity } = useStackStore();
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxSourceRect, setLightboxSourceRect] = useState<LightboxSourceRect | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
   const [selectMode, setSelectMode] = useState(false);
   const [clusters, setClusters] = useState<Array<{
@@ -182,9 +186,12 @@ export default function FeedPage() {
   );
 
   const handlePhotoTap = useCallback(
-    (photoId: string) => {
+    (photoId: string, sourceRect?: LightboxSourceRect) => {
       const index = displayPhotos.findIndex((p) => p.id === photoId);
-      if (index >= 0) setLightboxIndex(index);
+      if (index >= 0) {
+        setLightboxSourceRect(sourceRect || null);
+        setLightboxIndex(index);
+      }
     },
     [displayPhotos]
   );
@@ -226,6 +233,7 @@ export default function FeedPage() {
   }
 
   return (
+    <PullToRefresh onRefresh={refresh}>
     <div className="pb-4">
       {/* First-time user suggestion */}
       <StartHereCard />
@@ -271,19 +279,7 @@ export default function FeedPage() {
           }}
           options={contentModeOptions}
         />
-        <div className="flex items-center gap-[var(--space-tight)]">
-          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-          <input
-            type="range"
-            min={2}
-            max={6}
-            value={gridColumns}
-            onChange={(e) => setGridColumns(Number(e.target.value))}
-            className="w-20 accent-[var(--color-action)]"
-            aria-label="Grid columns"
-          />
-          <Grid3x3 size={14} className="text-[var(--color-ink-tertiary)]" />
-        </div>
+        <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
       </div>
 
       {/* Roll status banner — above the grid */}
@@ -363,7 +359,7 @@ export default function FeedPage() {
                 <Film size={16} className="text-[var(--color-ink-secondary)]" />
                 <div>
                   <span className="text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
-                    {maxPhotos - rollCount} more for your roll
+                    Pick {maxPhotos - rollCount} more favorites to complete your roll of {maxPhotos}.
                   </span>
                   <div className="h-1.5 mt-1 rounded-[var(--radius-pill)] bg-[var(--color-surface-sunken)] overflow-hidden w-32">
                     <div
@@ -390,10 +386,10 @@ export default function FeedPage() {
               <Film size={16} className="text-[var(--color-ink-tertiary)]" />
               <div>
                 <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                  Build your next roll
+                  Build your first roll
                 </p>
                 <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                  Browse your photos, then select up to 36 for your roll
+                  A roll is 36 of your favorite photos — like a roll of film. Pick your best, choose a film stock, and we&apos;ll develop them into prints.
                 </p>
               </div>
             </div>
@@ -431,7 +427,8 @@ export default function FeedPage() {
         <PhotoLightbox
           photos={displayPhotos}
           initialIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
+          sourceRect={lightboxSourceRect}
+          onClose={() => { setLightboxIndex(null); setLightboxSourceRect(null); }}
           mode="feed"
           onAddToRoll={!selectMode ? handleCheck : undefined}
           isInRoll={!selectMode ? isChecked : undefined}
@@ -440,5 +437,6 @@ export default function FeedPage() {
         />
       )}
     </div>
+    </PullToRefresh>
   );
 }

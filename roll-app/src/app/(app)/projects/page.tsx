@@ -268,6 +268,7 @@ function ProjectsContent() {
           activeMode={activeSection}
           onChange={(mode) => setActiveSection(mode as ProjectSection)}
           options={SECTION_OPTIONS}
+          variant="primary"
         />
         <div className="flex items-center gap-[var(--space-tight)]">
           <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
@@ -292,7 +293,7 @@ function ProjectsContent() {
 
       {/* Books section */}
       {!loading && activeSection === 'albums' && (
-        <section>
+        <section className="tab-content-enter">
           {filteredAlbums.length === 0 ? (
             <Empty
               icon={BookOpen}
@@ -429,7 +430,7 @@ function ProjectsContent() {
 
       {/* Reels section */}
       {!loading && activeSection === 'reels' && (
-        <section>
+        <section className="tab-content-enter">
           {filteredReels.length === 0 ? (
             <Empty
               icon={Film}

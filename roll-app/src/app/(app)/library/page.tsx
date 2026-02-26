@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Film, Play, Wand2, Grid3X3, Grid2x2, Printer } from 'lucide-react';
+import { Image, Film, Play, Wand2, Printer } from 'lucide-react';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
+import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import type { Roll } from '@/types/roll';
 import type { Reel } from '@/types/reel';
 
@@ -123,25 +124,14 @@ export default function GalleryPage() {
           activeMode={activeSection}
           onChange={(mode) => setActiveSection(mode as GallerySection)}
           options={SECTION_OPTIONS}
+          variant="primary"
         />
-        <div className="flex items-center gap-[var(--space-tight)]">
-          <Grid2x2 size={14} className="text-[var(--color-ink-tertiary)]" />
-          <input
-            type="range"
-            min={2}
-            max={6}
-            value={gridColumns}
-            onChange={(e) => setGridColumns(Number(e.target.value))}
-            className="w-20 accent-[var(--color-action)]"
-            aria-label="Grid columns"
-          />
-          <Grid3X3 size={14} className="text-[var(--color-ink-tertiary)]" />
-        </div>
+        <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
       </div>
 
       {/* Rolls section */}
       {activeSection === 'rolls' && (
-        <section className="flex flex-col gap-[var(--space-section)]">
+        <section className="flex flex-col gap-[var(--space-section)] tab-content-enter">
           {isLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />
@@ -319,7 +309,7 @@ export default function GalleryPage() {
 
       {/* Reels section */}
       {activeSection === 'reels' && (
-        <section className="flex flex-col gap-[var(--space-section)]">
+        <section className="flex flex-col gap-[var(--space-section)] tab-content-enter">
           {reelsLoading && (
             <div className="flex items-center justify-center py-[var(--space-hero)]">
               <Spinner size="md" />
@@ -434,7 +424,7 @@ export default function GalleryPage() {
                             </div>
                           )}
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
                               <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
                             </div>
                           </div>

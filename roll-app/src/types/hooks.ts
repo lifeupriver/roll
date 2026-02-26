@@ -25,4 +25,5 @@ export interface UsePhotosReturn {
   hasMore: boolean;
   loadMore: () => Promise<void>;
   hidePhoto: (photoId: string) => Promise<void>;
+  refresh: () => Promise<void>;
 }

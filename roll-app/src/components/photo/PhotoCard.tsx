@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Check, EyeOff, Maximize2, Copy, Play } from 'lucide-react';
 import { ClipDurationBadge } from '@/components/reel/ClipDurationBadge';
 
@@ -24,15 +24,28 @@ interface PhotoCardProps {
   selectMode?: boolean;
   onCheck?: () => void;
   onHide?: () => void;
-  onTap?: () => void;
+  onTap?: (sourceRect?: { top: number; left: number; width: number; height: number }) => void;
 }
 
 export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode, onCheck, onHide, onTap }: PhotoCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [imgError, setImgError] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [glowPulse, setGlowPulse] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didLongPress = useRef(false);
+  const prevChecked = useRef(isChecked);
+
+  // Trigger glow pulse when photo becomes checked
+  useEffect(() => {
+    if (isChecked && !prevChecked.current) {
+      setGlowPulse(true);
+      const timer = setTimeout(() => setGlowPulse(false), 300);
+      return () => clearTimeout(timer);
+    }
+    prevChecked.current = isChecked;
+  }, [isChecked]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -60,13 +73,16 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
     if (mode === 'feed' && selectMode && onCheck) {
       onCheck();
     } else if (onTap) {
-      onTap();
+      // Capture bounding rect for shared element transition
+      const rect = cardRef.current?.getBoundingClientRect();
+      onTap(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : undefined);
     }
   }, [mode, selectMode, onCheck, onTap]);
 
   return (
     <div
-      className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer"
+      ref={cardRef}
+      className={`relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer ${glowPulse ? 'selection-glow-pulse' : ''}`}
       onClick={handlePhotoClick}
       onContextMenu={handleContextMenu}
       onTouchStart={handleTouchStart}
@@ -89,7 +105,7 @@ export function PhotoCard({ photo, isChecked, selectionNumber, mode, selectMode,
       {photo.media_type === 'video' && (
         <>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
               <Play size={20} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
             </div>
           </div>

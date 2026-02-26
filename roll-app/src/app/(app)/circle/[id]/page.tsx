@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Share2, Copy, Link2, Mail, UserMinus } from 'lucide-react';
+import { Share2, Copy, Link2, Mail, UserMinus } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
@@ -277,13 +278,7 @@ export default function CircleDetailPage() {
       {/* Header */}
       <div className="flex flex-col gap-[var(--space-component)]">
         <div className="flex items-center gap-[var(--space-element)]">
-          <button
-            onClick={() => router.push('/circle')}
-            className="p-[var(--space-tight)] -ml-[var(--space-tight)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
-            aria-label="Back to circles"
-          >
-            <ArrowLeft size={20} className="text-[var(--color-ink)]" />
-          </button>
+          <BackButton href="/circle" label="Back to circles" />
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] flex-1 truncate">
             {circle.name}
           </h1>

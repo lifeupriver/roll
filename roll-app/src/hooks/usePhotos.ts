@@ -99,6 +99,10 @@ export function usePhotos(): UsePhotosReturn {
     }
   }, [hideFromStore, setError]);
 
+  const refresh = useCallback(async () => {
+    await loadPhotos(contentMode, false);
+  }, [loadPhotos, contentMode]);
+
   return {
     photos,
     contentMode,
@@ -108,5 +112,6 @@ export function usePhotos(): UsePhotosReturn {
     hasMore,
     loadMore,
     hidePhoto,
+    refresh,
   };
 }

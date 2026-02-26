@@ -118,6 +118,14 @@ export function HeartButton({ isHearted, onChange, count }: HeartButtonProps) {
           </span>
         )}
 
+        {/* Color flash circle on favorite */}
+        {animating && (
+          <span
+            className="heart-flash absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[var(--color-heart)] pointer-events-none"
+            aria-hidden="true"
+          />
+        )}
+
         {/* Heart icon */}
         <span className={animating ? 'heart-animate' : 'transition-transform duration-150 ease-out'}>
           {isHearted ? (

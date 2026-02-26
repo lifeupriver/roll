@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/stores/toastStore';
-import { ArrowLeft, Wand2, Cloud, Zap, Sun, Moon } from 'lucide-react';
+import { Wand2, Cloud, Zap, Sun, Moon } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { track } from '@/lib/analytics';
 import type { Roll } from '@/types/roll';
 import type { Photo } from '@/types/photo';
@@ -131,14 +132,7 @@ function DevelopPageContent() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          type="button"
-          onClick={() => router.push(`/roll/${roll.id}`)}
-          aria-label="Back to roll"
-          className="shrink-0 p-[var(--space-tight)] rounded-[var(--radius-sharp)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] transition-colors duration-150"
-        >
-          <ArrowLeft size={20} strokeWidth={2} />
-        </button>
+        <BackButton href={`/roll/${roll.id}`} label="Back to roll" />
         <div className="flex items-baseline gap-[var(--space-element)]">
           <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             Develop Roll

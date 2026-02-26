@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Layers, Check, ChevronLeft } from 'lucide-react';
 import type { PhotoStack as PhotoStackType } from '@/types/photo';
 
@@ -11,30 +11,73 @@ interface PhotoStackProps {
   onPhotoTap?: (photoId: string) => void;
 }
 
+// Stagger delay for cascading photos (ms)
+const PHOTO_STAGGER_MS = 60;
+
 export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStackProps) {
   const [expanded, setExpanded] = useState(false);
+  const [animatingExpand, setAnimatingExpand] = useState(false);
+  const [animatingCollapse, setAnimatingCollapse] = useState(false);
+  const [liftingTop, setLiftingTop] = useState(false);
   const topChecked = isChecked(stack.topPhoto.id);
+  const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTopClick = useCallback(() => {
     if (expanded) return;
-    // Single tap on stack top photo — select it for the roll
     onCheck(stack.topPhoto.id);
   }, [expanded, onCheck, stack.topPhoto.id]);
 
   const handleExpand = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    setExpanded(true);
+    // Phase 1: Lift the top photo
+    setLiftingTop(true);
+    setTimeout(() => {
+      // Phase 2: Expand and cascade
+      setExpanded(true);
+      setAnimatingExpand(true);
+      setLiftingTop(false);
+      // Clear animation flag after cascade completes
+      setTimeout(() => {
+        setAnimatingExpand(false);
+      }, stack.photos.length * PHOTO_STAGGER_MS + 250);
+    }, 200);
+  }, [stack.photos.length]);
+
+  const handleCollapse = useCallback(() => {
+    setAnimatingCollapse(true);
+    collapseTimer.current = setTimeout(() => {
+      setExpanded(false);
+      setAnimatingCollapse(false);
+    }, 200);
   }, []);
 
-  // Expanded view — show all photos in the stack
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (collapseTimer.current) clearTimeout(collapseTimer.current);
+    };
+  }, []);
+
+  // Expanded view — show all photos with cascade animation
   if (expanded) {
     return (
-      <div className="col-span-full">
-        {/* Stack header */}
-        <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)] px-1">
+      <div
+        className={`col-span-full transition-opacity duration-200 ${
+          animatingCollapse ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        }`}
+        style={{ transformOrigin: 'top center', transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
+      >
+        {/* Stack header — fades in */}
+        <div
+          className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)] px-1 transition-opacity duration-200"
+          style={{
+            opacity: animatingExpand ? 0 : 1,
+            transitionDelay: animatingExpand ? '0ms' : '150ms',
+          }}
+        >
           <button
             type="button"
-            onClick={() => setExpanded(false)}
+            onClick={handleCollapse}
             className="flex items-center gap-1 text-[length:var(--text-label)] text-[var(--color-action)] font-medium"
           >
             <ChevronLeft size={16} />
@@ -47,7 +90,7 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
             </span>
           </div>
         </div>
-        {/* Grid of all photos in the stack */}
+        {/* Grid of all photos — staggered cascade entrance */}
         <div className="grid grid-cols-3 gap-1 rounded-[var(--radius-card)] overflow-hidden border border-[var(--color-border)] mb-[var(--space-element)]">
           {stack.photos.map((photo, i) => {
             const checked = isChecked(photo.id);
@@ -57,6 +100,12 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
                 key={photo.id}
                 className="relative group overflow-hidden cursor-pointer"
                 onClick={() => onCheck(photo.id)}
+                style={{
+                  opacity: animatingExpand ? 0 : 1,
+                  transform: animatingExpand ? 'scale(0.9) translateY(12px)' : 'scale(1) translateY(0)',
+                  transition: `opacity 200ms ease-out, transform 250ms cubic-bezier(0.22, 1, 0.36, 1)`,
+                  transitionDelay: `${i * PHOTO_STAGGER_MS}ms`,
+                }}
               >
                 <img
                   src={photo.thumbnail_url}
@@ -92,9 +141,16 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
     );
   }
 
-  // Collapsed view — show top photo with stack indicator
+  // Collapsed view — show top photo with lift animation and stack indicator
   return (
-    <div className="relative group overflow-hidden bg-[var(--color-surface-sunken)]">
+    <div
+      className="relative group overflow-hidden bg-[var(--color-surface-sunken)]"
+      style={{
+        transform: liftingTop ? 'translateY(-8px) scale(1.02)' : 'translateY(0) scale(1)',
+        transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        zIndex: liftingTop ? 10 : undefined,
+      }}
+    >
       {/* Main (top) photo */}
       <img
         src={stack.topPhoto.thumbnail_url}
@@ -133,8 +189,20 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
       </button>
 
       {/* Stacked card shadow effect — visual depth indicator */}
-      <div className="absolute -bottom-0.5 left-1 right-1 h-1 bg-[var(--color-surface-sunken)] rounded-b-sm -z-10" />
-      <div className="absolute -bottom-1 left-2 right-2 h-1 bg-[var(--color-surface-sunken)]/60 rounded-b-sm -z-20" />
+      <div
+        className="absolute -bottom-0.5 left-1 right-1 h-1 bg-[var(--color-surface-sunken)] rounded-b-sm -z-10"
+        style={{
+          transform: liftingTop ? 'translateY(4px)' : 'translateY(0)',
+          transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      />
+      <div
+        className="absolute -bottom-1 left-2 right-2 h-1 bg-[var(--color-surface-sunken)]/60 rounded-b-sm -z-20"
+        style={{
+          transform: liftingTop ? 'translateY(8px)' : 'translateY(0)',
+          transition: 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      />
     </div>
   );
 }

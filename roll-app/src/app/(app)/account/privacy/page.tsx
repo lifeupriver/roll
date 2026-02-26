@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Shield, Database, Users, Clock, Trash2, Download, Lock } from 'lucide-react';
+import { Shield, Database, Users, Clock, Trash2, Download, Lock } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
@@ -82,13 +83,7 @@ export default function PrivacyPage() {
     <div className="flex flex-col gap-[var(--space-section)] max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          type="button"
-          onClick={() => router.push('/account')}
-          className="p-2 -ml-2 rounded-[var(--radius-sharp)] text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)] hover:bg-[var(--color-surface-raised)]"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton href="/account" />
         <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] text-[var(--color-ink)]">
           Privacy & Data
         </h1>

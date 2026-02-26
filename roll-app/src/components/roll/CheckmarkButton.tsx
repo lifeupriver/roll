@@ -48,21 +48,18 @@ export function CheckmarkButton({
       <style>{`
         @keyframes checkmark-spring {
           0% {
-            transform: scale(1);
+            transform: scale(0.8);
           }
-          30% {
-            transform: scale(0.85);
-          }
-          70% {
+          50% {
             transform: scale(1.1);
           }
           100% {
-            transform: scale(1);
+            transform: scale(1.0);
           }
         }
 
         .checkmark-animate {
-          animation: checkmark-spring 200ms ease-out forwards;
+          animation: checkmark-spring 200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         @media (prefers-reduced-motion: reduce) {

@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Grid3X3, Image } from 'lucide-react';
+import { Grid3X3, Image } from 'lucide-react';
+import { BackButton } from '@/components/ui/BackButton';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -70,12 +71,7 @@ export default function MemberProfilePage() {
     <div className="flex flex-col gap-[var(--space-section)]">
       {/* Header */}
       <div className="flex items-center gap-[var(--space-element)]">
-        <button
-          onClick={() => router.back()}
-          className="p-1 text-[var(--color-ink-secondary)] hover:text-[var(--color-ink)]"
-        >
-          <ArrowLeft size={20} />
-        </button>
+        <BackButton />
         <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
           Profile
         </span>

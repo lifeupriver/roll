@@ -98,42 +98,42 @@ export function MagazinePageEditor({
               </span>
 
               {/* Actions */}
-              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   type="button"
                   onClick={() => startEditCaption(i)}
-                  className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+                  className="p-2.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] touch-target"
                   title="Edit caption"
                 >
-                  <Type size={12} />
+                  <Type size={14} />
                 </button>
                 {i > 0 && (
                   <button
                     type="button"
                     onClick={() => onReorder(i, i - 1)}
-                    className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+                    className="p-2.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] touch-target"
                     title="Move up"
                   >
-                    <ChevronUp size={12} />
+                    <ChevronUp size={14} />
                   </button>
                 )}
                 {i < pages.length - 1 && (
                   <button
                     type="button"
                     onClick={() => onReorder(i, i + 1)}
-                    className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+                    className="p-2.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] touch-target"
                     title="Move down"
                   >
-                    <ChevronDown size={12} />
+                    <ChevronDown size={14} />
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => onRemove(i)}
-                  className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)]"
+                  className="p-2.5 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)] touch-target"
                   title="Remove page"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>

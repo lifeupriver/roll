@@ -16,6 +16,14 @@ import {
 } from 'lucide-react';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 
+/** Source element rect for shared element transition */
+export interface LightboxSourceRect {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
 interface PhotoLightboxProps {
   photos: Array<{
     id: string;
@@ -33,6 +41,8 @@ interface PhotoLightboxProps {
   initialIndex: number;
   onClose: () => void;
   mode: 'feed' | 'roll' | 'favorites' | 'circle';
+  /** Bounding rect of the source thumbnail for shared element transition */
+  sourceRect?: LightboxSourceRect | null;
   onCheck?: (photoId: string) => void;
   onHeart?: (photoId: string) => void;
   onAddToRoll?: (photoId: string) => void;
@@ -48,6 +58,7 @@ export function PhotoLightbox({
   initialIndex,
   onClose,
   mode,
+  sourceRect,
   onCheck,
   onHeart,
   onAddToRoll,
@@ -66,15 +77,18 @@ export function PhotoLightbox({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [heroTransitionPhase, setHeroTransitionPhase] = useState<'entering' | 'settled' | 'exiting'>('entering');
 
   const [isEditingCaption, setIsEditingCaption] = useState(false);
   const [captionDraft, setCaptionDraft] = useState('');
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const heroImgRef = useRef<HTMLImageElement>(null);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
   const metadataTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialSourceRect = useRef(sourceRect || null);
 
   const currentPhoto = photos[currentIndex];
   const isVideo = currentPhoto.media_type === 'video';
@@ -84,10 +98,14 @@ export function PhotoLightbox({
     setMounted(true);
   }, []);
 
-  // Opening animation
+  // Opening animation trigger with shared element transition
   useEffect(() => {
     requestAnimationFrame(() => {
       setIsOpen(true);
+      // Settle the hero image into its final position after a frame
+      requestAnimationFrame(() => {
+        setHeroTransitionPhase('settled');
+      });
     });
     document.body.style.overflow = 'hidden';
     containerRef.current?.focus();
@@ -134,10 +152,14 @@ export function PhotoLightbox({
 
   const handleClose = useCallback(() => {
     setIsClosing(true);
+    // If we have a source rect and we're still on the initial photo, animate back
+    if (initialSourceRect.current && currentIndex === initialIndex) {
+      setHeroTransitionPhase('exiting');
+    }
     setTimeout(() => {
       onClose();
     }, 300);
-  }, [onClose]);
+  }, [onClose, currentIndex, initialIndex]);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -282,6 +304,24 @@ export function PhotoLightbox({
       })
     : null;
 
+  // Shared element transition: compute style for the hero image
+  const hasSharedTransition = initialSourceRect.current && currentIndex === initialIndex;
+  const sharedElementStyle =
+    hasSharedTransition && (heroTransitionPhase === 'entering' || heroTransitionPhase === 'exiting')
+      ? {
+          position: 'fixed' as const,
+          top: initialSourceRect.current!.top,
+          left: initialSourceRect.current!.left,
+          width: initialSourceRect.current!.width,
+          height: initialSourceRect.current!.height,
+          maxWidth: 'none' as const,
+          maxHeight: 'none' as const,
+          objectFit: 'cover' as const,
+          zIndex: 60,
+          borderRadius: '0px',
+        }
+      : undefined;
+
   const lightboxContent = (
     <div
       ref={containerRef}
@@ -416,16 +456,19 @@ export function PhotoLightbox({
               </div>
             ) : (
               <img
+                ref={heroImgRef}
                 key={currentPhoto.id}
                 src={currentPhoto.thumbnail_url}
                 alt={`Photo${formattedDate ? ` from ${formattedDate}` : ''}`}
                 draggable={false}
                 className={[
                   'max-w-full object-contain select-none',
-                  'transition-all duration-[250ms] ease-out',
+                  hasSharedTransition
+                    ? 'transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]'
+                    : 'transition-all duration-[250ms] ease-out',
                   transitionDirection ? 'scale-[0.97] opacity-80' : 'scale-100 opacity-100',
                 ].join(' ')}
-                style={{ maxHeight: '80vh' }}
+                style={sharedElementStyle || { maxHeight: '80vh' }}
               />
             )}
           </div>
