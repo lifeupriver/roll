@@ -49,12 +49,12 @@ export async function POST(
     // Fetch photo URLs
     const { data: photos } = await supabase
       .from('photos')
-      .select('id, developed_url')
+      .select('id, thumbnail_url')
       .in('id', photoIds.length > 0 ? photoIds : ['__none__']);
 
     const photoUrlMap = new Map<string, string>();
-    (photos ?? []).forEach((p: { id: string; developed_url: string }) => {
-      photoUrlMap.set(p.id, p.developed_url);
+    (photos ?? []).forEach((p: { id: string; thumbnail_url: string }) => {
+      photoUrlMap.set(p.id, p.thumbnail_url);
     });
 
     // Build page URLs (in order)
@@ -70,10 +70,10 @@ export async function POST(
     if (magazine.cover_photo_id) {
       const { data: coverPhoto } = await supabase
         .from('photos')
-        .select('developed_url')
+        .select('thumbnail_url')
         .eq('id', magazine.cover_photo_id)
         .single();
-      coverUrl = coverPhoto?.developed_url || pageUrls[0] || '';
+      coverUrl = coverPhoto?.thumbnail_url || pageUrls[0] || '';
     } else {
       coverUrl = pageUrls[0] || '';
     }
