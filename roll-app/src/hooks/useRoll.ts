@@ -2,10 +2,17 @@
 
 import { useCallback } from 'react';
 import { useRollStore } from '@/stores/rollStore';
+import { runPostDevelopAutomations } from '@/lib/automation/post-develop';
+import { loadAutomationSettings } from '@/lib/automation/settings';
 import type { Roll, RollPhoto, FilmProfileId } from '@/types/roll';
 
 const MAX_PHOTOS = 36;
 const DEVELOP_POLL_INTERVAL_MS = 2000;
+
+interface AutomationResult {
+  automationsRun: string[];
+  errors: string[];
+}
 
 interface UseRollReturn {
   currentRoll: Roll | null;
@@ -24,6 +31,8 @@ interface UseRollReturn {
   developRoll: (rollId: string, filmProfileId: FilmProfileId) => Promise<void>;
   reorderPhotos: (fromIndex: number, toIndex: number) => void;
   removeFromRoll: (photoId: string) => Promise<void>;
+  getDefaultFilmProfile: () => FilmProfileId;
+  getDefaultProcessMode: () => 'color' | 'bw';
 }
 
 export function useRoll(): UseRollReturn {
@@ -302,6 +311,18 @@ export function useRoll(): UseRollReturn {
                 processing_completed_at: new Date().toISOString(),
                 photos_processed: statusData.photosProcessed ?? 0,
               });
+
+              // Run post-develop automations (fire and forget)
+              const roll = useRollStore.getState().currentRoll;
+              runPostDevelopAutomations({
+                rollId,
+                rollName: roll?.name ?? null,
+                photoCount: statusData.photosProcessed ?? 0,
+                onStatus: () => {}, // Status updates handled silently
+              }).catch(() => {
+                // Automation failures are non-critical
+              });
+
               resolve();
               return;
             }
@@ -338,6 +359,17 @@ export function useRoll(): UseRollReturn {
     [updateRollStatus]
   );
 
+  // ---------------------------------------------------------------------------
+  // getDefaultFilmProfile / getDefaultProcessMode - read from automation settings
+  // ---------------------------------------------------------------------------
+  const getDefaultFilmProfile = useCallback((): FilmProfileId => {
+    return loadAutomationSettings().defaultFilmProfile as FilmProfileId;
+  }, []);
+
+  const getDefaultProcessMode = useCallback((): 'color' | 'bw' => {
+    return loadAutomationSettings().defaultProcessMode;
+  }, []);
+
   return {
     currentRoll,
     rolls,
@@ -355,5 +387,7 @@ export function useRoll(): UseRollReturn {
     developRoll,
     reorderPhotos,
     removeFromRoll,
+    getDefaultFilmProfile,
+    getDefaultProcessMode,
   };
 }
