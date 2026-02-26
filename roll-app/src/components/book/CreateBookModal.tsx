@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   GripVertical,
   X,
-  Check,
   Wand2,
   Palette,
 } from 'lucide-react';

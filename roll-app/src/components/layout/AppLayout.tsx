@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3X3, Film, BookOpen, Users, User, Menu, X, Palette } from 'lucide-react';
+import { Grid3X3, Film, Users, User, Menu, X, Palette } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
 import { useUser } from '@/hooks/useUser';
