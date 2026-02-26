@@ -139,7 +139,7 @@ export default function VideosPage() {
           }
         }
 
-        addClip(photoId, photo.duration_ms ?? 0);
+        addClip(photoId, photo.duration_ms ?? 0, 0, null, photo.thumbnail_url);
         track({
           event: 'clip_added',
           properties: { reelId: reelId || '', clipCount: reelCount + 1 },
@@ -153,7 +153,17 @@ export default function VideosPage() {
               body: JSON.stringify({ photoId }),
             });
             if (res.ok) {
-              const { reelStatus } = await res.json();
+              const { data: clipData, reelStatus } = await res.json();
+              // Replace the pending clip with the real one from the API
+              if (clipData) {
+                const store = useReelStore.getState();
+                const updatedClips = store.reelClips.map((c) =>
+                  c.photo_id === photoId && c.id.startsWith('pending-')
+                    ? { ...clipData, photos: { id: photoId, thumbnail_url: photo.thumbnail_url, media_type: 'video', duration_ms: photo.duration_ms } }
+                    : c
+                );
+                store.setReelClips(updatedClips);
+              }
               if (reelStatus === 'ready' && currentReel) {
                 setReelState({ ...currentReel, status: 'ready' });
                 track({ event: 'reel_filled', properties: { reelId: currentReel.id } });
