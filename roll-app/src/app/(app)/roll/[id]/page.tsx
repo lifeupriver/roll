@@ -367,7 +367,7 @@ export default function RollDetailPage() {
           });
           if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            throw new Error(body.error || 'Failed to favorite');
+            throw new Error(body.error || `Failed to favorite (${res.status})`);
           }
         } else {
           const res = await fetch(`/api/favorites/${photoId}`, {
@@ -375,10 +375,10 @@ export default function RollDetailPage() {
           });
           if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            throw new Error(body.error || 'Failed to unfavorite');
+            throw new Error(body.error || `Failed to unfavorite (${res.status})`);
           }
         }
-      } catch {
+      } catch (err) {
         // Revert optimistic update on error
         setFavoritedIds((prev) => {
           const next = new Set(prev);
@@ -386,7 +386,9 @@ export default function RollDetailPage() {
           else next.add(photoId);
           return next;
         });
-        toast('Failed to update favorite', 'error');
+        const message = err instanceof Error ? err.message : 'Failed to update favorite';
+        console.error('[Heart] Failed to update favorite:', message);
+        toast(message, 'error');
       } finally {
         heartInFlight.current.delete(photoId);
       }

@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       error: authError,
     } = await supabase.auth.getUser();
     if (authError || !user) {
+      console.error('[Favorites POST] Auth failed:', authError?.message);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -56,9 +57,10 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('id', photoId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (photoError || !photo) {
+      console.error('[Favorites POST] Photo not found:', photoId, photoError?.message);
       return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
     }
 
@@ -68,9 +70,10 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('id', rollId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (rollError || !roll) {
+      console.error('[Favorites POST] Roll not found:', rollId, rollError?.message);
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
@@ -83,6 +86,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (existingError) {
+      console.error('[Favorites POST] Existing check failed:', existingError.message);
       return NextResponse.json({ error: existingError.message }, { status: 500 });
     }
 
@@ -101,6 +105,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      console.error('[Favorites POST] Insert failed:', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -108,6 +113,7 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     captureError(err, { context: 'favorites' });
     const message = err instanceof Error ? err.message : 'Internal server error';
+    console.error('[Favorites POST] Unexpected error:', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
