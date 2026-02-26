@@ -568,6 +568,7 @@ function SpreadPageView({
       <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 font-[family-name:var(--font-mono)] text-[10px] text-white/70 bg-black/30 px-2 py-0.5 rounded-[var(--radius-pill)]">
         {pageIndex + 1}
       </span>
+      {/* Caption overlay */}
       {page.caption && (
         <div className="absolute bottom-6 inset-x-0 px-2">
           <p className="text-white text-[10px] text-center drop-shadow-sm line-clamp-1">{page.caption}</p>

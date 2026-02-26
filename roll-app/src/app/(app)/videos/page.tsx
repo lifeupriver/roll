@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Film, MousePointerClick, X, Send, Play } from 'lucide-react';
+import { Film, MousePointerClick, X, Send, Play, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
@@ -10,10 +10,19 @@ import { ContentModePills } from '@/components/photo/ContentModePills';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { Empty } from '@/components/ui/Empty';
 import { Spinner } from '@/components/ui/Spinner';
+import { Badge } from '@/components/ui/Badge';
 import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
 import { track } from '@/lib/analytics';
+import type { Reel } from '@/types/reel';
+
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
 
 const CLIP_FILTER_OPTIONS = [
   { value: 'all', label: 'All' },
@@ -48,7 +57,7 @@ export default function VideosPage() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
   const [developedReels, setDevelopedReels] = useState<
-    Array<{ id: string; name: string; clip_count: number; poster_storage_key: string | null; assembled_duration_ms: number | null; created_at: string }>
+    Array<{ id: string; name: string; status: string; clip_count: number; poster_storage_key: string | null; assembled_duration_ms: number | null; current_duration_ms?: number | null; created_at: string }>
   >([]);
 
   // Set content mode to 'clips' on mount to fetch videos
@@ -90,7 +99,7 @@ export default function VideosPage() {
         }
 
         setDevelopedReels(
-          data.filter((r: { status: string }) => r.status === 'developed')
+          data.filter((r: { status: string }) => r.status === 'developed' || r.status === 'processing')
         );
       } catch {
         // No active reel is fine
@@ -198,6 +207,73 @@ export default function VideosPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
+      {/* Your Reels — developed reels at the top */}
+      {developedReels.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-[var(--space-element)]">
+            <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)]">
+              Your Reels
+            </h2>
+            <button
+              type="button"
+              onClick={() => router.push('/library')}
+              className="text-[length:var(--text-caption)] text-[var(--color-action)] font-medium flex items-center gap-0.5"
+            >
+              See all <ChevronRight size={14} />
+            </button>
+          </div>
+          <div
+            className="flex flex-row gap-[var(--space-element)] overflow-x-auto pb-[var(--space-tight)] scrollbar-hide -mx-[var(--space-component)] px-[var(--space-component)]"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {developedReels.map((reel) => {
+              const duration = reel.assembled_duration_ms ?? reel.current_duration_ms;
+              return (
+                <button
+                  key={reel.id}
+                  type="button"
+                  onClick={() => router.push(`/library/reels/${reel.id}`)}
+                  className="text-left shrink-0 w-56 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-element)] shadow-[var(--shadow-raised)] hover:shadow-[var(--shadow-floating)] transition-shadow duration-150 cursor-pointer"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="relative w-full aspect-video rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] mb-[var(--space-tight)]">
+                    {reel.poster_storage_key ? (
+                      <img
+                        src={reel.poster_storage_key.startsWith('/photos/') ? reel.poster_storage_key : `/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
+                        alt=""
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Film size={20} className="text-[var(--color-ink-tertiary)]" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                        <Play size={14} className="text-white ml-0.5" fill="white" fillOpacity={0.8} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-[var(--space-tight)]">
+                    <h3 className="font-[family-name:var(--font-display)] text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
+                      {reel.name || 'Untitled Reel'}
+                    </h3>
+                    <Badge variant={reel.status === 'processing' ? 'processing' : 'developed'}>
+                      {reel.status === 'processing' ? 'Processing' : 'Developed'}
+                    </Badge>
+                  </div>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] mt-0.5">
+                    {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
+                    {duration ? ` · ${formatDuration(duration)}` : ''}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Content mode pills + grid size selector */}
       <div className="flex items-center justify-between">
         <ContentModePills

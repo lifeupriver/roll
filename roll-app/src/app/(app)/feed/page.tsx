@@ -19,6 +19,7 @@ import { applyStacks } from '@/lib/stacking';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { track } from '@/lib/analytics';
 import type { ContentMode } from '@/types/photo';
+import type { Roll } from '@/types/roll';
 
 export default function FeedPage() {
   const router = useRouter();
@@ -91,20 +92,25 @@ export default function FeedPage() {
         const { data } = await res.json();
         if (!data) return;
 
+        // Active roll (building or ready)
         const buildingRoll = data.find(
           (r: { status: string }) => r.status === 'building' || r.status === 'ready'
         );
         if (buildingRoll) {
           setRoll(buildingRoll);
-          const rollRes = await fetch(`/api/rolls/${buildingRoll.id}`);
-          if (rollRes.ok) {
-            const rollData = await rollRes.json();
-            if (rollData.data?.photos) {
-              const store = useRollStore.getState();
-              for (const rp of rollData.data.photos) {
-                store.checkPhoto(rp.photo_id);
+          try {
+            const rollRes = await fetch(`/api/rolls/${buildingRoll.id}`);
+            if (rollRes.ok) {
+              const rollData = await rollRes.json();
+              if (rollData.data?.photos) {
+                const store = useRollStore.getState();
+                for (const rp of rollData.data.photos) {
+                  store.checkPhoto(rp.photo_id);
+                }
               }
             }
+          } catch {
+            // Non-critical
           }
         }
 
@@ -114,28 +120,27 @@ export default function FeedPage() {
         );
         setDevelopedRolls(developed);
 
-        // Fetch cover images for developed rolls
-        const covers = new Map<string, string>();
-        await Promise.all(
-          developed.slice(0, 8).map(async (roll: { id: string }) => {
-            try {
-              const rr = await fetch(`/api/rolls/${roll.id}`);
-              if (rr.ok) {
-                const rd = await rr.json();
-                const firstPhoto = rd.data?.photos?.[0];
-                const url =
-                  firstPhoto?.processed_storage_key ||
-                  firstPhoto?.photos?.thumbnail_url;
-                if (url) covers.set(roll.id, url);
-              }
-            } catch {
-              // skip
+        // Fetch cover images in parallel
+        if (developed.length > 0) {
+          const coverResults = await Promise.allSettled(
+            developed.slice(0, 8).map((roll: { id: string }) =>
+              fetch(`/api/rolls/${roll.id}`).then((r) => r.ok ? r.json() : null)
+            )
+          );
+          const covers = new Map<string, string>();
+          coverResults.forEach((result, i) => {
+            if (result.status === 'fulfilled' && result.value) {
+              const firstPhoto = result.value.data?.photos?.[0];
+              const url =
+                firstPhoto?.processed_storage_key ||
+                firstPhoto?.photos?.thumbnail_url;
+              if (url) covers.set(developed[i].id, url);
             }
-          })
-        );
-        setRollCovers(covers);
+          });
+          setRollCovers(covers);
+        }
       } catch {
-        // Silently fail — no active roll is fine
+        // Non-critical
       }
     }
     loadRolls();
@@ -271,6 +276,59 @@ export default function FeedPage() {
       <div className="pb-4">
         {/* First-time user suggestion */}
         <StartHereCard />
+
+        {/* Your Rolls — developed rolls at the top */}
+        {developedRolls.length > 0 && (
+          <div className="mb-[var(--space-section)]">
+            <div className="flex items-center justify-between mb-[var(--space-element)]">
+              <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)]">
+                Your Rolls
+              </h2>
+              <button
+                type="button"
+                onClick={() => router.push('/library')}
+                className="text-[length:var(--text-caption)] text-[var(--color-action)] font-medium flex items-center gap-0.5"
+              >
+                See all <ChevronRight size={14} />
+              </button>
+            </div>
+            <div
+              className="flex flex-row gap-[var(--space-element)] overflow-x-auto pb-[var(--space-tight)] scrollbar-hide -mx-[var(--space-component)] px-[var(--space-component)]"
+              style={{ scrollSnapType: 'x mandatory' }}
+            >
+              {developedRolls.map((roll) => (
+                <button
+                  key={roll.id}
+                  type="button"
+                  onClick={() => router.push(`/roll/${roll.id}`)}
+                  className="text-left group cursor-pointer shrink-0 w-36"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)] shadow-[var(--shadow-card)]">
+                    {rollCovers.get(roll.id) ? (
+                      <img
+                        src={rollCovers.get(roll.id)}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Wand2 size={20} className="text-[var(--color-developed)]" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                    {roll.name || 'Untitled Roll'}
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {roll.photo_count} photos
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Moments clusters */}
         {clusters.length > 0 && (
