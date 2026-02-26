@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Smartphone, Film, ChevronRight, MousePointerClick, X, Calendar, Wand2 } from 'lucide-react';
+import { Smartphone, Film, ChevronRight, MousePointerClick, X, Calendar, Wand2, Printer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox, type LightboxSourceRect } from '@/components/photo/PhotoLightbox';
 import { PhotoStack } from '@/components/photo/PhotoStack';
@@ -44,7 +45,9 @@ export default function FeedPage() {
     }>
   >([]);
   const [showMoments, setShowMoments] = useState(false);
-  const [developedRolls, setDevelopedRolls] = useState<Roll[]>([]);
+  const [developedRolls, setDevelopedRolls] = useState<
+    Array<{ id: string; name: string; photo_count: number; film_profile: string | null; created_at: string }>
+  >([]);
   const [rollCovers, setRollCovers] = useState<Map<string, string>>(new Map());
 
   // Filter out videos — photos page only shows photos
@@ -80,42 +83,18 @@ export default function FeedPage() {
     loadClusters();
   }, []);
 
-  // Load rolls: developed rolls for "Your Rolls" section + active roll on mount
+  // Load active roll + developed rolls on mount
   useEffect(() => {
     async function loadRolls() {
       try {
         const res = await fetch('/api/rolls');
         if (!res.ok) return;
         const { data } = await res.json();
-        const allRolls: Roll[] = data ?? [];
-
-        // Developed rolls for the "Your Rolls" section
-        const developed = allRolls.filter((r: Roll) => r.status === 'developed');
-        setDevelopedRolls(developed);
-
-        // Fetch cover photos in parallel
-        if (developed.length > 0) {
-          const coverResults = await Promise.allSettled(
-            developed.map((roll) => fetch(`/api/rolls/${roll.id}`).then((r) => r.ok ? r.json() : null))
-          );
-          const covers = new Map<string, string>();
-          coverResults.forEach((result, i) => {
-            if (result.status === 'fulfilled' && result.value) {
-              const firstPhoto = result.value.data?.photos?.[0];
-              if (firstPhoto) {
-                covers.set(
-                  developed[i].id,
-                  firstPhoto.processed_storage_key || firstPhoto.photos?.thumbnail_url || ''
-                );
-              }
-            }
-          });
-          setRollCovers(covers);
-        }
+        if (!data) return;
 
         // Active roll (building or ready)
-        const buildingRoll = allRolls.find(
-          (r: Roll) => r.status === 'building' || r.status === 'ready'
+        const buildingRoll = data.find(
+          (r: { status: string }) => r.status === 'building' || r.status === 'ready'
         );
         if (buildingRoll) {
           setRoll(buildingRoll);
@@ -133,6 +112,32 @@ export default function FeedPage() {
           } catch {
             // Non-critical
           }
+        }
+
+        // Collect developed rolls for "Your Rolls" section
+        const developed = data.filter(
+          (r: { status: string }) => r.status === 'developed'
+        );
+        setDevelopedRolls(developed);
+
+        // Fetch cover images in parallel
+        if (developed.length > 0) {
+          const coverResults = await Promise.allSettled(
+            developed.slice(0, 8).map((roll: { id: string }) =>
+              fetch(`/api/rolls/${roll.id}`).then((r) => r.ok ? r.json() : null)
+            )
+          );
+          const covers = new Map<string, string>();
+          coverResults.forEach((result, i) => {
+            if (result.status === 'fulfilled' && result.value) {
+              const firstPhoto = result.value.data?.photos?.[0];
+              const url =
+                firstPhoto?.processed_storage_key ||
+                firstPhoto?.photos?.thumbnail_url;
+              if (url) covers.set(developed[i].id, url);
+            }
+          });
+          setRollCovers(covers);
         }
       } catch {
         // Non-critical
@@ -521,6 +526,57 @@ export default function FeedPage() {
           columns={gridColumns}
           renderOverride={stackMode === 'auto' ? renderStackOverride : undefined}
         />
+
+        {/* Your Rolls — developed rolls horizontal scroll */}
+        {developedRolls.length > 0 && (
+          <div className="mt-[var(--space-section)]">
+            <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
+              Your Rolls
+            </h2>
+            <div
+              className="flex flex-row gap-[var(--space-element)] overflow-x-auto pb-[var(--space-tight)] scrollbar-hide"
+              style={{ scrollSnapType: 'x mandatory' }}
+            >
+              {developedRolls.map((roll) => (
+                <button
+                  key={roll.id}
+                  type="button"
+                  onClick={() => router.push(`/roll/${roll.id}`)}
+                  className="text-left group cursor-pointer shrink-0 w-44"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                    {rollCovers.get(roll.id) ? (
+                      <img
+                        src={rollCovers.get(roll.id)}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Wand2 size={24} className="text-[var(--color-developed)]" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                    {roll.name || 'Untitled Roll'}
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {roll.photo_count} photos
+                  </p>
+                  <Link
+                    href={`/roll/${roll.id}/order`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 mt-0.5 text-[length:var(--text-caption)] font-medium text-[var(--color-action)] hover:underline"
+                  >
+                    <Printer size={12} /> Print
+                  </Link>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Lightbox for full-screen photo viewing */}
         {lightboxIndex !== null && (

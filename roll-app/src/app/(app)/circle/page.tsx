@@ -347,7 +347,7 @@ export default function CirclePage() {
 
       {/* Circles row — horizontal scroll of circle avatars */}
       {!loading && circles.length > 0 && (
-        <div className="flex gap-[var(--space-component)] overflow-x-auto no-scrollbar pb-[var(--space-tight)]">
+        <div className="flex gap-[var(--space-component)] overflow-x-auto no-scrollbar pt-[var(--space-tight)] pb-[var(--space-tight)]">
           {circles.map((circle) => (
             <div
               key={circle.id}

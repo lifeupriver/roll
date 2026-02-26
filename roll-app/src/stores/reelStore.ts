@@ -27,7 +27,8 @@ interface ReelState {
     photoId: string,
     durationMs: number,
     trimStart?: number,
-    trimEnd?: number | null
+    trimEnd?: number | null,
+    thumbnailUrl?: string
   ) => void;
   removeClip: (photoId: string) => void;
   isClipAdded: (photoId: string) => boolean;
@@ -64,16 +65,34 @@ export const useReelStore = create<ReelState>((set, get) => ({
     set({ reelClips, clipIds, reelCount: clipIds.size, currentDurationMs });
   },
 
-  addClip: (photoId, durationMs, trimStart = 0, trimEnd = null) =>
+  addClip: (photoId, durationMs, trimStart = 0, trimEnd = null, thumbnailUrl) =>
     set((state) => {
+      if (state.clipIds.has(photoId)) return state;
       const next = new Set(state.clipIds);
       next.add(photoId);
       const trimmedDuration = (trimEnd ?? durationMs) - trimStart;
       const newTrimPoints = new Map(state.trimPoints);
       newTrimPoints.set(photoId, { startMs: trimStart, endMs: trimEnd });
+      const newClip = {
+        id: `pending-${photoId}`,
+        reel_id: state.currentReel?.id ?? '',
+        photo_id: photoId,
+        position: state.reelClips.length + 1,
+        trim_start_ms: trimStart,
+        trim_end_ms: trimEnd,
+        trimmed_duration_ms: trimmedDuration,
+        processed_storage_key: null,
+        correction_applied: false,
+        transition_type: 'crossfade' as const,
+        created_at: new Date().toISOString(),
+        photos: thumbnailUrl
+          ? { id: photoId, thumbnail_url: thumbnailUrl, media_type: 'video' as const, duration_ms: durationMs }
+          : undefined,
+      };
       return {
         clipIds: next,
         reelCount: next.size,
+        reelClips: [...state.reelClips, newClip],
         currentDurationMs: state.currentDurationMs + trimmedDuration,
         trimPoints: newTrimPoints,
       };

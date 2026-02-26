@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useCallback, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, Eye, ShoppingCart, Trash2 } from 'lucide-react';
+import { Pencil, Eye, ShoppingCart, Trash2, Printer, ImagePlus } from 'lucide-react';
+import Link from 'next/link';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { MagazinePreview } from '@/components/magazine/MagazinePreview';
 import { MagazinePageEditor } from '@/components/magazine/MagazinePageEditor';
+import { Modal } from '@/components/ui/Modal';
+import { RollSelector } from '@/components/magazine/RollSelector';
 import { useToast } from '@/stores/toastStore';
 import type { Magazine, MagazinePage } from '@/types/magazine';
 
@@ -23,6 +26,9 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
   const [pages, setPages] = useState<MagazinePage[]>([]);
   const [saving, setSaving] = useState(false);
   const [photoUrlMap, setPhotoUrlMap] = useState<Map<string, string>>(new Map());
+  const [showAddRolls, setShowAddRolls] = useState(false);
+  const [addRollIds, setAddRollIds] = useState<string[]>([]);
+  const [addingFromRolls, setAddingFromRolls] = useState(false);
 
   // Fetch magazine
   useEffect(() => {
@@ -102,13 +108,52 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
     }
   };
 
+  const handleAddFromRolls = useCallback(async () => {
+    if (addRollIds.length === 0 || addingFromRolls) return;
+    setAddingFromRolls(true);
+    try {
+      // Fetch photos from selected rolls
+      const allNewPhotos: MagazinePage[] = [];
+      for (const rollId of addRollIds) {
+        const res = await fetch(`/api/rolls/${rollId}/photos`);
+        if (!res.ok) continue;
+        const json = await res.json();
+        const rollPhotos = json.data ?? [];
+        for (const rp of rollPhotos) {
+          const photo = rp.photos || rp;
+          allNewPhotos.push({
+            layout: 'full',
+            photos: [
+              {
+                id: photo.id || rp.photo_id,
+                position: 0,
+              },
+            ],
+            caption: rp.caption || '',
+          });
+        }
+      }
+      if (allNewPhotos.length > 0) {
+        setPages((prev) => [...prev, ...allNewPhotos]);
+        toast(`Added ${allNewPhotos.length} pages from rolls`, 'success');
+        setMode('edit');
+      }
+      setShowAddRolls(false);
+      setAddRollIds([]);
+    } catch {
+      toast('Failed to add images from rolls', 'error');
+    } finally {
+      setAddingFromRolls(false);
+    }
+  }, [addRollIds, addingFromRolls, toast]);
+
   const handleDelete = async () => {
     if (!confirm('Delete this magazine? This cannot be undone.')) return;
     try {
       const res = await fetch(`/api/magazines/${id}`, { method: 'DELETE' });
       if (res.ok) {
         toast('Magazine deleted', 'success');
-        router.push('/projects/magazines');
+        router.push('/designs');
       }
     } catch {
       toast('Failed to delete', 'error');
@@ -136,7 +181,7 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-[var(--space-element)]">
-          <BackButton href="/projects/magazines" />
+          <BackButton href="/designs" />
           <div>
             <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-heading)] text-[var(--color-ink)]">
               {magazine.title}
@@ -191,8 +236,43 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
         />
       )}
 
+      {/* Add images from rolls */}
+      {mode === 'edit' && (
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => setShowAddRolls(true)}
+        >
+          <ImagePlus size={18} className="mr-2" />
+          Add Images from Rolls
+        </Button>
+      )}
+
+      {/* Order This Magazine CTA */}
+      {(magazine.status === 'draft' || magazine.status === 'review') && (
+        <Link href={`/projects/magazines/${id}/review`} className="block">
+          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Printer size={24} />
+              <div>
+                <p className="text-[length:var(--text-body)] font-medium">Order This Magazine</p>
+                <p className="text-[length:var(--text-caption)] opacity-80">
+                  {pages.length} pages · {magazine.format} format
+                  {magazine.price_cents
+                    ? ` · $${(magazine.price_cents / 100).toFixed(2)} + shipping`
+                    : ''}
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
+              Order
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* Price info */}
-      {magazine.price_cents && (
+      {magazine.price_cents && !(magazine.status === 'draft' || magazine.status === 'review') && (
         <div className="flex items-center justify-center gap-2 py-[var(--space-element)] border-t border-[var(--color-border)]">
           <span className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
             Estimated price:
@@ -205,6 +285,37 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
           </span>
         </div>
       )}
+
+      {/* Add from Rolls Modal */}
+      <Modal isOpen={showAddRolls} onClose={() => setShowAddRolls(false)}>
+        <div className="flex flex-col gap-[var(--space-component)]">
+          <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+            Add Images from Rolls
+          </h2>
+          <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
+            Select developed rolls to add their photos to this magazine.
+          </p>
+          <RollSelector
+            selectedRollIds={addRollIds}
+            onSelectionChange={setAddRollIds}
+            maxRolls={4}
+          />
+          <div className="flex justify-end gap-2 pt-[var(--space-element)]">
+            <Button variant="ghost" size="sm" onClick={() => setShowAddRolls(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleAddFromRolls}
+              isLoading={addingFromRolls}
+              disabled={addRollIds.length === 0}
+            >
+              Add Photos
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { BookOpen, ChevronRight, ChevronLeft, GripVertical, X, Check } from 'lucide-react';
+import {
+  BookOpen,
+  ChevronRight,
+  ChevronLeft,
+  GripVertical,
+  X,
+  Wand2,
+  Palette,
+} from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -9,15 +17,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/stores/toastStore';
 import { TemplateCard } from '@/components/book/TemplateCard';
 import { BOOK_TEMPLATES, type BookTemplate } from '@/lib/book/templates';
-import type { Photo } from '@/types/photo';
+import type { Magazine } from '@/types/magazine';
 
-interface FavoriteWithPhoto {
-  id: string;
-  photo_id: string;
-  photos: Photo;
-}
-
-type CreateStep = 'template' | 'details' | 'photos' | 'review';
+type SourceType = 'rolls' | 'magazines';
+type CreateStep = 'template' | 'details' | 'source' | 'select' | 'review';
 
 interface CreateBookModalProps {
   isOpen: boolean;
@@ -26,32 +29,69 @@ interface CreateBookModalProps {
   initialPhotoIds?: string[];
 }
 
+interface RollForSelection {
+  id: string;
+  title: string;
+  theme_name: string | null;
+  created_at: string;
+  photo_count: number;
+  cover_url: string | null;
+}
+
 export function CreateBookModal({
   isOpen,
   onClose,
   onCreated,
-  initialPhotoIds,
 }: CreateBookModalProps) {
   const { toast } = useToast();
   const [step, setStep] = useState<CreateStep>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
-  const [favoritesLoading, setFavoritesLoading] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>(initialPhotoIds ?? []);
+  const [sourceType, setSourceType] = useState<SourceType>('magazines');
+
+  // Magazines state
+  const [magazines, setMagazines] = useState<Magazine[]>([]);
+  const [magazinesLoading, setMagazinesLoading] = useState(false);
+  const [selectedMagIds, setSelectedMagIds] = useState<string[]>([]);
+
+  // Rolls state
+  const [rolls, setRolls] = useState<RollForSelection[]>([]);
+  const [rollsLoading, setRollsLoading] = useState(false);
+  const [selectedRollIds, setSelectedRollIds] = useState<string[]>([]);
+
   const [creating, setCreating] = useState(false);
 
-  // Load favorites
+  // Load data when modal opens
   useEffect(() => {
     if (!isOpen) return;
-    setFavoritesLoading(true);
-    fetch('/api/favorites')
+
+    setMagazinesLoading(true);
+    fetch('/api/magazines')
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((json) => setFavorites(json.data ?? []))
-      .catch(() => toast('Failed to load favorites', 'error'))
-      .finally(() => setFavoritesLoading(false));
-  }, [isOpen, toast]);
+      .then((json) => setMagazines(json.data ?? []))
+      .catch(() => {})
+      .finally(() => setMagazinesLoading(false));
+
+    setRollsLoading(true);
+    fetch('/api/rolls?status=developed')
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((json) => {
+        const data = json.data ?? [];
+        setRolls(
+          data.map((r: Record<string, unknown>) => ({
+            id: r.id as string,
+            title: (r.title as string) || (r.theme_name as string) || 'Untitled Roll',
+            theme_name: r.theme_name as string | null,
+            created_at: r.created_at as string,
+            photo_count: (r.photo_count as number) || 0,
+            cover_url: (r.cover_url as string) || null,
+          }))
+        );
+      })
+      .catch(() => {})
+      .finally(() => setRollsLoading(false));
+  }, [isOpen]);
 
   // Reset when opening
   useEffect(() => {
@@ -60,43 +100,83 @@ export function CreateBookModal({
       setSelectedTemplate(null);
       setName('');
       setDescription('');
-      setSelectedIds(initialPhotoIds ?? []);
+      setSourceType('magazines');
+      setSelectedMagIds([]);
+      setSelectedRollIds([]);
     }
-  }, [isOpen, initialPhotoIds]);
+  }, [isOpen]);
 
-  const togglePhoto = useCallback((photoId: string) => {
-    setSelectedIds((prev) => {
-      if (prev.includes(photoId)) return prev.filter((id) => id !== photoId);
-      return [...prev, photoId];
-    });
-  }, []);
+  const selectedIds = sourceType === 'magazines' ? selectedMagIds : selectedRollIds;
 
-  const movePhoto = useCallback((fromIndex: number, direction: 'up' | 'down') => {
-    setSelectedIds((prev) => {
-      const next = [...prev];
-      const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
-      if (toIndex < 0 || toIndex >= next.length) return prev;
-      [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
-      return next;
-    });
-  }, []);
+  const toggleItem = useCallback(
+    (id: string) => {
+      const setter = sourceType === 'magazines' ? setSelectedMagIds : setSelectedRollIds;
+      setter((prev) => {
+        if (prev.includes(id)) return prev.filter((x) => x !== id);
+        return [...prev, id];
+      });
+    },
+    [sourceType]
+  );
+
+  const moveItem = useCallback(
+    (fromIndex: number, direction: 'up' | 'down') => {
+      const setter = sourceType === 'magazines' ? setSelectedMagIds : setSelectedRollIds;
+      setter((prev) => {
+        const next = [...prev];
+        const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+        if (toIndex < 0 || toIndex >= next.length) return prev;
+        [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
+        return next;
+      });
+    },
+    [sourceType]
+  );
+
+  const removeItem = useCallback(
+    (id: string) => {
+      const setter = sourceType === 'magazines' ? setSelectedMagIds : setSelectedRollIds;
+      setter((prev) => prev.filter((x) => x !== id));
+    },
+    [sourceType]
+  );
+
+  const selectedMagazines = selectedMagIds
+    .map((id) => magazines.find((m) => m.id === id))
+    .filter(Boolean) as Magazine[];
+
+  const selectedRolls = selectedRollIds
+    .map((id) => rolls.find((r) => r.id === id))
+    .filter(Boolean) as RollForSelection[];
+
+  const totalPageCount =
+    sourceType === 'magazines'
+      ? selectedMagazines.reduce((sum, m) => sum + (m.page_count || 0), 0)
+      : selectedRolls.reduce((sum, r) => sum + (r.photo_count || 0), 0);
 
   const handleCreate = useCallback(async () => {
     if (selectedIds.length === 0) {
-      toast('Select at least one photo', 'error');
+      toast(`Select at least one ${sourceType === 'magazines' ? 'magazine' : 'roll'}`, 'error');
       return;
     }
     setCreating(true);
     try {
       const bookName = name.trim() || 'Untitled Book';
+      const payload: Record<string, unknown> = {
+        name: bookName,
+        description: description.trim() || null,
+      };
+
+      if (sourceType === 'magazines') {
+        payload.magazine_ids = selectedMagIds;
+      } else {
+        payload.roll_ids = selectedRollIds;
+      }
+
       const res = await fetch('/api/projects/albums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: bookName,
-          description: description.trim() || null,
-          photoIds: selectedIds,
-        }),
+        body: JSON.stringify(payload),
       });
 
       let bookData: Record<string, unknown> | null = null;
@@ -111,15 +191,15 @@ export function CreateBookModal({
           name: bookName,
           description: description.trim() || null,
           cover_url: null,
-          photo_count: selectedIds.length,
-          photo_ids: selectedIds,
-          captions: {},
+          photo_count: totalPageCount,
+          ...(sourceType === 'magazines'
+            ? { magazine_ids: selectedMagIds }
+            : { roll_ids: selectedRollIds }),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
       }
 
-      // Store in localStorage for fallback
       const stored = JSON.parse(localStorage.getItem('roll-albums') || '[]');
       stored.unshift(bookData);
       localStorage.setItem('roll-albums', JSON.stringify(stored));
@@ -131,11 +211,17 @@ export function CreateBookModal({
     } finally {
       setCreating(false);
     }
-  }, [name, description, selectedIds, toast, onCreated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, description, sourceType, selectedMagIds, selectedRollIds, totalPageCount, toast, onCreated]);
 
-  const selectedPhotos = selectedIds
-    .map((id) => favorites.find((f) => f.photo_id === id))
-    .filter(Boolean) as FavoriteWithPhoto[];
+  const stepBack = useCallback(() => {
+    if (step === 'review') setStep('select');
+    else if (step === 'select') setStep('source');
+    else if (step === 'source') setStep('details');
+    else if (step === 'details') setStep('template');
+  }, [step]);
+
+  const STEPS: CreateStep[] = ['template', 'details', 'source', 'select', 'review'];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-xl">
@@ -145,11 +231,13 @@ export function CreateBookModal({
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {step === 'template' && 'Choose a Template'}
             {step === 'details' && 'New Book'}
-            {step === 'photos' && 'Select Photos'}
+            {step === 'source' && 'Build From'}
+            {step === 'select' &&
+              (sourceType === 'magazines' ? 'Select Magazine Designs' : 'Select Rolls')}
             {step === 'review' && 'Review Book'}
           </h2>
           <div className="flex items-center gap-1.5">
-            {(['template', 'details', 'photos', 'review'] as const).map((s, _i) => (
+            {STEPS.map((s) => (
               <div
                 key={s}
                 className={`w-2 h-2 rounded-full transition-colors ${
@@ -164,8 +252,7 @@ export function CreateBookModal({
         {step === 'template' && (
           <div className="flex flex-col gap-[var(--space-component)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Start with a template or create a blank book. Templates auto-organize your photos by
-              time period.
+              Start with a template or create a blank book.
             </p>
             <div className="grid grid-cols-2 gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
               {BOOK_TEMPLATES.map((tmpl) => (
@@ -201,7 +288,7 @@ export function CreateBookModal({
                 Description
               </label>
               <textarea
-                placeholder="A collection of favorite moments..."
+                placeholder="A collection of your best work..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -218,59 +305,122 @@ export function CreateBookModal({
           </div>
         )}
 
-        {/* Step 2: Photo Selection */}
-        {step === 'photos' && (
+        {/* Step 2: Source Selection (Rolls or Magazines) */}
+        {step === 'source' && (
+          <div className="flex flex-col gap-[var(--space-component)]">
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+              Choose how to build your book. You can compile from magazine designs or directly from
+              developed rolls.
+            </p>
+            <div className="grid grid-cols-2 gap-[var(--space-element)]">
+              <button
+                type="button"
+                onClick={() => setSourceType('magazines')}
+                className={`flex flex-col items-center gap-[var(--space-element)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 transition-colors ${
+                  sourceType === 'magazines'
+                    ? 'border-[var(--color-action)] bg-[var(--color-surface-raised)]'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)]'
+                }`}
+              >
+                <Palette size={32} className="text-[var(--color-ink-secondary)]" />
+                <div className="text-center">
+                  <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)]">
+                    Magazine Designs
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Compile multiple magazine designs into chapters
+                  </p>
+                </div>
+                {magazines.length > 0 && (
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {magazines.length} available
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSourceType('rolls')}
+                className={`flex flex-col items-center gap-[var(--space-element)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 transition-colors ${
+                  sourceType === 'rolls'
+                    ? 'border-[var(--color-action)] bg-[var(--color-surface-raised)]'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)]'
+                }`}
+              >
+                <Wand2 size={32} className="text-[var(--color-ink-secondary)]" />
+                <div className="text-center">
+                  <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)]">
+                    Developed Rolls
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Build directly from your developed roll photos
+                  </p>
+                </div>
+                {rolls.length > 0 && (
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {rolls.length} available
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Selection (Magazine or Roll list) */}
+        {step === 'select' && sourceType === 'magazines' && (
           <div className="flex flex-col gap-[var(--space-element)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Tap photos to select them. Each becomes a page in your book. Selected order = page
-              order.
+              Select magazine designs to compile into your book. Each becomes a chapter.
             </p>
 
-            {favoritesLoading ? (
+            {magazinesLoading ? (
               <div className="flex items-center justify-center py-[var(--space-section)]">
                 <Spinner size="sm" />
               </div>
-            ) : favorites.length === 0 ? (
+            ) : magazines.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-[var(--space-section)] gap-[var(--space-element)]">
                 <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
                 <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center">
-                  No favorites yet. Heart photos in your rolls first.
+                  No magazine designs yet. Create a magazine first.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-1 max-h-[360px] overflow-y-auto rounded-[var(--radius-card)]">
-                {favorites.map((fav) => {
-                  const selIndex = selectedIds.indexOf(fav.photo_id);
+              <div className="flex flex-col gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
+                {magazines.map((mag) => {
+                  const selIndex = selectedMagIds.indexOf(mag.id);
                   const isSelected = selIndex !== -1;
                   return (
                     <button
-                      key={fav.id}
+                      key={mag.id}
                       type="button"
-                      onClick={() => togglePhoto(fav.photo_id)}
-                      className="relative aspect-square overflow-hidden bg-[var(--color-surface-sunken)] group"
+                      onClick={() => toggleItem(mag.id)}
+                      className={`flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border-2 transition-colors min-h-[44px] text-left ${
+                        isSelected
+                          ? 'border-[var(--color-action)] bg-[var(--color-surface-raised)]'
+                          : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)]'
+                      }`}
                     >
-                      <img
-                        src={fav.photos.thumbnail_url}
-                        alt=""
-                        loading="lazy"
-                        className={`w-full h-full object-cover transition-transform duration-150 ${isSelected ? 'scale-95' : 'group-hover:scale-[1.02]'}`}
-                      />
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-[var(--color-action)]/15 ring-2 ring-inset ring-[var(--color-action)]" />
-                      )}
+                      <div className="w-12 h-16 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0 flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
+                        <BookOpen size={16} className="text-[var(--color-ink-tertiary)]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-medium truncate">
+                          {mag.title}
+                        </p>
+                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {mag.page_count} pages &middot; {mag.format}
+                        </p>
+                      </div>
                       <div
-                        className={`absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 ${
+                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
                           isSelected
-                            ? 'bg-[var(--color-action)] scale-100'
-                            : 'bg-black/30 border border-white/50 scale-90 opacity-0 group-hover:opacity-100'
+                            ? 'bg-[var(--color-action)]'
+                            : 'border-2 border-[var(--color-border)]'
                         }`}
                       >
-                        {isSelected ? (
+                        {isSelected && (
                           <span className="text-white text-[10px] font-bold font-[family-name:var(--font-mono)]">
                             {selIndex + 1}
                           </span>
-                        ) : (
-                          <Check size={12} className="text-white" />
                         )}
                       </div>
                     </button>
@@ -279,30 +429,110 @@ export function CreateBookModal({
               </div>
             )}
 
-            {selectedIds.length > 0 && (
+            {selectedMagIds.length > 0 && (
               <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                {selectedIds.length} page{selectedIds.length !== 1 ? 's' : ''} selected
+                {selectedMagIds.length} magazine{selectedMagIds.length !== 1 ? 's' : ''} selected
+                &middot; {totalPageCount} total pages
               </p>
             )}
           </div>
         )}
 
-        {/* Step 3: Review */}
+        {step === 'select' && sourceType === 'rolls' && (
+          <div className="flex flex-col gap-[var(--space-element)]">
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+              Select developed rolls. Each roll becomes a section in your book.
+            </p>
+
+            {rollsLoading ? (
+              <div className="flex items-center justify-center py-[var(--space-section)]">
+                <Spinner size="sm" />
+              </div>
+            ) : rolls.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-[var(--space-section)] gap-[var(--space-element)]">
+                <Wand2 size={32} className="text-[var(--color-ink-tertiary)]" />
+                <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center">
+                  No developed rolls yet. Develop some rolls first!
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
+                {rolls.map((roll) => {
+                  const selIndex = selectedRollIds.indexOf(roll.id);
+                  const isSelected = selIndex !== -1;
+                  return (
+                    <button
+                      key={roll.id}
+                      type="button"
+                      onClick={() => toggleItem(roll.id)}
+                      className={`flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border-2 transition-colors min-h-[44px] text-left ${
+                        isSelected
+                          ? 'border-[var(--color-action)] bg-[var(--color-surface-raised)]'
+                          : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)]'
+                      }`}
+                    >
+                      <div className="w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0">
+                        {roll.cover_url ? (
+                          <img
+                            src={roll.cover_url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Wand2 size={16} className="text-[var(--color-ink-tertiary)]" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-medium truncate">
+                          {roll.theme_name || roll.title}
+                        </p>
+                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {roll.photo_count} photos &middot;{' '}
+                          {new Date(roll.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                          isSelected
+                            ? 'bg-[var(--color-action)]'
+                            : 'border-2 border-[var(--color-border)]'
+                        }`}
+                      >
+                        {isSelected && (
+                          <span className="text-white text-[10px] font-bold font-[family-name:var(--font-mono)]">
+                            {selIndex + 1}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedRollIds.length > 0 && (
+              <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                {selectedRollIds.length} roll{selectedRollIds.length !== 1 ? 's' : ''} selected
+                &middot; {totalPageCount} total photos
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Review */}
         {step === 'review' && (
           <div className="flex flex-col gap-[var(--space-component)]">
             {/* Cover preview */}
             <div className="relative aspect-[3/4] max-h-48 bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mx-auto w-full max-w-[200px]">
-              {selectedPhotos[0] ? (
-                <img
-                  src={selectedPhotos[0].photos.thumbnail_url}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
-                </div>
-              )}
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
+                <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-0 inset-x-0 p-3">
                 <p className="font-[family-name:var(--font-display)] font-medium text-white text-[length:var(--text-lead)] leading-tight truncate">
@@ -316,66 +546,124 @@ export function CreateBookModal({
               </div>
             </div>
 
-            {/* Page order */}
+            {/* Chapter/section order */}
             <div className="flex flex-col gap-[var(--space-tight)]">
               <h3 className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)]">
-                Page Order
+                {sourceType === 'magazines' ? 'Chapter Order' : 'Section Order'}
               </h3>
               <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
-                {selectedPhotos.map((fav, i) => (
-                  <div
-                    key={fav.photo_id}
-                    className="flex items-center gap-[var(--space-element)] p-1.5 bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)]"
-                  >
-                    <GripVertical
-                      size={14}
-                      className="text-[var(--color-ink-tertiary)] flex-shrink-0"
-                    />
-                    <div className="w-10 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0">
-                      <img
-                        src={fav.photos.thumbnail_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] flex-1">
-                      Page {i + 1}
-                    </span>
-                    <div className="flex items-center gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => movePhoto(i, 'up')}
-                        disabled={i === 0}
-                        className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
+                {sourceType === 'magazines'
+                  ? selectedMagazines.map((mag, i) => (
+                      <div
+                        key={mag.id}
+                        className="flex items-center gap-[var(--space-element)] p-1.5 bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)]"
                       >
-                        <ChevronLeft size={14} className="rotate-90" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => movePhoto(i, 'down')}
-                        disabled={i === selectedPhotos.length - 1}
-                        className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
+                        <GripVertical
+                          size={14}
+                          className="text-[var(--color-ink-tertiary)] flex-shrink-0"
+                        />
+                        <div className="w-8 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0 bg-[var(--color-surface-sunken)] flex items-center justify-center">
+                          <BookOpen size={12} className="text-[var(--color-ink-tertiary)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink)] font-medium truncate">
+                            {mag.title}
+                          </p>
+                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                            {mag.page_count} pages
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => moveItem(i, 'up')}
+                            disabled={i === 0}
+                            className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft size={14} className="rotate-90" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveItem(i, 'down')}
+                            disabled={i === selectedMagazines.length - 1}
+                            className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRight size={14} className="rotate-90" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(mag.id)}
+                            className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)]"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  : selectedRolls.map((roll, i) => (
+                      <div
+                        key={roll.id}
+                        className="flex items-center gap-[var(--space-element)] p-1.5 bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)]"
                       >
-                        <ChevronRight size={14} className="rotate-90" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedIds((prev) => prev.filter((id) => id !== fav.photo_id))
-                        }
-                        className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)]"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                        <GripVertical
+                          size={14}
+                          className="text-[var(--color-ink-tertiary)] flex-shrink-0"
+                        />
+                        <div className="w-10 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0 bg-[var(--color-surface-sunken)]">
+                          {roll.cover_url ? (
+                            <img
+                              src={roll.cover_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Wand2 size={12} className="text-[var(--color-ink-tertiary)]" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink)] font-medium truncate">
+                            {roll.theme_name || roll.title}
+                          </p>
+                          <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                            {roll.photo_count} photos
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => moveItem(i, 'up')}
+                            disabled={i === 0}
+                            className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeft size={14} className="rotate-90" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveItem(i, 'down')}
+                            disabled={i === selectedRolls.length - 1}
+                            className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRight size={14} className="rotate-90" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(roll.id)}
+                            className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)]"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
               </div>
             </div>
 
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              {selectedIds.length} page{selectedIds.length !== 1 ? 's' : ''}. You can add captions
-              and reorder pages after creation.
+              {sourceType === 'magazines'
+                ? `${selectedMagIds.length} magazine${selectedMagIds.length !== 1 ? 's' : ''} · ${totalPageCount} total pages. Each magazine becomes a chapter.`
+                : `${selectedRollIds.length} roll${selectedRollIds.length !== 1 ? 's' : ''} · ${totalPageCount} total photos. Each roll becomes a section.`}
             </p>
           </div>
         )}
@@ -384,13 +672,7 @@ export function CreateBookModal({
         <div className="flex items-center justify-between pt-[var(--space-tight)] border-t border-[var(--color-border)]">
           <div>
             {step !== 'template' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  setStep(step === 'review' ? 'photos' : step === 'photos' ? 'details' : 'template')
-                }
-              >
+              <Button variant="ghost" size="sm" onClick={stepBack}>
                 <ChevronLeft size={16} className="mr-0.5" />
                 Back
               </Button>
@@ -412,12 +694,18 @@ export function CreateBookModal({
               </Button>
             )}
             {step === 'details' && (
-              <Button variant="primary" size="sm" onClick={() => setStep('photos')}>
-                Select Photos
+              <Button variant="primary" size="sm" onClick={() => setStep('source')}>
+                Next
                 <ChevronRight size={16} className="ml-0.5" />
               </Button>
             )}
-            {step === 'photos' && (
+            {step === 'source' && (
+              <Button variant="primary" size="sm" onClick={() => setStep('select')}>
+                {sourceType === 'magazines' ? 'Select Magazines' : 'Select Rolls'}
+                <ChevronRight size={16} className="ml-0.5" />
+              </Button>
+            )}
+            {step === 'select' && (
               <Button
                 variant="primary"
                 size="sm"
