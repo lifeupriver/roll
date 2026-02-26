@@ -20,8 +20,20 @@ function makePhoto(id: string, createdAt: string): Photo {
     longitude: null,
     camera_make: null,
     camera_model: null,
-    filter_status: 'passed',
+    filter_status: 'visible',
+    filter_reason: null,
+    aesthetic_score: null,
+    phash: null,
+    face_count: 0,
+    scene_classification: [],
     created_at: createdAt,
+    updated_at: createdAt,
+    media_type: 'photo',
+    duration_ms: null,
+    duration_category: null,
+    preview_storage_key: null,
+    audio_classification: null,
+    stabilization_score: null,
   } as Photo;
 }
 
