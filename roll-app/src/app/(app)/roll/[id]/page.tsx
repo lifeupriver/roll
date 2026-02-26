@@ -21,6 +21,7 @@ import {
   UserRound,
   Images,
   Globe,
+  Palette,
 } from 'lucide-react';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { BackButton } from '@/components/ui/BackButton';
@@ -107,6 +108,9 @@ export default function RollDetailPage() {
   const [showStoryModal, setShowStoryModal] = useState(false);
   const [storyText, setStoryText] = useState('');
   const [savedStory, setSavedStory] = useState('');
+
+  // Magazine design state
+  const [creatingMagazine, setCreatingMagazine] = useState(false);
 
   // Filter toggles
   const [mediaFilter, setMediaFilter] = useState<'all' | 'photo' | 'video'>('all');
@@ -438,6 +442,37 @@ export default function RollDetailPage() {
   }, []);
 
   // ------------------------------------------------------------------
+  // Send to Magazine Design
+  // ------------------------------------------------------------------
+  const handleCreateMagazine = useCallback(async () => {
+    if (!roll || creatingMagazine) return;
+    setCreatingMagazine(true);
+    try {
+      const res = await fetch('/api/magazines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: roll.theme_name || roll.title || 'Untitled Magazine',
+          rollIds: [rollId],
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Failed to create magazine');
+      }
+      const json = await res.json();
+      const magazineId = json.data?.id;
+      if (magazineId) {
+        router.push(`/projects/magazines/${magazineId}`);
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to create magazine design', 'error');
+    } finally {
+      setCreatingMagazine(false);
+    }
+  }, [roll, creatingMagazine, rollId, router, toast]);
+
+  // ------------------------------------------------------------------
   // Save story
   // ------------------------------------------------------------------
   const handleSaveStory = useCallback(async () => {
@@ -709,6 +744,15 @@ export default function RollDetailPage() {
           >
             <BookOpen size={18} className="mr-2" />
             {savedStory ? 'Edit Story' : 'Add a Story'}
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handleCreateMagazine}
+            disabled={creatingMagazine}
+          >
+            <Palette size={18} className="mr-2" />
+            {creatingMagazine ? 'Creating…' : 'Send to Magazine Design'}
           </Button>
         </div>
 

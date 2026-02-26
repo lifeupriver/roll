@@ -9,15 +9,9 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/stores/toastStore';
 import { TemplateCard } from '@/components/book/TemplateCard';
 import { BOOK_TEMPLATES, type BookTemplate } from '@/lib/book/templates';
-import type { Photo } from '@/types/photo';
+import type { Magazine } from '@/types/magazine';
 
-interface FavoriteWithPhoto {
-  id: string;
-  photo_id: string;
-  photos: Photo;
-}
-
-type CreateStep = 'template' | 'details' | 'photos' | 'review';
+type CreateStep = 'template' | 'details' | 'magazines' | 'review';
 
 interface CreateBookModalProps {
   isOpen: boolean;
@@ -26,31 +20,34 @@ interface CreateBookModalProps {
   initialPhotoIds?: string[];
 }
 
+interface MagazineForSelection extends Magazine {
+  _selected?: boolean;
+}
+
 export function CreateBookModal({
   isOpen,
   onClose,
   onCreated,
-  initialPhotoIds,
 }: CreateBookModalProps) {
   const { toast } = useToast();
   const [step, setStep] = useState<CreateStep>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<BookTemplate | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [favorites, setFavorites] = useState<FavoriteWithPhoto[]>([]);
-  const [favoritesLoading, setFavoritesLoading] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>(initialPhotoIds ?? []);
+  const [magazines, setMagazines] = useState<MagazineForSelection[]>([]);
+  const [magazinesLoading, setMagazinesLoading] = useState(false);
+  const [selectedMagIds, setSelectedMagIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
 
-  // Load favorites
+  // Load magazines
   useEffect(() => {
     if (!isOpen) return;
-    setFavoritesLoading(true);
-    fetch('/api/favorites')
+    setMagazinesLoading(true);
+    fetch('/api/magazines')
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((json) => setFavorites(json.data ?? []))
-      .catch(() => toast('Failed to load favorites', 'error'))
-      .finally(() => setFavoritesLoading(false));
+      .then((json) => setMagazines(json.data ?? []))
+      .catch(() => toast('Failed to load magazines', 'error'))
+      .finally(() => setMagazinesLoading(false));
   }, [isOpen, toast]);
 
   // Reset when opening
@@ -60,19 +57,19 @@ export function CreateBookModal({
       setSelectedTemplate(null);
       setName('');
       setDescription('');
-      setSelectedIds(initialPhotoIds ?? []);
+      setSelectedMagIds([]);
     }
-  }, [isOpen, initialPhotoIds]);
+  }, [isOpen]);
 
-  const togglePhoto = useCallback((photoId: string) => {
-    setSelectedIds((prev) => {
-      if (prev.includes(photoId)) return prev.filter((id) => id !== photoId);
-      return [...prev, photoId];
+  const toggleMagazine = useCallback((magId: string) => {
+    setSelectedMagIds((prev) => {
+      if (prev.includes(magId)) return prev.filter((id) => id !== magId);
+      return [...prev, magId];
     });
   }, []);
 
-  const movePhoto = useCallback((fromIndex: number, direction: 'up' | 'down') => {
-    setSelectedIds((prev) => {
+  const moveMagazine = useCallback((fromIndex: number, direction: 'up' | 'down') => {
+    setSelectedMagIds((prev) => {
       const next = [...prev];
       const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
       if (toIndex < 0 || toIndex >= next.length) return prev;
@@ -82,20 +79,21 @@ export function CreateBookModal({
   }, []);
 
   const handleCreate = useCallback(async () => {
-    if (selectedIds.length === 0) {
-      toast('Select at least one photo', 'error');
+    if (selectedMagIds.length === 0) {
+      toast('Select at least one magazine', 'error');
       return;
     }
     setCreating(true);
     try {
       const bookName = name.trim() || 'Untitled Book';
+      const totalPages = selectedMagazines.reduce((sum, m) => sum + (m.page_count || 0), 0);
       const res = await fetch('/api/projects/albums', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: bookName,
           description: description.trim() || null,
-          photoIds: selectedIds,
+          magazine_ids: selectedMagIds,
         }),
       });
 
@@ -111,9 +109,8 @@ export function CreateBookModal({
           name: bookName,
           description: description.trim() || null,
           cover_url: null,
-          photo_count: selectedIds.length,
-          photo_ids: selectedIds,
-          captions: {},
+          photo_count: totalPages,
+          magazine_ids: selectedMagIds,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -131,11 +128,14 @@ export function CreateBookModal({
     } finally {
       setCreating(false);
     }
-  }, [name, description, selectedIds, toast, onCreated]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, description, selectedMagIds, toast, onCreated]);
 
-  const selectedPhotos = selectedIds
-    .map((id) => favorites.find((f) => f.photo_id === id))
-    .filter(Boolean) as FavoriteWithPhoto[];
+  const selectedMagazines = selectedMagIds
+    .map((id) => magazines.find((m) => m.id === id))
+    .filter(Boolean) as MagazineForSelection[];
+
+  const totalPageCount = selectedMagazines.reduce((sum, m) => sum + (m.page_count || 0), 0);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-xl">
@@ -145,11 +145,11 @@ export function CreateBookModal({
           <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
             {step === 'template' && 'Choose a Template'}
             {step === 'details' && 'New Book'}
-            {step === 'photos' && 'Select Photos'}
+            {step === 'magazines' && 'Select Magazine Designs'}
             {step === 'review' && 'Review Book'}
           </h2>
           <div className="flex items-center gap-1.5">
-            {(['template', 'details', 'photos', 'review'] as const).map((s, _i) => (
+            {(['template', 'details', 'magazines', 'review'] as const).map((s) => (
               <div
                 key={s}
                 className={`w-2 h-2 rounded-full transition-colors ${
@@ -164,8 +164,8 @@ export function CreateBookModal({
         {step === 'template' && (
           <div className="flex flex-col gap-[var(--space-component)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Start with a template or create a blank book. Templates auto-organize your photos by
-              time period.
+              Start with a template or create a blank book. Books are compiled from your magazine
+              designs.
             </p>
             <div className="grid grid-cols-2 gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
               {BOOK_TEMPLATES.map((tmpl) => (
@@ -201,7 +201,7 @@ export function CreateBookModal({
                 Description
               </label>
               <textarea
-                placeholder="A collection of favorite moments..."
+                placeholder="A collection of magazine designs..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -218,51 +218,69 @@ export function CreateBookModal({
           </div>
         )}
 
-        {/* Step 2: Photo Selection */}
-        {step === 'photos' && (
+        {/* Step 2: Magazine Selection */}
+        {step === 'magazines' && (
           <div className="flex flex-col gap-[var(--space-element)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Tap photos to select them. Each becomes a page in your book. Selected order = page
-              order.
+              Select magazine designs to compile into your book. The order you select them determines
+              the chapter order.
             </p>
 
-            {favoritesLoading ? (
+            {magazinesLoading ? (
               <div className="flex items-center justify-center py-[var(--space-section)]">
                 <Spinner size="sm" />
               </div>
-            ) : favorites.length === 0 ? (
+            ) : magazines.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-[var(--space-section)] gap-[var(--space-element)]">
                 <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
                 <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] text-center">
-                  No favorites yet. Heart photos in your rolls first.
+                  No magazine designs yet. Create a magazine first, then compile your favorites into
+                  a book.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-1 max-h-[360px] overflow-y-auto rounded-[var(--radius-card)]">
-                {favorites.map((fav) => {
-                  const selIndex = selectedIds.indexOf(fav.photo_id);
+              <div className="flex flex-col gap-[var(--space-element)] max-h-[360px] overflow-y-auto">
+                {magazines.map((mag) => {
+                  const selIndex = selectedMagIds.indexOf(mag.id);
                   const isSelected = selIndex !== -1;
                   return (
                     <button
-                      key={fav.id}
+                      key={mag.id}
                       type="button"
-                      onClick={() => togglePhoto(fav.photo_id)}
-                      className="relative aspect-square overflow-hidden bg-[var(--color-surface-sunken)] group"
+                      onClick={() => toggleMagazine(mag.id)}
+                      className={`flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border-2 transition-colors min-h-[44px] text-left ${
+                        isSelected
+                          ? 'border-[var(--color-action)] bg-[var(--color-surface-raised)]'
+                          : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)]'
+                      }`}
                     >
-                      <img
-                        src={fav.photos.thumbnail_url}
-                        alt=""
-                        loading="lazy"
-                        className={`w-full h-full object-cover transition-transform duration-150 ${isSelected ? 'scale-95' : 'group-hover:scale-[1.02]'}`}
-                      />
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-[var(--color-action)]/15 ring-2 ring-inset ring-[var(--color-action)]" />
-                      )}
+                      {/* Magazine cover thumbnail */}
+                      <div className="w-12 h-16 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0">
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
+                          <BookOpen size={16} className="text-[var(--color-ink-tertiary)]" />
+                        </div>
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-medium truncate">
+                          {mag.title}
+                        </p>
+                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {mag.page_count} pages &middot; {mag.format} &middot;{' '}
+                          {new Date(mag.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
+
+                      {/* Selection indicator */}
                       <div
-                        className={`absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-150 ${
+                        className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
                           isSelected
-                            ? 'bg-[var(--color-action)] scale-100'
-                            : 'bg-black/30 border border-white/50 scale-90 opacity-0 group-hover:opacity-100'
+                            ? 'bg-[var(--color-action)]'
+                            : 'border-2 border-[var(--color-border)]'
                         }`}
                       >
                         {isSelected ? (
@@ -270,7 +288,7 @@ export function CreateBookModal({
                             {selIndex + 1}
                           </span>
                         ) : (
-                          <Check size={12} className="text-white" />
+                          <Check size={12} className="text-[var(--color-ink-tertiary)] opacity-0" />
                         )}
                       </div>
                     </button>
@@ -279,9 +297,10 @@ export function CreateBookModal({
               </div>
             )}
 
-            {selectedIds.length > 0 && (
+            {selectedMagIds.length > 0 && (
               <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                {selectedIds.length} page{selectedIds.length !== 1 ? 's' : ''} selected
+                {selectedMagIds.length} magazine{selectedMagIds.length !== 1 ? 's' : ''} selected
+                &middot; {totalPageCount} total pages
               </p>
             )}
           </div>
@@ -292,17 +311,9 @@ export function CreateBookModal({
           <div className="flex flex-col gap-[var(--space-component)]">
             {/* Cover preview */}
             <div className="relative aspect-[3/4] max-h-48 bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mx-auto w-full max-w-[200px]">
-              {selectedPhotos[0] ? (
-                <img
-                  src={selectedPhotos[0].photos.thumbnail_url}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
-                </div>
-              )}
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
+                <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <div className="absolute bottom-0 inset-x-0 p-3">
                 <p className="font-[family-name:var(--font-display)] font-medium text-white text-[length:var(--text-lead)] leading-tight truncate">
@@ -316,35 +327,36 @@ export function CreateBookModal({
               </div>
             </div>
 
-            {/* Page order */}
+            {/* Magazine order (chapters) */}
             <div className="flex flex-col gap-[var(--space-tight)]">
               <h3 className="text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)]">
-                Page Order
+                Chapter Order
               </h3>
               <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
-                {selectedPhotos.map((fav, i) => (
+                {selectedMagazines.map((mag, i) => (
                   <div
-                    key={fav.photo_id}
+                    key={mag.id}
                     className="flex items-center gap-[var(--space-element)] p-1.5 bg-[var(--color-surface-raised)] rounded-[var(--radius-sharp)]"
                   >
                     <GripVertical
                       size={14}
                       className="text-[var(--color-ink-tertiary)] flex-shrink-0"
                     />
-                    <div className="w-10 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0">
-                      <img
-                        src={fav.photos.thumbnail_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="w-8 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0 bg-[var(--color-surface-sunken)] flex items-center justify-center">
+                      <BookOpen size={12} className="text-[var(--color-ink-tertiary)]" />
                     </div>
-                    <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] flex-1">
-                      Page {i + 1}
-                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[length:var(--text-caption)] text-[var(--color-ink)] font-medium truncate">
+                        {mag.title}
+                      </p>
+                      <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                        {mag.page_count} pages
+                      </p>
+                    </div>
                     <div className="flex items-center gap-0.5">
                       <button
                         type="button"
-                        onClick={() => movePhoto(i, 'up')}
+                        onClick={() => moveMagazine(i, 'up')}
                         disabled={i === 0}
                         className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
@@ -352,8 +364,8 @@ export function CreateBookModal({
                       </button>
                       <button
                         type="button"
-                        onClick={() => movePhoto(i, 'down')}
-                        disabled={i === selectedPhotos.length - 1}
+                        onClick={() => moveMagazine(i, 'down')}
+                        disabled={i === selectedMagazines.length - 1}
                         className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <ChevronRight size={14} className="rotate-90" />
@@ -361,7 +373,7 @@ export function CreateBookModal({
                       <button
                         type="button"
                         onClick={() =>
-                          setSelectedIds((prev) => prev.filter((id) => id !== fav.photo_id))
+                          setSelectedMagIds((prev) => prev.filter((id) => id !== mag.id))
                         }
                         className="p-1 text-[var(--color-ink-tertiary)] hover:text-[var(--color-error)]"
                       >
@@ -374,8 +386,8 @@ export function CreateBookModal({
             </div>
 
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              {selectedIds.length} page{selectedIds.length !== 1 ? 's' : ''}. You can add captions
-              and reorder pages after creation.
+              {selectedMagIds.length} magazine{selectedMagIds.length !== 1 ? 's' : ''} &middot;{' '}
+              {totalPageCount} total pages. Each magazine becomes a chapter in your book.
             </p>
           </div>
         )}
@@ -388,7 +400,13 @@ export function CreateBookModal({
                 variant="ghost"
                 size="sm"
                 onClick={() =>
-                  setStep(step === 'review' ? 'photos' : step === 'photos' ? 'details' : 'template')
+                  setStep(
+                    step === 'review'
+                      ? 'magazines'
+                      : step === 'magazines'
+                        ? 'details'
+                        : 'template'
+                  )
                 }
               >
                 <ChevronLeft size={16} className="mr-0.5" />
@@ -412,19 +430,19 @@ export function CreateBookModal({
               </Button>
             )}
             {step === 'details' && (
-              <Button variant="primary" size="sm" onClick={() => setStep('photos')}>
-                Select Photos
+              <Button variant="primary" size="sm" onClick={() => setStep('magazines')}>
+                Select Magazines
                 <ChevronRight size={16} className="ml-0.5" />
               </Button>
             )}
-            {step === 'photos' && (
+            {step === 'magazines' && (
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => setStep('review')}
-                disabled={selectedIds.length === 0}
+                disabled={selectedMagIds.length === 0}
               >
-                Review ({selectedIds.length})
+                Review ({selectedMagIds.length})
                 <ChevronRight size={16} className="ml-0.5" />
               </Button>
             )}
@@ -434,7 +452,7 @@ export function CreateBookModal({
                 size="sm"
                 onClick={handleCreate}
                 isLoading={creating}
-                disabled={selectedIds.length === 0}
+                disabled={selectedMagIds.length === 0}
               >
                 Create Book
               </Button>
