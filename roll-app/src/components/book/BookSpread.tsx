@@ -3,6 +3,7 @@
 import { BookOpen, ChevronUp, ChevronDown, Trash2, Maximize2 } from 'lucide-react';
 import { CaptionEditor } from './CaptionEditor';
 import type { BookPage } from '@/types/book';
+import { getGridCSS, getLayoutConfig } from '@/lib/layout/page-templates';
 
 interface BookSpreadProps {
   leftPage: BookPage | null;
@@ -129,22 +130,157 @@ function SpreadPage({
     );
   }
 
+  // ── Special page types (cover, toc, title, back-cover) ──
+  if (page.type === 'book-cover') {
+    return (
+      <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-raised)] overflow-hidden">
+        {page.coverPhotoId && page.thumbnailUrl ? (
+          <img
+            src={page.thumbnailUrl}
+            alt={page.title ?? 'Cover'}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 p-[8%]">
+          <h1 className="font-[family-name:var(--font-display)] font-semibold text-white text-[length:var(--text-display)] leading-tight">
+            {page.title}
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (page.type === 'toc') {
+    return (
+      <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-raised)] flex flex-col justify-center" style={{ padding: '12% 10%' }}>
+        <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] mb-[var(--space-component)] tracking-tight">
+          Contents
+        </h2>
+        {page.tocEntries && page.tocEntries.length > 0 && (
+          <div className="flex flex-col gap-[var(--space-element)]">
+            {page.tocEntries.map((entry, i) => (
+              <div key={i} className="flex items-baseline gap-[var(--space-tight)]">
+                <span className="font-[family-name:var(--font-body)] text-[length:var(--text-small)] text-[var(--color-ink)]">
+                  {entry.title}
+                </span>
+                <span className="flex-1 border-b border-dotted border-[var(--color-border)]" />
+                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  {entry.startPage}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (page.type === 'magazine-title') {
+    return (
+      <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-raised)] flex flex-col items-center justify-center gap-[var(--space-element)]" style={{ padding: '15%' }}>
+        <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] text-center tracking-tight">
+          {page.title}
+        </h2>
+        {page.dateRange && (
+          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+            {page.dateRange}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (page.type === 'back-cover') {
+    return (
+      <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] flex items-center justify-center">
+        <BookOpen size={32} className="text-[var(--color-ink-tertiary)] opacity-30" />
+      </div>
+    );
+  }
+
+  // ── Magazine content pages with smart layout ──
+  if (page.type === 'magazine-content' && page.photos && page.photos.length > 0) {
+    const layout = page.layout ?? 'full_bleed';
+    const layoutConfig = getLayoutConfig(layout);
+    const gridCSS = getGridCSS(layout);
+    const useContain = layoutConfig.preserveAspectRatio !== false;
+    const objectFit = layoutConfig.objectFit ?? (useContain ? 'contain' : 'cover');
+
+    return (
+      <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-raised)] overflow-hidden group">
+        <div
+          className="w-full h-full grid"
+          style={{
+            gridTemplateRows: gridCSS.gridTemplateRows,
+            gridTemplateColumns: gridCSS.gridTemplateColumns,
+            gap: useContain ? '2px' : '1px',
+            padding: layoutConfig.innerPadding ?? (useContain ? '2%' : '0'),
+          }}
+        >
+          {page.photos.map((photo, i) => (
+            <div
+              key={`${photo.id}-${i}`}
+              className="overflow-hidden flex items-center justify-center"
+              style={{ backgroundColor: useContain ? 'var(--color-surface-raised)' : 'var(--color-surface-sunken)' }}
+            >
+              {/* For assembled pages, thumbnailUrl is on the page itself */}
+              <div className={`${objectFit === 'contain' ? 'max-w-full max-h-full' : 'w-full h-full'} bg-[var(--color-surface-sunken)] flex items-center justify-center`}>
+                <span className="text-[9px] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
+                  {photo.id.slice(0, 8)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Caption */}
+        {page.caption && layoutConfig.hasCaption && (
+          <div className="absolute bottom-0 inset-x-0 p-[5%_8%] bg-gradient-to-t from-[var(--color-surface-raised)] to-transparent">
+            <p className="font-[family-name:var(--font-display)] text-[var(--color-ink-secondary)] text-[length:var(--text-caption)] leading-relaxed italic text-center">
+              {page.caption}
+            </p>
+          </div>
+        )}
+
+        {/* Page number */}
+        <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 font-[family-name:var(--font-mono)] text-[10px] text-[var(--color-ink-tertiary)] opacity-60 px-2 py-0.5">
+          {pageIndex + 1}
+        </span>
+      </div>
+    );
+  }
+
+  // ── Legacy single-photo pages (backward compatibility) ──
   return (
-    <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] overflow-hidden group">
-      {/* Photo */}
-      <img
-        src={page.thumbnailUrl ?? ''}
-        alt={`Page ${pageIndex + 1}`}
-        className="w-full h-full object-cover"
-      />
+    <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-raised)] overflow-hidden group">
+      {/* Photo — use contain to preserve aspect ratio */}
+      {page.thumbnailUrl ? (
+        <div className="w-full h-full flex items-center justify-center p-[5%]">
+          <img
+            src={page.thumbnailUrl}
+            alt={`Page ${pageIndex + 1}`}
+            className="max-w-full max-h-full object-contain"
+            style={
+              page.width && page.height
+                ? { aspectRatio: `${page.width}/${page.height}` }
+                : undefined
+            }
+          />
+        </div>
+      ) : (
+        <div className="w-full h-full bg-[var(--color-surface-sunken)]" />
+      )}
 
       {/* Page number badge */}
-      <span className="absolute bottom-2 left-1/2 -translate-x-1/2 font-[family-name:var(--font-mono)] text-[10px] text-white/70 bg-black/30 px-2 py-0.5 rounded-[var(--radius-pill)]">
+      <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 font-[family-name:var(--font-mono)] text-[10px] text-[var(--color-ink-tertiary)] opacity-60 px-2 py-0.5">
         {pageIndex + 1}
       </span>
 
       {/* Hover actions */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200">
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200">
         {/* Fullscreen button */}
         {onPhotoTap && (
           <button
