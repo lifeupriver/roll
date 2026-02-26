@@ -14,7 +14,7 @@ export async function POST() {
     }
 
     // 1. Fetch 36 oldest unassigned favorites
-    const { data: favorites, error: favError } = await supabase
+    const { data: rawFavorites, error: favError } = await supabase
       .from('favorites')
       .select('id, photo_id')
       .eq('user_id', user.id)
@@ -26,12 +26,14 @@ export async function POST() {
       return NextResponse.json({ error: favError.message }, { status: 500 });
     }
 
-    if (!favorites || favorites.length < 36) {
+    if (!rawFavorites || rawFavorites.length < 36) {
       return NextResponse.json(
         { error: 'Not enough unassigned favorites. Need at least 36.' },
         { status: 400 }
       );
     }
+
+    const favorites = rawFavorites as { id: string; photo_id: string }[];
 
     // 2. Create new roll
     const { data: roll, error: rollError } = await supabase
