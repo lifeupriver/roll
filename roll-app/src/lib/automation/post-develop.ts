@@ -41,6 +41,10 @@ export async function runPostDevelopAutomations(
     tasks.push(autoNotifyFollowers(ctx, result));
   }
 
+  if (settings.autoCreateReel) {
+    tasks.push(autoCreateReel(ctx, settings, result));
+  }
+
   await Promise.allSettled(tasks);
 
   return result;
@@ -170,6 +174,94 @@ async function autoOrderPrints(
 }
 
 // ─── Auto-Notify Followers ───────────────────────────────────────────────────
+
+// ─── Auto-Create Reel ────────────────────────────────────────────────────────
+
+async function autoCreateReel(
+  ctx: AutomationContext,
+  settings: AutomationSettings,
+  result: AutomationResult
+): Promise<void> {
+  try {
+    ctx.onStatus('Creating reel from videos...');
+
+    // Create reel
+    const createRes = await fetch('/api/reels', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: ctx.rollName ? `${ctx.rollName} Reel` : null,
+        reelSize: 'short',
+      }),
+    });
+
+    if (!createRes.ok) {
+      const err = await createRes.json().catch(() => ({}));
+      result.errors.push(`Reel: ${err.error || 'Failed to create'}`);
+      return;
+    }
+
+    const { data: reel } = await createRes.json();
+
+    // Set orientation
+    if (settings.autoReelOrientation) {
+      await fetch(`/api/reels/${reel.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orientation: settings.autoReelOrientation }),
+      }).catch(() => {});
+    }
+
+    // Fetch the roll's photos to find videos
+    const photosRes = await fetch(`/api/rolls/${ctx.rollId}/photos`);
+    if (!photosRes.ok) {
+      result.errors.push('Reel: Failed to load roll media');
+      return;
+    }
+
+    const photosJson = await photosRes.json();
+    const rollItems = photosJson.data ?? [];
+
+    // Filter for video clips
+    const videoClips = rollItems.filter((rp: Record<string, unknown>) => {
+      const photo = rp.photos as Record<string, unknown> | undefined;
+      return photo?.media_type === 'video' || rp.media_type === 'video';
+    });
+
+    if (videoClips.length < 3) {
+      result.errors.push('Reel: Not enough video clips (need at least 3)');
+      return;
+    }
+
+    // Add clips to reel
+    let addedCount = 0;
+    for (const vc of videoClips.slice(0, 20)) {
+      const photoId = vc.photo_id || vc.id;
+      const photo = vc.photos as Record<string, unknown> | undefined;
+      const durationMs = (photo?.duration_ms || vc.duration_ms || 5000) as number;
+
+      const addRes = await fetch(`/api/reels/${reel.id}/clips`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          photoId,
+          trimStartMs: 0,
+          trimEndMs: Math.min(durationMs, 5000), // Default 5s per clip
+        }),
+      });
+
+      if (addRes.ok) addedCount++;
+    }
+
+    if (addedCount >= 3) {
+      result.automationsRun.push('reel');
+    } else {
+      result.errors.push(`Reel: Only added ${addedCount} clips (need at least 3)`);
+    }
+  } catch {
+    result.errors.push('Reel: Network error');
+  }
+}
 
 async function autoNotifyFollowers(
   ctx: AutomationContext,

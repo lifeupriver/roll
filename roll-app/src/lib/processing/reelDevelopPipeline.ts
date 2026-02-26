@@ -8,8 +8,15 @@ import {
 } from '@/lib/storage/r2';
 import { correctVideo } from '@/lib/correction';
 import { captureError } from '@/lib/sentry';
-import type { AudioMood, ReelClip } from '@/types/reel';
+import type { AudioMood, ReelClip, ReelOrientation } from '@/types/reel';
 import type { FilmProfileId } from '@/types/roll';
+
+// ─── Orientation Constants ───────────────────────────────────────────────────
+
+const ORIENTATION_SPECS: Record<ReelOrientation, { width: number; height: number; scale: string }> = {
+  horizontal: { width: 1920, height: 1080, scale: '1920:1080' },
+  vertical: { width: 1080, height: 1920, scale: '1080:1920' },
+};
 
 /**
  * Build FFmpeg filter string for per-clip processing.
@@ -48,35 +55,52 @@ export function buildClipFilterChain(profile: FilmProfileConfig): string {
 export function buildAssemblyCommand(
   clipPaths: string[],
   outputPath: string,
-  _audioMood: AudioMood
+  _audioMood: AudioMood,
+  orientation: ReelOrientation = 'horizontal',
+  clipAudioEnabled?: boolean[]
 ): string[] {
   const inputs: string[] = [];
   const filterParts: string[] = [];
+  const spec = ORIENTATION_SPECS[orientation];
 
   for (let i = 0; i < clipPaths.length; i++) {
     inputs.push('-i', clipPaths[i]);
   }
 
+  // Per-clip audio: mute clips where audio_enabled is false
+  for (let i = 0; i < clipPaths.length; i++) {
+    const audioEnabled = clipAudioEnabled?.[i] !== false;
+    // Scale + pad each clip to target orientation
+    filterParts.push(
+      `[${i}:v]scale=${spec.scale}:force_original_aspect_ratio=decrease,pad=${spec.width}:${spec.height}:(ow-iw)/2:(oh-ih)/2[sv${i}]`
+    );
+    if (audioEnabled) {
+      filterParts.push(`[${i}:a]anull[sa${i}]`);
+    } else {
+      // Generate silent audio for muted clips
+      filterParts.push(`anullsrc=r=48000:cl=stereo[sa${i}]`);
+    }
+  }
+
   if (clipPaths.length === 1) {
-    // Single clip, no transitions needed
-    filterParts.push('[0:v]copy[vout]');
-    filterParts.push('[0:a]anull[aout]');
+    filterParts.push('[sv0]copy[vout]');
+    filterParts.push('[sa0]anull[aout]');
   } else {
     // Build xfade chain for video
-    let prevLabel = '0:v';
+    let prevLabel = 'sv0';
     for (let i = 1; i < clipPaths.length; i++) {
       const outLabel = i === clipPaths.length - 1 ? 'vout' : `v${i}`;
       filterParts.push(
-        `[${prevLabel}][${i}:v]xfade=transition=fade:duration=0.5:offset=OFFSET_${i}[${outLabel}]`
+        `[${prevLabel}][sv${i}]xfade=transition=fade:duration=0.5:offset=OFFSET_${i}[${outLabel}]`
       );
       prevLabel = outLabel;
     }
 
     // Build acrossfade chain for audio
-    let prevAudioLabel = '0:a';
+    let prevAudioLabel = 'sa0';
     for (let i = 1; i < clipPaths.length; i++) {
       const outLabel = i === clipPaths.length - 1 ? 'aout' : `a${i}`;
-      filterParts.push(`[${prevAudioLabel}][${i}:a]acrossfade=d=0.5[${outLabel}]`);
+      filterParts.push(`[${prevAudioLabel}][sa${i}]acrossfade=d=0.5[${outLabel}]`);
       prevAudioLabel = outLabel;
     }
   }

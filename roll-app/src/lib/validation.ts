@@ -155,6 +155,9 @@ export const updateReelSchema = z
     film_profile: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']).optional(),
     audio_mood: z.enum(['original', 'quiet_film', 'silent_film', 'ambient']).optional(),
     default_clip_length_s: z.number().int().min(1).max(30).optional(),
+    orientation: z.enum(['horizontal', 'vertical']).optional(),
+    ambient_audio: z.boolean().optional(),
+    transcribe_audio: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
@@ -172,6 +175,7 @@ export const updateReelClipSchema = z
     trimEndMs: z.number().int().positive().nullable().optional(),
     position: z.number().int().positive().optional(),
     transitionType: z.enum(['crossfade', 'cut', 'dip_to_black']).optional(),
+    audioEnabled: z.boolean().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field is required',

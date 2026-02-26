@@ -719,6 +719,55 @@ export default function AccountPage() {
             )}
           </div>
 
+          {/* Auto-create reel */}
+          <div className="flex flex-col gap-[var(--space-tight)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Zap size={16} className="text-[var(--color-ink-secondary)] shrink-0" />
+                <div>
+                  <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">
+                    Create a reel
+                  </span>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Auto-assemble video clips into a reel
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => updateAutomation({ autoCreateReel: !automation.autoCreateReel })}
+                role="switch"
+                aria-checked={automation.autoCreateReel}
+                className={`relative w-11 h-6 rounded-full transition-colors ${automation.autoCreateReel ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
+              >
+                <div
+                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${automation.autoCreateReel ? 'translate-x-[22px]' : 'translate-x-0.5'}`}
+                />
+              </button>
+            </div>
+            {automation.autoCreateReel && (
+              <div className="ml-8 flex items-center gap-[var(--space-element)]">
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">Output:</span>
+                <div className="flex items-center gap-[var(--space-tight)]">
+                  {(['horizontal', 'vertical'] as const).map((o) => (
+                    <button
+                      key={o}
+                      type="button"
+                      onClick={() => updateAutomation({ autoReelOrientation: o })}
+                      className={`px-2 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                        automation.autoReelOrientation === o
+                          ? 'bg-[var(--color-action)] text-white'
+                          : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-tertiary)]'
+                      }`}
+                    >
+                      {o === 'horizontal' ? '16:9 Landscape' : '9:16 Portrait'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Auto-notify followers */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-[var(--space-element)]">
@@ -747,7 +796,7 @@ export default function AccountPage() {
         </div>
 
         {/* Active automations summary */}
-        {(automation.autoDesignMagazine || automation.autoPostToCircle || automation.autoOrderPrints || automation.autoNotifyFollowers) && (
+        {(automation.autoDesignMagazine || automation.autoPostToCircle || automation.autoOrderPrints || automation.autoCreateReel || automation.autoNotifyFollowers) && (
           <div className="mt-[var(--space-component)] pt-[var(--space-element)] border-t border-[var(--color-border)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
               When a roll is developed:{' '}
@@ -755,6 +804,7 @@ export default function AccountPage() {
                 automation.autoDesignMagazine && 'magazine will be designed',
                 automation.autoPostToCircle && automation.autoPostCircleId && 'photos will be shared to your circle',
                 automation.autoOrderPrints && `${automation.autoOrderPrintSize} prints will be ordered`,
+                automation.autoCreateReel && `a ${automation.autoReelOrientation === 'vertical' ? '9:16' : '16:9'} reel will be assembled`,
                 automation.autoNotifyFollowers && 'a blog post will be published',
               ].filter(Boolean).join(', ')}.
             </p>

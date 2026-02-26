@@ -1,4 +1,5 @@
 import type { FilmProfileId } from '@/types/roll';
+import type { ReelOrientation } from '@/types/reel';
 
 // ─── Automation Settings ─────────────────────────────────────────────────────
 // Stored in localStorage, these settings control what happens automatically
@@ -12,6 +13,8 @@ export interface AutomationSettings {
   autoOrderPrints: boolean;
   autoOrderPrintSize: '3x5' | '4x6' | '5x7' | '8x10';
   autoNotifyFollowers: boolean;
+  autoCreateReel: boolean;
+  autoReelOrientation: ReelOrientation;
 
   // Default development preferences
   defaultFilmProfile: FilmProfileId;
@@ -25,6 +28,8 @@ export const DEFAULT_AUTOMATION: AutomationSettings = {
   autoOrderPrints: false,
   autoOrderPrintSize: '4x6',
   autoNotifyFollowers: false,
+  autoCreateReel: false,
+  autoReelOrientation: 'horizontal',
   defaultFilmProfile: 'warmth',
   defaultProcessMode: 'color',
 };
