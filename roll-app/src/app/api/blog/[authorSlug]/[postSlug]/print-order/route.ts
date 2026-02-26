@@ -59,6 +59,22 @@ export async function POST(
       return NextResponse.json({ error: 'Shipping address is required' }, { status: 400 });
     }
 
+    // Validate photoIds belong to this post's roll
+    const { data: validPhotos, error: validationError } = await serviceSupabase
+      .from('roll_photos')
+      .select('photo_id')
+      .eq('roll_id', post.roll_id)
+      .in('photo_id', photoIds);
+
+    if (validationError) {
+      return NextResponse.json({ error: validationError.message }, { status: 500 });
+    }
+
+    const validIds = new Set((validPhotos ?? []).map((rp: { photo_id: string }) => rp.photo_id));
+    if (validIds.size !== photoIds.length) {
+      return NextResponse.json({ error: 'Invalid photo selection' }, { status: 400 });
+    }
+
     // Create print order
     const { data: order, error: orderError } = await serviceSupabase
       .from('print_orders')
