@@ -3,11 +3,16 @@ import { requireAdmin } from '@/lib/admin/middleware';
 import { runAnalysis } from '@/lib/admin/ai/analyzer';
 import { logAdminAction } from '@/lib/admin/audit';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockAnalysisResponse } from '@/lib/admin/mock-data';
 
 export async function POST(request: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      return NextResponse.json(getMockAnalysisResponse());
+    }
 
     const body = await request.json();
     const type = body.type || 'on_demand';

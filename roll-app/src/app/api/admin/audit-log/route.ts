@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/middleware';
 import { getServiceClient } from '@/lib/admin/service';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockAuditLogResponse } from '@/lib/admin/mock-data';
 
 export async function GET(request: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    if (isAdminPreviewMode()) {
+      const { searchParams } = new URL(request.url);
+      return NextResponse.json(
+        getMockAuditLogResponse({
+          page: parseInt(searchParams.get('page') || '1'),
+          action: searchParams.get('action') || '',
+        })
+      );
+    }
 
     const db = getServiceClient();
     const { searchParams } = new URL(request.url);

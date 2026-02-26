@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { getServiceClient } from './service';
+import { isAdminPreviewMode } from './mock-data';
 
 export interface AdminUser {
   id: string;
@@ -12,10 +13,15 @@ export interface AdminUser {
  * Checks that the current session belongs to an admin user.
  * Returns the admin user if authorized, null otherwise.
  *
- * Uses the session cookie to identify the user, then verifies
- * their role via the service client (bypasses RLS).
+ * In preview mode, returns a mock admin user so the dashboard
+ * is accessible without a real database.
  */
 export async function requireAdmin(): Promise<AdminUser | null> {
+  // Preview mode: return mock admin
+  if (isAdminPreviewMode()) {
+    return { id: 'preview-admin-id', email: 'admin@roll.photos', role: 'admin' };
+  }
+
   try {
     const cookieStore = await cookies();
 
@@ -40,7 +46,10 @@ export async function requireAdmin(): Promise<AdminUser | null> {
       }
     );
 
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error || !user) return null;
 
     // Check admin role via service client (bypasses RLS)

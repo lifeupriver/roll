@@ -2,43 +2,41 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin/middleware';
 import { getServiceClient } from '@/lib/admin/service';
 import { captureError } from '@/lib/sentry';
+import { isAdminPreviewMode, getMockPhotosResponse } from '@/lib/admin/mock-data';
 
 export async function GET() {
   try {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+    if (isAdminPreviewMode()) {
+      return NextResponse.json(getMockPhotosResponse());
+    }
+
     const db = getServiceClient();
 
-    const [
-      totalRes,
-      filterStatusRes,
-      filterReasonRes,
-      cameraRes,
-      sceneRes,
-      aestheticRes,
-    ] = await Promise.all([
-      db.from('photos').select('id', { count: 'exact', head: true }),
+    const [totalRes, filterStatusRes, filterReasonRes, cameraRes, sceneRes, aestheticRes] =
+      await Promise.all([
+        db.from('photos').select('id', { count: 'exact', head: true }),
 
-      db.from('photos').select('filter_status'),
+        db.from('photos').select('filter_status'),
 
-      db.from('photos').select('filter_reason').not('filter_reason', 'is', null),
+        db.from('photos').select('filter_reason').not('filter_reason', 'is', null),
 
-      db.from('photos')
-        .select('camera_make, camera_model')
-        .not('camera_make', 'is', null)
-        .limit(5000),
+        db
+          .from('photos')
+          .select('camera_make, camera_model')
+          .not('camera_make', 'is', null)
+          .limit(5000),
 
-      db.from('photos')
-        .select('scene_classification')
-        .not('scene_classification', 'eq', '{}')
-        .limit(5000),
+        db
+          .from('photos')
+          .select('scene_classification')
+          .not('scene_classification', 'eq', '{}')
+          .limit(5000),
 
-      db.from('photos')
-        .select('aesthetic_score')
-        .not('aesthetic_score', 'is', null)
-        .limit(5000),
-    ]);
+        db.from('photos').select('aesthetic_score').not('aesthetic_score', 'is', null).limit(5000),
+      ]);
 
     // Filter status breakdown
     const statusBreakdown: Record<string, number> = {};
@@ -102,8 +100,7 @@ export async function GET() {
       cameras: Object.entries(cameraBreakdown)
         .sort(([, a], [, b]) => b - a)
         .slice(0, 15),
-      scenes: Object.entries(sceneBreakdown)
-        .sort(([, a], [, b]) => b - a),
+      scenes: Object.entries(sceneBreakdown).sort(([, a], [, b]) => b - a),
       aestheticDistribution: aestheticBuckets,
       avgAestheticScore: aestheticCount > 0 ? aestheticSum / aestheticCount : 0,
     });
