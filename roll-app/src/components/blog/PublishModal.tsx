@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Globe, Tag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Globe, Tag, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
@@ -31,6 +32,7 @@ export function PublishModal({
   rollStory,
   rollPhotos,
 }: PublishModalProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(false);
@@ -331,6 +333,33 @@ export function PublishModal({
                   </span>
                 </label>
               ))}
+            </div>
+
+            {/* Design as essay */}
+            <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-element)] border border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <Wand2 size={16} className="text-[var(--color-action)]" />
+                  <div>
+                    <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)]">
+                      Design as Photo Essay
+                    </p>
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                      Auto-design a beautiful essay with editorial rhythm and typography
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    onClose();
+                    router.push('/projects/posts/create');
+                  }}
+                >
+                  Design
+                </Button>
+              </div>
             </div>
 
             {/* Actions */}

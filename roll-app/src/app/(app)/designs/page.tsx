@@ -140,7 +140,7 @@ export default function DesignsPage() {
         }
         if (postsRes.ok) {
           const json = await postsRes.json();
-          setPosts((json.data ?? []).filter((p: BlogPost) => p.status === 'published'));
+          setPosts((json.data ?? []).filter((p: BlogPost) => p.status === 'published' || p.status === 'draft'));
         }
       } catch {
         toast('Failed to load designs', 'error');
@@ -201,6 +201,15 @@ export default function DesignsPage() {
             <Button variant="primary" size="sm" onClick={() => setShowCreateBook(true)}>
               <Plus size={16} className="mr-1" />
               New Book
+            </Button>
+          ) : activeSection === 'posts' ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => router.push('/projects/posts/create')}
+            >
+              <Plus size={16} className="mr-1" />
+              New Essay
             </Button>
           ) : null}
         </div>
@@ -312,31 +321,49 @@ export default function DesignsPage() {
         </>
       )}
 
-      {/* Published Posts tab */}
+      {/* Posts tab */}
       {!loading && activeSection === 'posts' && (
         <>
           {posts.length === 0 ? (
             <Empty
               icon={Globe}
-              title="No published posts yet"
-              description="Publish a roll from the roll detail page to see it here."
+              title="No photo essays yet"
+              description="Design a beautiful photo essay — auto-designed from your developed rolls."
+              action={
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => router.push('/projects/posts/create')}
+                >
+                  Create Photo Essay
+                </Button>
+              }
             />
           ) : (
             <div className="flex flex-col gap-[var(--space-element)]">
               {posts.map((post) => (
-                <div
+                <button
                   key={post.id}
-                  className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)]"
+                  type="button"
+                  onClick={() => router.push(`/projects/posts/${post.id}`)}
+                  className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-focus)] transition-colors text-left w-full"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-[var(--space-tight)] mb-[var(--space-micro)]">
                       <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-medium truncate">
                         {post.title}
                       </p>
-                      <Badge variant="developed">published</Badge>
+                      <Badge variant={post.status === 'published' ? 'developed' : 'default'}>
+                        {post.status}
+                      </Badge>
+                      {post.essay_template && (
+                        <span className="text-[10px] font-[family-name:var(--font-mono)] text-[var(--color-ink-tertiary)] uppercase tracking-wider">
+                          {post.essay_template}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-[var(--space-element)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                      <span>{formatDate(post.published_at || post.created_at)}</span>
+                      <span>{formatDate(post.updated_at || post.created_at)}</span>
                       {post.view_count > 0 && (
                         <span className="flex items-center gap-1">
                           <Eye size={12} /> {post.view_count}
@@ -347,15 +374,16 @@ export default function DesignsPage() {
                       )}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[var(--color-ink-tertiary)] hover:text-[var(--color-action)] transition-colors"
-                    title="View post"
-                  >
-                    <ExternalLink size={16} />
-                  </button>
-                </div>
+                  {post.status === 'published' && (
+                    <span
+                      onClick={(e) => { e.stopPropagation(); window.open(`/blog/${post.slug}`, '_blank'); }}
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[var(--color-ink-tertiary)] hover:text-[var(--color-action)] transition-colors"
+                      title="View public post"
+                    >
+                      <ExternalLink size={16} />
+                    </span>
+                  )}
+                </button>
               ))}
             </div>
           )}

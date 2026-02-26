@@ -10,6 +10,7 @@ const updateBlogPostSchema = z
     title: z.string().trim().min(1).max(200).optional(),
     slug: z.string().trim().min(1).max(100).optional(),
     excerpt: z.string().max(500).nullable().optional(),
+    story: z.string().max(10000).nullable().optional(),
     status: z.enum(['draft', 'published', 'archived']).optional(),
     seo_title: z.string().max(200).nullable().optional(),
     seo_description: z.string().max(300).nullable().optional(),
@@ -18,6 +19,10 @@ const updateBlogPostSchema = z
     allow_print_orders: z.boolean().optional(),
     allow_magazine_orders: z.boolean().optional(),
     allow_book_orders: z.boolean().optional(),
+    essay_template: z.enum(['documentary', 'travel', 'portrait', 'editorial', 'minimal', 'narrative']).nullable().optional(),
+    essay_font: z.enum(['default', 'garamond', 'futura', 'playfair', 'lora', 'jakarta']).nullable().optional(),
+    essay_blocks: z.string().max(100000).nullable().optional(),
+    roll_ids: z.array(z.string().uuid()).max(6).optional(),
   })
   .refine((data: Record<string, unknown>) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
