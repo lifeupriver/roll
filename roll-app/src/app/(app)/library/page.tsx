@@ -299,7 +299,7 @@ export default function GalleryPage() {
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 mt-1 text-[length:var(--text-caption)] font-medium text-[var(--color-action)] hover:underline"
                     >
-                      <Printer size={12} /> Order Prints or Magazine
+                      <Printer size={12} /> Print this roll
                     </Link>
                   </button>
                 ))}

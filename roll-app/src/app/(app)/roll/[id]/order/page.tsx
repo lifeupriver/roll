@@ -216,7 +216,7 @@ export default function OrderPrintsPage() {
       <div className="flex items-center gap-[var(--space-element)]">
         <BackButton onClick={handleBack} />
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
-          Order This Roll
+          Print This Roll
         </h1>
       </div>
 
