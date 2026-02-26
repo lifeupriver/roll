@@ -66,15 +66,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
-    // Check if already favorited
-    const { data: existing, error: existingError } = await supabase
+    // Check if already favorited (use maybeSingle to avoid PGRST116 error on 0 rows)
+    const { data: existing } = await supabase
       .from('favorites')
       .select('*')
       .eq('user_id', user.id)
       .eq('photo_id', photoId)
-      .single();
+      .maybeSingle();
 
-    if (existing && !existingError) {
+    if (existing) {
       return NextResponse.json({ data: existing as Favorite }, { status: 201 });
     }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -59,6 +59,7 @@ export default function RollDetailPage() {
 
   // Favorites tracking
   const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
+  const heartInFlight = useRef<Set<string>>(new Set());
 
   // Inline name editing (caption for the roll)
   const [isEditingName, setIsEditingName] = useState(false);
@@ -312,6 +313,11 @@ export default function RollDetailPage() {
   // ------------------------------------------------------------------
   const handleHeartToggle = useCallback(
     async (photoId: string, hearted: boolean) => {
+      // Prevent concurrent requests for the same photo (race-condition guard)
+      if (heartInFlight.current.has(photoId)) return;
+      heartInFlight.current.add(photoId);
+
+      // Optimistic UI update
       setFavoritedIds((prev) => {
         const next = new Set(prev);
         if (hearted) next.add(photoId);
@@ -326,14 +332,21 @@ export default function RollDetailPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ photoId, rollId }),
           });
-          if (!res.ok) throw new Error('Failed to favorite');
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.error || 'Failed to favorite');
+          }
         } else {
           const res = await fetch(`/api/favorites/${photoId}`, {
             method: 'DELETE',
           });
-          if (!res.ok) throw new Error('Failed to unfavorite');
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.error || 'Failed to unfavorite');
+          }
         }
       } catch {
+        // Revert optimistic update on error
         setFavoritedIds((prev) => {
           const next = new Set(prev);
           if (hearted) next.delete(photoId);
@@ -341,6 +354,8 @@ export default function RollDetailPage() {
           return next;
         });
         toast('Failed to update favorite', 'error');
+      } finally {
+        heartInFlight.current.delete(photoId);
       }
     },
     [rollId, toast]
