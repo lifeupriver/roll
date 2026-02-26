@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Film, Play, Wand2, Printer } from 'lucide-react';
+import { Image, Film, Play, Wand2, Printer, ChevronRight } from 'lucide-react';
 import { ContentModePills } from '@/components/photo/ContentModePills';
+import { Badge } from '@/components/ui/Badge';
 import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import type { Roll } from '@/types/roll';
-import type { Reel } from '@/types/reel';
+import type { Reel, ReelClip } from '@/types/reel';
 
 type GallerySection = 'rolls' | 'reels';
 
@@ -33,6 +34,20 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function formatDuration(ms: number): string {
+  const totalSeconds = Math.round(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+const REEL_STATUS_BADGE: Record<string, 'developed' | 'processing' | 'action' | 'info'> = {
+  ready: 'action',
+  processing: 'processing',
+  developed: 'developed',
+  building: 'info',
+};
+
 export default function GalleryPage() {
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<GallerySection>('rolls');
@@ -44,6 +59,7 @@ export default function GalleryPage() {
   const [rollCovers, setRollCovers] = useState<Map<string, string>>(new Map());
   const [showArchived, setShowArchived] = useState(false);
   const [gridColumns, setGridColumns] = useState(3);
+  const [currentReelClips, setCurrentReelClips] = useState<Array<{ id: string; photo_id: string; thumbnail_url?: string }>>([]);
 
   // Fetch rolls
   useEffect(() => {
@@ -100,7 +116,31 @@ export default function GalleryPage() {
         const res = await fetch('/api/reels');
         if (!res.ok) throw new Error('Failed to load reels');
         const json = await res.json();
-        setReels(json.data ?? []);
+        const fetchedReels: Reel[] = json.data ?? [];
+        setReels(fetchedReels);
+
+        // Load clip thumbnails for the current (building/ready) reel
+        const buildingReel = fetchedReels.find(
+          (r) => r.status === 'building' || r.status === 'ready'
+        );
+        if (buildingReel) {
+          try {
+            const reelRes = await fetch(`/api/reels/${buildingReel.id}`);
+            if (reelRes.ok) {
+              const reelData = await reelRes.json();
+              const clips = reelData.data?.clips ?? [];
+              setCurrentReelClips(
+                clips.map((c: { id: string; photo_id: string; photos?: { thumbnail_url?: string } }) => ({
+                  id: c.id,
+                  photo_id: c.photo_id,
+                  thumbnail_url: c.photos?.thumbnail_url,
+                }))
+              );
+            }
+          } catch {
+            // Non-critical
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load reels');
       } finally {
@@ -331,44 +371,33 @@ export default function GalleryPage() {
             />
           )}
 
-          {/* Current reel — in-progress reel with clip count */}
+          {/* Current Reel — card with clip thumbnails + progress */}
           {!reelsLoading && !error && (() => {
             const currentReel = activeReels.find((r) => r.status === 'building' || r.status === 'ready');
             if (!currentReel) return null;
             const maxClips = 30;
             const clipFillPercent = Math.min(100, Math.round((currentReel.clip_count / maxClips) * 100));
+            const canDevelop = currentReel.clip_count >= 3;
             return (
               <div>
                 <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
-                  Current
+                  Current Reel
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/library/reels/${currentReel.id}`)}
-                  className="flex items-center gap-[var(--space-component)] w-full text-left group cursor-pointer"
-                >
-                  <div className="relative w-24 h-[170px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
-                    {currentReel.poster_storage_key ? (
-                      <img
-                        src={`/api/photos/serve?key=${encodeURIComponent(currentReel.poster_storage_key)}`}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Play size={24} className="text-[var(--color-ink-tertiary)]" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 flex flex-col gap-[var(--space-tight)]">
-                    <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                      {currentReel.name || 'Current Reel'}
-                    </p>
-                    <p className="text-[length:var(--text-label)] text-[var(--color-ink)]">
-                      {currentReel.clip_count} clip{currentReel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(currentReel.created_at)}
-                    </p>
-                    <div className="flex items-center gap-[var(--space-element)]">
+                <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] shadow-[var(--shadow-raised)]">
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/library/reels/${currentReel.id}`)}
+                    className="w-full text-left group cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-[var(--space-element)]">
+                      <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                        {currentReel.name || 'Untitled Reel'}
+                      </p>
+                      <ChevronRight size={16} className="text-[var(--color-ink-tertiary)] shrink-0" />
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)]">
                       <div className="flex-1 h-2 bg-[var(--color-surface-sunken)] rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-300"
@@ -379,16 +408,47 @@ export default function GalleryPage() {
                         />
                       </div>
                       <span className="text-[length:var(--text-caption)] font-[family-name:var(--font-mono)] text-[var(--color-ink-secondary)] tabular-nums shrink-0">
-                        {currentReel.clip_count}/{maxClips}
+                        {currentReel.clip_count}/{maxClips} clips
                       </span>
                     </div>
-                  </div>
-                </button>
+                  </button>
+
+                  {/* Clip thumbnails — horizontal scroll */}
+                  {currentReelClips.length > 0 && (
+                    <div className="flex gap-[var(--space-tight)] overflow-x-auto pb-[var(--space-tight)] -mx-1 px-1 scrollbar-hide">
+                      {currentReelClips.map((clip) => (
+                        <div
+                          key={clip.id}
+                          className="relative shrink-0 w-14 h-14 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]"
+                        >
+                          {clip.thumbnail_url ? (
+                            <img src={clip.thumbnail_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Film size={12} className="text-[var(--color-ink-tertiary)]" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Develop Reel CTA */}
+                  {canDevelop && (
+                    <Link
+                      href={`/library/reels/${currentReel.id}`}
+                      className="mt-[var(--space-element)] w-full flex items-center justify-center gap-[var(--space-tight)] px-[var(--space-component)] py-[var(--space-element)] rounded-[var(--radius-sharp)] bg-[#C45D3E] text-white text-[length:var(--text-label)] font-semibold min-h-[44px] transition-colors hover:bg-[#B04E32] active:scale-[0.98]"
+                    >
+                      <Wand2 size={16} />
+                      Develop Reel
+                    </Link>
+                  )}
+                </div>
               </div>
             );
           })()}
 
-          {/* Developed reels */}
+          {/* Developed Reels — vertical list of reel cards */}
           {!reelsLoading && !error && (() => {
             const developedReels = activeReels.filter((r) => r.status === 'developed' || r.status === 'processing');
             if (developedReels.length === 0) return null;
@@ -397,50 +457,61 @@ export default function GalleryPage() {
               <div>
                 {hasCurrentReel && (
                   <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
-                    Completed
+                    Developed Reels
                   </h2>
                 )}
-                <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+                <div className="flex flex-col gap-[var(--space-element)]">
                   {developedReels.map((reel) => {
-                    const status = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
+                    const duration = reel.assembled_duration_ms ?? reel.current_duration_ms;
+                    const badgeVariant = REEL_STATUS_BADGE[reel.status] || 'info';
+                    const statusLabel = STATUS_LABEL[reel.status] || STATUS_LABEL.building;
                     return (
                       <button
                         key={reel.id}
                         type="button"
                         onClick={() => router.push(`/library/reels/${reel.id}`)}
-                        className="text-left group cursor-pointer"
+                        className="w-full text-left bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] shadow-[var(--shadow-raised)] hover:shadow-[var(--shadow-floating)] transition-shadow duration-150 cursor-pointer"
                       >
-                        <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
-                          {reel.poster_storage_key ? (
-                            <img
-                              src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
+                        <div className="flex gap-[var(--space-element)]">
+                          {/* Thumbnail */}
+                          <div className="relative shrink-0 w-20 h-14 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
+                            {reel.poster_storage_key ? (
+                              <img
+                                src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Film size={16} className="text-[var(--color-ink-tertiary)]" />
+                              </div>
+                            )}
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <Film size={24} className="text-[var(--color-ink-tertiary)]" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-11 h-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
-                              <Play size={18} className="text-white ml-0.5" fill="white" fillOpacity={0.9} />
+                              <Play size={18} className="text-white/80" fill="white" fillOpacity={0.6} />
                             </div>
                           </div>
-                          <span
-                            className="absolute top-[var(--space-tight)] right-[var(--space-tight)] px-1.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-semibold"
-                            style={{ backgroundColor: `color-mix(in oklch, ${status.color} 35%, transparent)`, color: status.color }}
-                          >
-                            {status.label}
-                          </span>
+
+                          {/* Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-[var(--space-tight)]">
+                              <h3 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] truncate">
+                                {reel.name || 'Untitled Reel'}
+                              </h3>
+                              <Badge variant={badgeVariant}>{statusLabel.label}</Badge>
+                            </div>
+                            <p className="mt-[var(--space-micro)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                              {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
+                              {' \u00B7 '}
+                              <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatDuration(duration)}</span>
+                              {reel.film_profile && (
+                                <>{' \u00B7 '}<span className="capitalize">{reel.film_profile}</span></>
+                              )}
+                              {' \u00B7 '}
+                              {formatDate(reel.updated_at || reel.created_at)}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                          {reel.name || 'Untitled Reel'}
-                        </p>
-                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                          {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''} &middot; {formatDate(reel.created_at)}
-                        </p>
                       </button>
                     );
                   })}
