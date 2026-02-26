@@ -724,55 +724,63 @@ export default function RollDetailPage() {
           </span>
         </div>
 
-        {/* Share options + Add a story */}
-        <div className="flex items-center gap-[var(--space-element)] flex-wrap">
-          <Button variant="secondary" size="md" onClick={handleOpenCirclePicker}>
-            <Users size={18} className="mr-2" />
-            Share to Circle
-          </Button>
-          <Button variant="secondary" size="md" onClick={() => setShowPublishModal(true)}>
-            <Globe size={18} className="mr-2" />
-            Publish as Public Post
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => {
-              setStoryText(savedStory);
-              setShowStoryModal(true);
-            }}
-          >
-            <BookOpen size={18} className="mr-2" />
-            {savedStory ? 'Edit Story' : 'Add a Story'}
-          </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={handleCreateMagazine}
-            disabled={creatingMagazine}
-          >
-            <Palette size={18} className="mr-2" />
-            {creatingMagazine ? 'Creating…' : 'Send to Magazine Design'}
-          </Button>
-        </div>
-
-        {/* Print This Roll */}
-        <Link href={`/roll/${rollId}/order`} className="block">
-          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
-            <div className="flex items-center gap-[var(--space-element)]">
-              <Printer size={24} />
-              <div>
-                <p className="text-[length:var(--text-body)] font-medium">Print This Roll</p>
-                <p className="text-[length:var(--text-caption)] opacity-80">
-                  Prints or book delivered to your door
-                </p>
+        {/* Roll actions — compact icon bar */}
+        <div className="flex items-center justify-between">
+          {[
+            { icon: Users, label: 'Circle', onClick: handleOpenCirclePicker },
+            { icon: Globe, label: 'Publish', onClick: () => setShowPublishModal(true) },
+            {
+              icon: BookOpen,
+              label: savedStory ? 'Edit Story' : 'Story',
+              onClick: () => {
+                setStoryText(savedStory);
+                setShowStoryModal(true);
+              },
+            },
+            {
+              icon: Palette,
+              label: creatingMagazine ? 'Creating…' : 'Magazine',
+              onClick: handleCreateMagazine,
+              disabled: creatingMagazine,
+            },
+            { icon: Printer, label: 'Print', href: `/roll/${rollId}/order`, accent: true },
+          ].map(({ icon: Icon, label, onClick, disabled, href, accent }) => {
+            const content = (
+              <div className="flex flex-col items-center gap-1 group">
+                <span
+                  className={`flex items-center justify-center w-11 h-11 rounded-full transition-colors ${
+                    accent
+                      ? 'bg-[var(--color-action)] text-white group-hover:bg-[var(--color-action-hover)]'
+                      : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-secondary)] group-hover:bg-[var(--color-border)]'
+                  } ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
+                >
+                  <Icon size={18} />
+                </span>
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] font-medium leading-tight">
+                  {label}
+                </span>
               </div>
-            </div>
-            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
-              Order
-            </div>
-          </div>
-        </Link>
+            );
+            if (href) {
+              return (
+                <Link key={label} href={href} className="flex-1 flex justify-center">
+                  {content}
+                </Link>
+              );
+            }
+            return (
+              <button
+                key={label}
+                type="button"
+                onClick={onClick}
+                disabled={disabled}
+                className="flex-1 flex justify-center disabled:cursor-not-allowed"
+              >
+                {content}
+              </button>
+            );
+          })}
+        </div>
 
         {/* Display saved story */}
         {savedStory && (
