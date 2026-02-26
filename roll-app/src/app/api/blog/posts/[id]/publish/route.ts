@@ -41,7 +41,8 @@ export async function POST(
     const rollStory = (post.rolls as Record<string, unknown> | null)?.story as string | null;
     const storyToUse = post.story || rollStory || null;
 
-    // Publish
+    // Publish atomically — only update if status is not already 'published'
+    // so concurrent requests cannot both flip the status and send duplicate notifications
     const { data: published, error: updateError } = await supabase
       .from('blog_posts')
       .update({
@@ -52,11 +53,23 @@ export async function POST(
       })
       .eq('id', id)
       .eq('user_id', user.id)
+      .neq('status', 'published')
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    // If no row was returned, another request already published it
+    if (!published) {
+      const { data: existing } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .single();
+      return NextResponse.json({ data: existing as BlogPost });
     }
 
     // Send notification emails to confirmed subscribers (fire-and-forget)
