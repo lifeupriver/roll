@@ -31,7 +31,6 @@ import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { PublishModal } from '@/components/blog/PublishModal';
-import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
@@ -690,9 +689,6 @@ export default function RollDetailPage() {
   if (roll.status === 'developed') {
     return (
       <div className="flex flex-col gap-[var(--space-section)] pb-8">
-        {/* Share nudge for developed rolls */}
-        <NudgeBanner context="roll" />
-
         {/* Header */}
         <div className="flex items-center gap-[var(--space-element)]">
           <BackButton href="/library" />
