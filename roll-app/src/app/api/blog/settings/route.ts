@@ -12,7 +12,7 @@ const updateBlogSettingsSchema = z
     blog_description: z.string().max(300).optional(),
     blog_enabled: z.boolean().optional(),
   })
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine((data: Record<string, unknown>) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
   });
 

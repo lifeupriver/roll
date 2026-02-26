@@ -18,7 +18,7 @@ const updateBlogPostSchema = z
     allow_magazine_orders: z.boolean().optional(),
     allow_book_orders: z.boolean().optional(),
   })
-  .refine((data) => Object.keys(data).length > 0, {
+  .refine((data: Record<string, unknown>) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
   });
 
