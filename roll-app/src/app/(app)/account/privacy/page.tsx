@@ -21,7 +21,7 @@ interface PrivacyData {
 }
 
 export default function PrivacyPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { toast } = useToast();
   const [data, setData] = useState<PrivacyData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,16 +124,22 @@ export default function PrivacyPage() {
               <p className="font-[family-name:var(--font-mono)] font-bold text-[var(--color-ink)]">
                 {data.circle_count}
               </p>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Circles</p>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Circles
+              </p>
             </div>
           </Card>
           <Card className="p-[var(--space-component)] flex items-center gap-3">
             <Clock size={20} className="text-[var(--color-ink-tertiary)]" />
             <div>
               <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink)]">
-                {data.account_created_at ? new Date(data.account_created_at).toLocaleDateString() : '—'}
+                {data.account_created_at
+                  ? new Date(data.account_created_at).toLocaleDateString()
+                  : '—'}
               </p>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Member since</p>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Member since
+              </p>
             </div>
           </Card>
           <Card className="p-[var(--space-component)] flex items-center gap-3">
@@ -142,7 +148,9 @@ export default function PrivacyPage() {
               <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink)]">
                 {data.email}
               </p>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Account</p>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Account
+              </p>
             </div>
           </Card>
         </div>
@@ -160,7 +168,9 @@ export default function PrivacyPage() {
           {data.circles.map((circle) => (
             <div key={circle.id} className="flex items-center gap-2 py-1.5">
               <Users size={14} className="text-[var(--color-ink-tertiary)]" />
-              <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">{circle.name}</span>
+              <span className="text-[length:var(--text-body)] text-[var(--color-ink)]">
+                {circle.name}
+              </span>
               {circle.isOwner && (
                 <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-action)] bg-[var(--color-action)]/10 px-1.5 py-0.5 rounded">
                   Owner

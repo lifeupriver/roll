@@ -79,7 +79,7 @@ export function useRoll(): UseRollReturn {
         storeCheckPhoto(rp.photo_id);
       }
     },
-    [setRoll, setRollPhotos, storeCheckPhoto],
+    [setRoll, setRollPhotos, storeCheckPhoto]
   );
 
   // ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ export function useRoll(): UseRollReturn {
       setRoll(data);
       return data;
     },
-    [setRoll],
+    [setRoll]
   );
 
   // ---------------------------------------------------------------------------
@@ -159,7 +159,7 @@ export function useRoll(): UseRollReturn {
         throw err;
       }
     },
-    [createRoll, storeCheckPhoto, storeUncheckPhoto, setRollPhotos, updateRollStatus],
+    [createRoll, storeCheckPhoto, storeUncheckPhoto, setRollPhotos, updateRollStatus]
   );
 
   // ---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ export function useRoll(): UseRollReturn {
         setRollPhotos(
           currentPhotos
             .filter((p) => p.photo_id !== photoId)
-            .map((p, i) => ({ ...p, position: i + 1 })),
+            .map((p, i) => ({ ...p, position: i + 1 }))
         );
 
         // If the roll was ready and now has fewer than max, revert to building
@@ -207,7 +207,7 @@ export function useRoll(): UseRollReturn {
         throw err;
       }
     },
-    [storeCheckPhoto, storeUncheckPhoto, setRollPhotos, updateRollStatus],
+    [storeCheckPhoto, storeUncheckPhoto, setRollPhotos, updateRollStatus]
   );
 
   // ---------------------------------------------------------------------------
@@ -245,7 +245,7 @@ export function useRoll(): UseRollReturn {
         throw err;
       }
     },
-    [storeRemoveFromRoll, loadRoll, updateRollStatus],
+    [storeRemoveFromRoll, loadRoll, updateRollStatus]
   );
 
   // ---------------------------------------------------------------------------
@@ -255,7 +255,7 @@ export function useRoll(): UseRollReturn {
     (fromIndex: number, toIndex: number) => {
       storeReorderPhotos(fromIndex, toIndex);
     },
-    [storeReorderPhotos],
+    [storeReorderPhotos]
   );
 
   // ---------------------------------------------------------------------------
@@ -335,7 +335,7 @@ export function useRoll(): UseRollReturn {
         poll();
       });
     },
-    [updateRollStatus],
+    [updateRollStatus]
   );
 
   return {

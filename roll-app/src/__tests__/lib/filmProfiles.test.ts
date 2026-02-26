@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FILM_PROFILE_CONFIGS, type FilmProfileConfig } from '@/lib/processing/filmProfiles';
+import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 
 const EXPECTED_PROFILES = ['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern'];
 

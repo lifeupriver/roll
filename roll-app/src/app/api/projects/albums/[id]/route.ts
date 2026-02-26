@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: albumId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -36,9 +36,9 @@ export async function GET(
         .in('id', photoIds);
       // Maintain order from photo_ids
       const photoMap = new Map((photoData ?? []).map((p: Record<string, unknown>) => [p.id, p]));
-      photos = photoIds
-        .map((pid: string) => photoMap.get(pid))
-        .filter(Boolean) as Array<Record<string, unknown>>;
+      photos = photoIds.map((pid: string) => photoMap.get(pid)).filter(Boolean) as Array<
+        Record<string, unknown>
+      >;
     }
 
     return NextResponse.json({
@@ -57,14 +57,14 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: albumId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -123,7 +123,10 @@ export async function DELETE(
   try {
     const { id: albumId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

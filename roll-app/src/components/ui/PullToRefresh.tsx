@@ -51,17 +51,44 @@ function FilmCanisterIcon({ progress, spinning }: { progress: number; spinning: 
         fill={`oklch(0.57 0.16 42 / ${fillOpacity * 0.5})`}
       />
       {/* Inner hub */}
-      <circle
-        cx="16"
-        cy="16"
-        r="1.5"
-        fill={`oklch(0.57 0.16 42 / ${fillOpacity})`}
-      />
+      <circle cx="16" cy="16" r="1.5" fill={`oklch(0.57 0.16 42 / ${fillOpacity})`} />
       {/* Film sprocket marks */}
-      <rect x="9.5" y="6" width="2" height="1.5" rx="0.5" fill="var(--color-action)" opacity={fillOpacity * 0.6} />
-      <rect x="20.5" y="6" width="2" height="1.5" rx="0.5" fill="var(--color-action)" opacity={fillOpacity * 0.6} />
-      <rect x="9.5" y="24.5" width="2" height="1.5" rx="0.5" fill="var(--color-action)" opacity={fillOpacity * 0.6} />
-      <rect x="20.5" y="24.5" width="2" height="1.5" rx="0.5" fill="var(--color-action)" opacity={fillOpacity * 0.6} />
+      <rect
+        x="9.5"
+        y="6"
+        width="2"
+        height="1.5"
+        rx="0.5"
+        fill="var(--color-action)"
+        opacity={fillOpacity * 0.6}
+      />
+      <rect
+        x="20.5"
+        y="6"
+        width="2"
+        height="1.5"
+        rx="0.5"
+        fill="var(--color-action)"
+        opacity={fillOpacity * 0.6}
+      />
+      <rect
+        x="9.5"
+        y="24.5"
+        width="2"
+        height="1.5"
+        rx="0.5"
+        fill="var(--color-action)"
+        opacity={fillOpacity * 0.6}
+      />
+      <rect
+        x="20.5"
+        y="24.5"
+        width="2"
+        height="1.5"
+        rx="0.5"
+        fill="var(--color-action)"
+        opacity={fillOpacity * 0.6}
+      />
       {/* Film leader tab */}
       <path
         d="M24 10h3a1 1 0 011 1v2a1 1 0 01-1 1h-3"
@@ -166,7 +193,11 @@ export function PullToRefresh({ onRefresh, children }: PullToRefreshProps) {
               color: isPastThreshold ? 'var(--color-action)' : 'var(--color-ink-tertiary)',
             }}
           >
-            {refreshing ? 'Developing…' : isPastThreshold ? 'Release to develop' : 'Pull to refresh'}
+            {refreshing
+              ? 'Developing…'
+              : isPastThreshold
+                ? 'Release to develop'
+                : 'Pull to refresh'}
           </span>
         </div>
       </div>

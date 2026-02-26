@@ -1,9 +1,7 @@
 import sharp from 'sharp';
 
 export async function convertHeicToJpeg(buffer: Buffer): Promise<Buffer> {
-  return sharp(buffer)
-    .jpeg({ quality: 85, progressive: true })
-    .toBuffer();
+  return sharp(buffer).jpeg({ quality: 85, progressive: true }).toBuffer();
 }
 
 export async function createThumbnail(buffer: Buffer): Promise<Buffer> {
@@ -13,7 +11,9 @@ export async function createThumbnail(buffer: Buffer): Promise<Buffer> {
     .toBuffer();
 }
 
-export async function getImageDimensions(buffer: Buffer): Promise<{ width: number; height: number }> {
+export async function getImageDimensions(
+  buffer: Buffer
+): Promise<{ width: number; height: number }> {
   const metadata = await sharp(buffer).metadata();
   return {
     width: metadata.width || 0,
@@ -72,11 +72,7 @@ export async function getLaplacianVariance(buffer: Buffer): Promise<number> {
     for (let x = 1; x < width - 1; x++) {
       const idx = y * width + x;
       const laplacian =
-        -data[idx - width] -
-        data[idx - 1] +
-        4 * data[idx] -
-        data[idx + 1] -
-        data[idx + width];
+        -data[idx - width] - data[idx - 1] + 4 * data[idx] - data[idx + 1] - data[idx + width];
       sum += laplacian;
       sumSq += laplacian * laplacian;
       count++;

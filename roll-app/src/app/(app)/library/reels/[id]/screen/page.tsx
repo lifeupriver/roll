@@ -42,20 +42,23 @@ export default function ReelScreenPage() {
     loadReel();
   }, [reelId]);
 
-  const handleHeart = useCallback(async (hearted: boolean) => {
-    setIsHearted(hearted);
-    try {
-      if (hearted) {
-        await fetch(`/api/reels/${reelId}/favorite`, { method: 'POST' });
-        track({ event: 'reel_favorited', properties: { reelId } });
-      } else {
-        await fetch(`/api/reels/${reelId}/favorite`, { method: 'DELETE' });
-        track({ event: 'reel_unfavorited', properties: { reelId } });
+  const handleHeart = useCallback(
+    async (hearted: boolean) => {
+      setIsHearted(hearted);
+      try {
+        if (hearted) {
+          await fetch(`/api/reels/${reelId}/favorite`, { method: 'POST' });
+          track({ event: 'reel_favorited', properties: { reelId } });
+        } else {
+          await fetch(`/api/reels/${reelId}/favorite`, { method: 'DELETE' });
+          track({ event: 'reel_unfavorited', properties: { reelId } });
+        }
+      } catch {
+        setIsHearted(!hearted);
       }
-    } catch {
-      setIsHearted(!hearted);
-    }
-  }, [reelId]);
+    },
+    [reelId]
+  );
 
   const handleShare = useCallback(() => {
     // Navigate to circle share flow
@@ -78,7 +81,9 @@ export default function ReelScreenPage() {
     return (
       <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-component)]">
         <p className="text-[var(--color-error)]">{error || 'Reel not ready for screening'}</p>
-        <Button variant="secondary" onClick={() => router.push('/library')}>Back to Library</Button>
+        <Button variant="secondary" onClick={() => router.push('/library')}>
+          Back to Library
+        </Button>
       </div>
     );
   }

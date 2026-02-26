@@ -16,7 +16,7 @@ export function HeroVisual() {
                 key={`messy-${i}`}
                 className="aspect-square"
                 style={{
-                  backgroundColor: `oklch(${0.45 + (i % 5) * 0.08} 0.02 ${60 + (i * 17) % 40})`,
+                  backgroundColor: `oklch(${0.45 + (i % 5) * 0.08} 0.02 ${60 + ((i * 17) % 40)})`,
                   filter: 'grayscale(0.6) brightness(0.8)',
                 }}
               />
@@ -37,8 +37,20 @@ export function HeroVisual() {
 
         {/* Arrow indicator */}
         <div className="shrink-0 flex flex-col items-center gap-1">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[var(--color-action)]">
-            <path d="M5 12h14m-4-4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            className="text-[var(--color-action)]"
+          >
+            <path
+              d="M5 12h14m-4-4l4 4-4 4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 
@@ -46,12 +58,12 @@ export function HeroVisual() {
         <div className="flex-1 relative">
           <div className="grid grid-cols-3 grid-rows-2 gap-[3px] rounded-[var(--radius-card)] overflow-hidden">
             {[
-              { l: 0.72, c: 0.10, h: 55 },
+              { l: 0.72, c: 0.1, h: 55 },
               { l: 0.65, c: 0.08, h: 70 },
-              { l: 0.70, c: 0.12, h: 80 },
-              { l: 0.60, c: 0.09, h: 45 },
+              { l: 0.7, c: 0.12, h: 80 },
+              { l: 0.6, c: 0.09, h: 45 },
               { l: 0.68, c: 0.11, h: 65 },
-              { l: 0.75, c: 0.10, h: 50 },
+              { l: 0.75, c: 0.1, h: 50 },
             ].map((color, i) => (
               <div
                 key={`curated-${i}`}

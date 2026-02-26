@@ -21,13 +21,36 @@ export default function PrivacyPolicyPage() {
           The short version
         </h2>
         <div className="flex flex-col gap-[var(--space-element)] font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.7]">
-          <p><strong className="text-[var(--color-ink)]">Do you sell my data?</strong> No. We never have and never will.</p>
-          <p><strong className="text-[var(--color-ink)]">Do you show me ads?</strong> No. We make money from subscriptions and prints.</p>
-          <p><strong className="text-[var(--color-ink)]">Do you train AI on my photos?</strong> No. Your photos are never used to train any model.</p>
-          <p><strong className="text-[var(--color-ink)]">Can other people see my photos?</strong> Only if you share them to a Circle. There are no public profiles.</p>
-          <p><strong className="text-[var(--color-ink)]">What happens if I delete my account?</strong> Everything is permanently deleted. Photos, metadata, all of it.</p>
-          <p><strong className="text-[var(--color-ink)]">Is my location data shared?</strong> No. GPS data from your photos is stored for the Map feature but never shared with other users.</p>
-          <p><strong className="text-[var(--color-ink)]">Who can see my photos?</strong> Only you — unless you share to a Circle, in which case only Circle members can see them.</p>
+          <p>
+            <strong className="text-[var(--color-ink)]">Do you sell my data?</strong> No. We never
+            have and never will.
+          </p>
+          <p>
+            <strong className="text-[var(--color-ink)]">Do you show me ads?</strong> No. We make
+            money from subscriptions and prints.
+          </p>
+          <p>
+            <strong className="text-[var(--color-ink)]">Do you train AI on my photos?</strong> No.
+            Your photos are never used to train any model.
+          </p>
+          <p>
+            <strong className="text-[var(--color-ink)]">Can other people see my photos?</strong>{' '}
+            Only if you share them to a Circle. There are no public profiles.
+          </p>
+          <p>
+            <strong className="text-[var(--color-ink)]">
+              What happens if I delete my account?
+            </strong>{' '}
+            Everything is permanently deleted. Photos, metadata, all of it.
+          </p>
+          <p>
+            <strong className="text-[var(--color-ink)]">Is my location data shared?</strong> No. GPS
+            data from your photos is stored for the Map feature but never shared with other users.
+          </p>
+          <p>
+            <strong className="text-[var(--color-ink)]">Who can see my photos?</strong> Only you —
+            unless you share to a Circle, in which case only Circle members can see them.
+          </p>
         </div>
       </div>
 

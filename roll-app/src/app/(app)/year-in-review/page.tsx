@@ -9,7 +9,12 @@ import { Card } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import type { YearInReviewData } from '@/app/api/year-in-review/route';
 
-function StatCard({ icon: Icon, label, value, accent }: {
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
   icon: typeof Camera;
   label: string;
   value: string | number;
@@ -157,15 +162,23 @@ export default function YearInReviewPage() {
               </div>
               <div className="flex flex-col gap-[var(--space-tight)]">
                 {data.cameraBreakdown.map((entry) => {
-                  const pct = data.totalPhotosUploaded > 0
-                    ? Math.round((entry.count / data.totalPhotosUploaded) * 100)
-                    : 0;
+                  const pct =
+                    data.totalPhotosUploaded > 0
+                      ? Math.round((entry.count / data.totalPhotosUploaded) * 100)
+                      : 0;
                   return (
-                    <div key={entry.camera} className="flex items-center gap-[var(--space-element)]">
+                    <div
+                      key={entry.camera}
+                      className="flex items-center gap-[var(--space-element)]"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink)]">{entry.camera}</span>
-                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">{entry.count}</span>
+                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink)]">
+                            {entry.camera}
+                          </span>
+                          <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
+                            {entry.count}
+                          </span>
                         </div>
                         <div className="h-1.5 bg-[var(--color-surface-sunken)] rounded-full overflow-hidden">
                           <div
@@ -207,7 +220,8 @@ export default function YearInReviewPage() {
           {data.photosSharedToCircles > 0 && (
             <Card>
               <p className="text-[length:var(--text-body)] text-[var(--color-ink)]">
-                You shared <strong>{data.photosSharedToCircles}</strong> post{data.photosSharedToCircles !== 1 ? 's' : ''} to your circles this year.
+                You shared <strong>{data.photosSharedToCircles}</strong> post
+                {data.photosSharedToCircles !== 1 ? 's' : ''} to your circles this year.
               </p>
             </Card>
           )}
@@ -222,7 +236,8 @@ export default function YearInReviewPage() {
                     Turn your {data.year} into a book
                   </p>
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mt-0.5">
-                    We'll auto-design a photo book from your {data.favoriteCount} favorites, organized by season.
+                    We'll auto-design a photo book from your {data.favoriteCount} favorites,
+                    organized by season.
                   </p>
                 </div>
                 <Button

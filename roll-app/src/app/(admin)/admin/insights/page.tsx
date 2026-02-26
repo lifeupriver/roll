@@ -47,10 +47,16 @@ export default function AdminInsightsPage() {
       if (!showAcknowledged) params.set('acknowledged', 'false');
       const res = await fetch(`/api/admin/insights?${params}`);
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, [sectionFilter, severityFilter, showAcknowledged]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const triggerAnalysis = async (type: string) => {
     setRunning(true);
@@ -64,7 +70,9 @@ export default function AdminInsightsPage() {
         // Refresh data after analysis
         await fetchData();
       }
-    } catch { /* silent */ } finally {
+    } catch {
+      /* silent */
+    } finally {
       setRunning(false);
     }
   };
@@ -80,13 +88,13 @@ export default function AdminInsightsPage() {
         prev
           ? {
               ...prev,
-              insights: prev.insights.map((i) =>
-                i.id === id ? { ...i, acknowledged: true } : i
-              ),
+              insights: prev.insights.map((i) => (i.id === id ? { ...i, acknowledged: true } : i)),
             }
           : prev
       );
-    } catch { /* silent */ }
+    } catch {
+      /* silent */
+    }
   };
 
   return (
@@ -119,9 +127,13 @@ export default function AdminInsightsPage() {
           className="px-3 py-2 text-sm bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] text-[var(--color-ink)]"
         >
           <option value="">All Sections</option>
-          {['home', 'users', 'photos', 'rolls', 'orders', 'circles', 'pipeline', 'growth'].map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
+          {['home', 'users', 'photos', 'rolls', 'orders', 'circles', 'pipeline', 'growth'].map(
+            (s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            )
+          )}
         </select>
         <select
           value={severityFilter}
@@ -148,13 +160,24 @@ export default function AdminInsightsPage() {
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       ) : !data || data.insights.length === 0 ? (
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-12 text-center">
           <div className="text-3xl mb-3 opacity-30">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" className="mx-auto">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              className="mx-auto"
+            >
               <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
             </svg>
           </div>
@@ -168,11 +191,7 @@ export default function AdminInsightsPage() {
           {data.insights
             .filter((i) => showAcknowledged || !i.acknowledged)
             .map((insight) => (
-              <InsightCard
-                key={insight.id}
-                insight={insight}
-                onAcknowledge={acknowledgeInsight}
-              />
+              <InsightCard key={insight.id} insight={insight} onAcknowledge={acknowledgeInsight} />
             ))}
         </div>
       )}
@@ -189,11 +208,14 @@ export default function AdminInsightsPage() {
                 <div>
                   <p className="text-sm">{run.type.replace(/_/g, ' ')}</p>
                   <p className="text-xs text-[var(--color-ink-tertiary)]">
-                    {run.insights_generated} insights · {run.tokens_used.toLocaleString()} tokens · ${(run.cost_cents / 100).toFixed(2)}
+                    {run.insights_generated} insights · {run.tokens_used.toLocaleString()} tokens ·
+                    ${(run.cost_cents / 100).toFixed(2)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className={`text-xs ${run.status === 'completed' ? 'text-emerald-400' : run.status === 'failed' ? 'text-red-400' : 'text-yellow-400'}`}>
+                  <span
+                    className={`text-xs ${run.status === 'completed' ? 'text-emerald-400' : run.status === 'failed' ? 'text-red-400' : 'text-yellow-400'}`}
+                  >
                     {run.status}
                   </span>
                   <p className="text-[11px] text-[var(--color-ink-tertiary)]">

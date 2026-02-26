@@ -22,7 +22,7 @@ export default function CreateMagazinePage() {
   const [format, setFormat] = useState<MagazineFormat>('6x9');
   const [dateStart, setDateStart] = useState('');
   const [dateEnd, setDateEnd] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [_creating, setCreating] = useState(false);
 
   const handleCreate = async () => {
     if (!template) {
@@ -78,9 +78,11 @@ export default function CreateMagazinePage() {
           <div
             key={s}
             className={`h-1 flex-1 rounded-full transition-colors ${
-              s === step ? 'bg-[var(--color-action)]' :
-              (['template', 'details', 'generating'].indexOf(step) > i) ? 'bg-[var(--color-action)]/40' :
-              'bg-[var(--color-border)]'
+              s === step
+                ? 'bg-[var(--color-action)]'
+                : ['template', 'details', 'generating'].indexOf(step) > i
+                  ? 'bg-[var(--color-action)]/40'
+                  : 'bg-[var(--color-border)]'
             }`}
           />
         ))}
@@ -156,7 +158,8 @@ export default function CreateMagazinePage() {
           </div>
 
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-            Leave dates empty to use the template default. We'll pull your favorites from this period.
+            Leave dates empty to use the template default. We'll pull your favorites from this
+            period.
           </p>
 
           <div className="flex items-center justify-between pt-[var(--space-element)]">

@@ -6,7 +6,6 @@ import {
   createCirclePostSchema,
   createOrderSchema,
   presignUploadSchema,
-  completeUploadSchema,
   printCheckoutSchema,
   circleInviteSchema,
 } from '@/lib/validation';
@@ -82,10 +81,12 @@ describe('createCircleSchema', () => {
   });
 
   it('rejects invalid coverPhotoUrl', () => {
-    expect(createCircleSchema.safeParse({
-      name: 'Test',
-      coverPhotoUrl: 'not-a-url',
-    }).success).toBe(false);
+    expect(
+      createCircleSchema.safeParse({
+        name: 'Test',
+        coverPhotoUrl: 'not-a-url',
+      }).success
+    ).toBe(false);
   });
 });
 
@@ -102,10 +103,12 @@ describe('createCirclePostSchema', () => {
   });
 
   it('limits caption to 500 chars', () => {
-    expect(createCirclePostSchema.safeParse({
-      caption: 'a'.repeat(501),
-      photoStorageKeys: ['key1'],
-    }).success).toBe(false);
+    expect(
+      createCirclePostSchema.safeParse({
+        caption: 'a'.repeat(501),
+        photoStorageKeys: ['key1'],
+      }).success
+    ).toBe(false);
   });
 });
 
@@ -129,31 +132,39 @@ describe('createOrderSchema', () => {
   });
 
   it('rejects invalid printSize', () => {
-    expect(createOrderSchema.safeParse({
-      ...validOrder,
-      printSize: '2x3',
-    }).success).toBe(false);
+    expect(
+      createOrderSchema.safeParse({
+        ...validOrder,
+        printSize: '2x3',
+      }).success
+    ).toBe(false);
   });
 
   it('rejects invalid product', () => {
-    expect(createOrderSchema.safeParse({
-      ...validOrder,
-      product: 'poster',
-    }).success).toBe(false);
+    expect(
+      createOrderSchema.safeParse({
+        ...validOrder,
+        product: 'poster',
+      }).success
+    ).toBe(false);
   });
 
   it('rejects non-UUID rollId', () => {
-    expect(createOrderSchema.safeParse({
-      ...validOrder,
-      rollId: 'not-a-uuid',
-    }).success).toBe(false);
+    expect(
+      createOrderSchema.safeParse({
+        ...validOrder,
+        rollId: 'not-a-uuid',
+      }).success
+    ).toBe(false);
   });
 
   it('requires country to be exactly 2 characters', () => {
-    expect(createOrderSchema.safeParse({
-      ...validOrder,
-      shipping: { ...validOrder.shipping, country: 'USA' },
-    }).success).toBe(false);
+    expect(
+      createOrderSchema.safeParse({
+        ...validOrder,
+        shipping: { ...validOrder.shipping, country: 'USA' },
+      }).success
+    ).toBe(false);
   });
 });
 
@@ -166,15 +177,21 @@ describe('presignUploadSchema', () => {
   });
 
   it('rejects unsupported content types', () => {
-    expect(presignUploadSchema.safeParse({
-      files: [{ filename: 'doc.pdf', contentType: 'application/pdf', sizeBytes: 1024 }],
-    }).success).toBe(false);
+    expect(
+      presignUploadSchema.safeParse({
+        files: [{ filename: 'doc.pdf', contentType: 'application/pdf', sizeBytes: 1024 }],
+      }).success
+    ).toBe(false);
   });
 
-  it('rejects files exceeding 50MB', () => {
-    expect(presignUploadSchema.safeParse({
-      files: [{ filename: 'big.jpg', contentType: 'image/jpeg', sizeBytes: 51 * 1024 * 1024 }],
-    }).success).toBe(false);
+  it('rejects files exceeding 500MB', () => {
+    expect(
+      presignUploadSchema.safeParse({
+        files: [
+          { filename: 'big.mov', contentType: 'video/quicktime', sizeBytes: 501 * 1024 * 1024 },
+        ],
+      }).success
+    ).toBe(false);
   });
 
   it('rejects empty files array', () => {
@@ -184,9 +201,11 @@ describe('presignUploadSchema', () => {
 
 describe('printCheckoutSchema', () => {
   it('accepts valid UUID orderId', () => {
-    expect(printCheckoutSchema.safeParse({
-      orderId: '550e8400-e29b-41d4-a716-446655440000',
-    }).success).toBe(true);
+    expect(
+      printCheckoutSchema.safeParse({
+        orderId: '550e8400-e29b-41d4-a716-446655440000',
+      }).success
+    ).toBe(true);
   });
 
   it('rejects non-UUID orderId', () => {

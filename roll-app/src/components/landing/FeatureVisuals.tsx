@@ -9,14 +9,14 @@
 /** AI-Filtered Feed — shows a grid with some items faded out (filtered) */
 export function FeedVisual() {
   const items = [
-    { keep: true, l: 0.70, c: 0.10, h: 60 },
-    { keep: false, l: 0.50, c: 0.01, h: 0 },  // screenshot
+    { keep: true, l: 0.7, c: 0.1, h: 60 },
+    { keep: false, l: 0.5, c: 0.01, h: 0 }, // screenshot
     { keep: true, l: 0.68, c: 0.09, h: 75 },
-    { keep: false, l: 0.40, c: 0.01, h: 0 },  // blurry
+    { keep: false, l: 0.4, c: 0.01, h: 0 }, // blurry
     { keep: true, l: 0.72, c: 0.11, h: 55 },
     { keep: true, l: 0.65, c: 0.08, h: 80 },
-    { keep: false, l: 0.45, c: 0.01, h: 0 },  // duplicate
-    { keep: true, l: 0.71, c: 0.10, h: 45 },
+    { keep: false, l: 0.45, c: 0.01, h: 0 }, // duplicate
+    { keep: true, l: 0.71, c: 0.1, h: 45 },
     { keep: true, l: 0.67, c: 0.09, h: 70 },
   ];
 
@@ -35,7 +35,17 @@ export function FeedVisual() {
           >
             {!item.keep && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.6">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity="0.6"
+                >
                   <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
                   <line x1="1" y1="1" x2="23" y2="23" />
                 </svg>
@@ -43,7 +53,16 @@ export function FeedVisual() {
             )}
             {item.keep && i === 0 && (
               <div className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[var(--color-action)] flex items-center justify-center">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
@@ -88,7 +107,7 @@ export function RollVisual() {
             key={i}
             className="rounded-sm"
             style={{
-              backgroundColor: `oklch(${0.60 + (i % 4) * 0.05} ${0.08 + (i % 3) * 0.02} ${40 + (i * 11) % 50})`,
+              backgroundColor: `oklch(${0.6 + (i % 4) * 0.05} ${0.08 + (i % 3) * 0.02} ${40 + ((i * 11) % 50)})`,
               filter: 'saturate(1.1) sepia(0.1)',
             }}
           />
@@ -127,11 +146,23 @@ export function RollVisual() {
 /** Film Profiles / Developing — shows before/after with film stock swatches */
 export function DevelopVisual() {
   const profiles = [
-    { name: 'Warmth', color: 'var(--color-stock-warmth)', filter: 'saturate(1.1) sepia(0.15) brightness(1.05)' },
-    { name: 'Golden', color: 'var(--color-stock-golden)', filter: 'saturate(1.2) sepia(0.25) brightness(1.08)' },
+    {
+      name: 'Warmth',
+      color: 'var(--color-stock-warmth)',
+      filter: 'saturate(1.1) sepia(0.15) brightness(1.05)',
+    },
+    {
+      name: 'Golden',
+      color: 'var(--color-stock-golden)',
+      filter: 'saturate(1.2) sepia(0.25) brightness(1.08)',
+    },
     { name: 'Vivid', color: 'var(--color-stock-vivid)', filter: 'saturate(1.4) contrast(1.1)' },
     { name: 'Classic', color: 'var(--color-stock-classic)', filter: 'grayscale(1) contrast(1.3)' },
-    { name: 'Gentle', color: 'var(--color-stock-gentle)', filter: 'grayscale(1) contrast(0.9) brightness(1.1)' },
+    {
+      name: 'Gentle',
+      color: 'var(--color-stock-gentle)',
+      filter: 'grayscale(1) contrast(0.9) brightness(1.1)',
+    },
     { name: 'Modern', color: 'var(--color-stock-modern)', filter: 'grayscale(1) contrast(1.1)' },
   ];
 
@@ -194,7 +225,7 @@ export function PrintsVisual() {
             style={{
               width: '100%',
               height: '100%',
-              backgroundColor: `oklch(${0.70 + offset * 0.03} ${0.09 - offset * 0.02} ${55 + offset * 10})`,
+              backgroundColor: `oklch(${0.7 + offset * 0.03} ${0.09 - offset * 0.02} ${55 + offset * 10})`,
               filter: 'saturate(1.1) sepia(0.1) brightness(1.05)',
               transform: `rotate(${(offset - 1) * 4}deg) translateY(${offset * -3}px)`,
               zIndex: 3 - offset,
@@ -203,7 +234,16 @@ export function PrintsVisual() {
         ))}
       </div>
       <div className="flex items-center gap-2">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-action)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--color-action)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <rect x="1" y="3" width="15" height="13" />
           <polyline points="16 8 20 8 23 11 23 16 16 16 16 8" />
           <circle cx="5.5" cy="18.5" r="2.5" />

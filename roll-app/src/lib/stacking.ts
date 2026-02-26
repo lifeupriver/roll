@@ -90,16 +90,14 @@ export function computeStacks(photos: Photo[], sensitivity: number): Map<string,
     if (group.length < 2) continue;
 
     // Pick the best photo by aesthetic score (highest wins)
-    const sorted = [...group].sort(
-      (a, b) => (b.aesthetic_score ?? 0) - (a.aesthetic_score ?? 0)
-    );
+    const sorted = [...group].sort((a, b) => (b.aesthetic_score ?? 0) - (a.aesthetic_score ?? 0));
     const topPhoto = sorted[0];
 
     const stack: PhotoStack = {
       id: `stack-${topPhoto.id}`,
       topPhoto,
       photos: sorted,
-      similarity: 1 - (threshold / 2), // Approximate average similarity
+      similarity: 1 - threshold / 2, // Approximate average similarity
     };
 
     stacks.set(topPhoto.id, stack);

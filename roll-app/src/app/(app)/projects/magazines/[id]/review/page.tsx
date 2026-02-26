@@ -67,7 +67,7 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
         throw new Error(errJson.error || 'Order failed');
       }
 
-      toast('Magazine ordered! You\'ll receive tracking info soon.', 'success');
+      toast("Magazine ordered! You'll receive tracking info soon.", 'success');
       router.push(`/projects/magazines/${id}`);
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Order failed', 'error');
@@ -85,7 +85,11 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
   }
 
   if (!magazine) {
-    return <div className="text-center py-[var(--space-section)] text-[var(--color-ink-secondary)]">Magazine not found</div>;
+    return (
+      <div className="text-center py-[var(--space-section)] text-[var(--color-ink-secondary)]">
+        Magazine not found
+      </div>
+    );
   }
 
   return (
@@ -148,15 +152,30 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
           Shipping Address
         </h2>
         <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <Input label="Address Line 1" value={line1} onChange={(e) => setLine1(e.target.value)} required />
+        <Input
+          label="Address Line 1"
+          value={line1}
+          onChange={(e) => setLine1(e.target.value)}
+          required
+        />
         <Input label="Address Line 2" value={line2} onChange={(e) => setLine2(e.target.value)} />
         <div className="grid grid-cols-2 gap-[var(--space-element)]">
           <Input label="City" value={city} onChange={(e) => setCity(e.target.value)} required />
           <Input label="State" value={state} onChange={(e) => setState(e.target.value)} />
         </div>
         <div className="grid grid-cols-2 gap-[var(--space-element)]">
-          <Input label="Postal Code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} required />
-          <Input label="Country" value={country} onChange={(e) => setCountry(e.target.value)} required />
+          <Input
+            label="Postal Code"
+            value={postalCode}
+            onChange={(e) => setPostalCode(e.target.value)}
+            required
+          />
+          <Input
+            label="Country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            required
+          />
         </div>
       </div>
 
@@ -168,7 +187,9 @@ export default function MagazineReviewPage({ params }: { params: Promise<{ id: s
         isLoading={ordering}
         className="w-full"
       >
-        Place Order{quantity > 1 ? ` (${quantity} copies)` : ''} — ${magazine.price_cents ? ((magazine.price_cents * quantity) / 100).toFixed(2) : '—'} + shipping
+        Place Order{quantity > 1 ? ` (${quantity} copies)` : ''} — $
+        {magazine.price_cents ? ((magazine.price_cents * quantity) / 100).toFixed(2) : '—'} +
+        shipping
       </Button>
 
       <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center">

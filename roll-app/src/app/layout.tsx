@@ -14,11 +14,16 @@ export const metadata: Metadata = {
   title: 'Roll — Develop your roll.',
   description:
     'Upload your photos. Pick your favorites. Get real prints delivered to your door. Roll removes the junk, applies beautiful film profiles, and turns your camera roll into something worth keeping.',
-  keywords: ['photo prints', 'film photography', 'photo curation', 'photo printing', 'film profiles'],
+  keywords: [
+    'photo prints',
+    'film photography',
+    'photo curation',
+    'photo printing',
+    'film profiles',
+  ],
   openGraph: {
     title: 'Roll — Develop your roll.',
-    description:
-      'Your phone captures everything. Roll turns it into something worth keeping.',
+    description: 'Your phone captures everything. Roll turns it into something worth keeping.',
     url: 'https://roll.photos',
     siteName: 'Roll',
     type: 'website',
@@ -27,8 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Roll — Develop your roll.',
-    description:
-      'Your phone captures everything. Roll turns it into something worth keeping.',
+    description: 'Your phone captures everything. Roll turns it into something worth keeping.',
   },
   metadataBase: new URL('https://roll.photos'),
   robots: {
@@ -37,11 +41,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -84,9 +84,7 @@ export default function RootLayout({
         />
       </head>
       <body className="film-grain min-h-screen bg-[var(--color-surface)] text-[var(--color-ink)] font-[family-name:var(--font-body)] font-light">
-        <AnalyticsProvider>
-          {children}
-        </AnalyticsProvider>
+        <AnalyticsProvider>{children}</AnalyticsProvider>
         <ToastContainer />
       </body>
     </html>

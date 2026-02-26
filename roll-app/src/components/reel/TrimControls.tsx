@@ -29,20 +29,23 @@ export function TrimControls({
   const startPercent = (startMs / durationMs) * 100;
   const endPercent = (effectiveEnd / durationMs) * 100;
 
-  const handleTrackInteraction = useCallback((clientX: number, type: 'start' | 'end') => {
-    const track = trackRef.current;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const ms = Math.round(percent * durationMs);
+  const handleTrackInteraction = useCallback(
+    (clientX: number, type: 'start' | 'end') => {
+      const track = trackRef.current;
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const ms = Math.round(percent * durationMs);
 
-    if (type === 'start') {
-      setStartMs(Math.min(ms, (endMs ?? durationMs) - 1000));
-    } else {
-      const newEnd = Math.max(ms, startMs + 1000);
-      setEndMs(newEnd >= durationMs ? null : newEnd);
-    }
-  }, [durationMs, startMs, endMs]);
+      if (type === 'start') {
+        setStartMs(Math.min(ms, (endMs ?? durationMs) - 1000));
+      } else {
+        const newEnd = Math.max(ms, startMs + 1000);
+        setEndMs(newEnd >= durationMs ? null : newEnd);
+      }
+    },
+    [durationMs, startMs, endMs]
+  );
 
   const handleUseFullClip = useCallback(() => {
     onConfirm(0, null);
@@ -96,7 +99,10 @@ export function TrimControls({
           onMouseDown={(e) => {
             e.preventDefault();
             const onMove = (ev: MouseEvent) => handleTrackInteraction(ev.clientX, 'start');
-            const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+            const onUp = () => {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+            };
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onUp);
           }}
@@ -111,7 +117,10 @@ export function TrimControls({
           onMouseDown={(e) => {
             e.preventDefault();
             const onMove = (ev: MouseEvent) => handleTrackInteraction(ev.clientX, 'end');
-            const onUp = () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+            const onUp = () => {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+            };
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onUp);
           }}

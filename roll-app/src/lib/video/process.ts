@@ -33,7 +33,7 @@ export async function processVideoClip(
   onProgress?.(0);
 
   // Step 1: Extract 3 representative frames (start, middle, end)
-  const frames = await extractRepresentativeFrames(sourceUrl, clip.trimmed_duration_ms || 5000);
+  const _frames = await extractRepresentativeFrames(sourceUrl, clip.trimmed_duration_ms || 5000);
   onProgress?.(20);
 
   // Step 2: Get correction parameters from provider
@@ -51,7 +51,7 @@ export async function processVideoClip(
   onProgress?.(60);
 
   // Step 3: Build FFmpeg filter chain for film look
-  const filterChain = buildFilmFilterChain(options);
+  const _filterChain = buildFilmFilterChain(options);
   onProgress?.(80);
 
   // Step 4: Generate the processed storage key
@@ -75,11 +75,7 @@ export async function extractRepresentativeFrames(
   durationMs: number
 ): Promise<number[]> {
   // Extract frames at 10%, 50%, and 90% of duration
-  return [
-    Math.round(durationMs * 0.1),
-    Math.round(durationMs * 0.5),
-    Math.round(durationMs * 0.9),
-  ];
+  return [Math.round(durationMs * 0.1), Math.round(durationMs * 0.5), Math.round(durationMs * 0.9)];
 }
 
 /**
@@ -120,11 +116,17 @@ export function buildAssemblyCommand(
   const crossfadeDuration = 0.5; // 500ms crossfade
 
   for (let i = 1; i < clips.length; i++) {
-    const offset = clips.slice(0, i).reduce((sum, c) => sum + c.durationMs / 1000, 0) - crossfadeDuration * i;
-    const transition = clips[i].transition === 'dip_to_black' ? 'fade' :
-                       clips[i].transition === 'cut' ? 'wiperight' :
-                       'dissolve';
-    xfadeFilters.push(`xfade=transition=${transition}:duration=${crossfadeDuration}:offset=${offset.toFixed(2)}`);
+    const offset =
+      clips.slice(0, i).reduce((sum, c) => sum + c.durationMs / 1000, 0) - crossfadeDuration * i;
+    const transition =
+      clips[i].transition === 'dip_to_black'
+        ? 'fade'
+        : clips[i].transition === 'cut'
+          ? 'wiperight'
+          : 'dissolve';
+    xfadeFilters.push(
+      `xfade=transition=${transition}:duration=${crossfadeDuration}:offset=${offset.toFixed(2)}`
+    );
   }
 
   // Audio handling
@@ -137,9 +139,8 @@ export function buildAssemblyCommand(
     audioFilter = '-af "afade=t=in:st=0:d=1,afade=t=out:st=0:d=1"';
   }
 
-  const filterComplex = xfadeFilters.length > 0
-    ? `-filter_complex "${xfadeFilters.join(';')}"`
-    : '';
+  const filterComplex =
+    xfadeFilters.length > 0 ? `-filter_complex "${xfadeFilters.join(';')}"` : '';
 
   return `ffmpeg ${inputs} ${filterComplex} ${audioFilter} -c:v libx264 -crf 23 -preset medium "${outputKey}"`;
 }

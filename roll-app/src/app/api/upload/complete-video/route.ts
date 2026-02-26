@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { getThumbnailUrl, getThumbnailKey } from '@/lib/storage/r2';
+import { getThumbnailUrl } from '@/lib/storage/r2';
 import { parseBody, completeVideoUploadSchema } from '@/lib/validation';
 import { captureError } from '@/lib/sentry';
 import { randomUUID } from 'crypto';
-import {
-  DURATION_FLASH_MAX_MS,
-  DURATION_MOMENT_MAX_MS,
-} from '@/lib/utils/constants';
+import { DURATION_FLASH_MAX_MS, DURATION_MOMENT_MAX_MS } from '@/lib/utils/constants';
 
 function categorizeDuration(durationMs: number): 'flash' | 'moment' | 'scene' {
   if (durationMs <= DURATION_FLASH_MAX_MS) return 'flash';
@@ -18,7 +15,10 @@ function categorizeDuration(durationMs: number): 'flash' | 'moment' | 'scene' {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       if (!video.storageKey?.startsWith(expectedPrefix)) {
         return NextResponse.json(
           { error: 'Invalid storage key: does not match authenticated user' },
-          { status: 403 },
+          { status: 403 }
         );
       }
     }
@@ -60,9 +60,7 @@ export async function POST(request: NextRequest) {
       videoIds.push(id);
 
       // Use client-provided thumbnail or empty string
-      const thumbnailUrl = video.thumbnailBase64
-        ? getThumbnailUrl(user.id, video.contentHash)
-        : '';
+      const thumbnailUrl = video.thumbnailBase64 ? getThumbnailUrl(user.id, video.contentHash) : '';
 
       videoRecords.push({
         id,

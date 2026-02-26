@@ -80,7 +80,7 @@ const SKU_MAP: Record<PrintSize, string> = {
  * Build the public URL for a processed photo so Prodigi can fetch it.
  * Uses the R2_PUBLIC_URL env var plus the processed storage key.
  */
-function buildAssetUrl(processedStorageKey: string): string {
+export function buildAssetUrl(processedStorageKey: string): string {
   const publicUrl = process.env.R2_PUBLIC_URL || 'https://photos.roll.photos';
   return `${publicUrl}/${processedStorageKey}`;
 }
@@ -91,7 +91,7 @@ function buildAssetUrl(processedStorageKey: string): string {
  */
 export async function createProdigiOrder(
   order: PrintOrder,
-  items: PrintOrderItem[],
+  items: PrintOrderItem[]
 ): Promise<ProdigiOrderResponse> {
   // ---- Build the request body ----
   const prodigiItems: ProdigiItem[] = items.map((item) => ({
@@ -166,10 +166,7 @@ export async function createProdigiOrder(
  * Verify that a webhook payload was signed by Prodigi using HMAC SHA-256.
  * Returns `true` when the computed signature matches.
  */
-export function verifyWebhookSignature(
-  body: string,
-  signature: string,
-): boolean {
+export function verifyWebhookSignature(body: string, signature: string): boolean {
   const secret = process.env.PRODIGI_WEBHOOK_SECRET;
   if (!secret) {
     throw new Error('PRODIGI_WEBHOOK_SECRET is not configured');

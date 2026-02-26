@@ -14,7 +14,12 @@ interface PhotoStackProps {
 // Stagger delay for cascading photos (ms)
 const PHOTO_STAGGER_MS = 60;
 
-export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStackProps) {
+export function PhotoStack({
+  stack,
+  isChecked,
+  onCheck,
+  onPhotoTap: _onPhotoTap,
+}: PhotoStackProps) {
   const [expanded, setExpanded] = useState(false);
   const [animatingExpand, setAnimatingExpand] = useState(false);
   const [animatingCollapse, setAnimatingCollapse] = useState(false);
@@ -27,21 +32,27 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
     onCheck(stack.topPhoto.id);
   }, [expanded, onCheck, stack.topPhoto.id]);
 
-  const handleExpand = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    // Phase 1: Lift the top photo
-    setLiftingTop(true);
-    setTimeout(() => {
-      // Phase 2: Expand and cascade
-      setExpanded(true);
-      setAnimatingExpand(true);
-      setLiftingTop(false);
-      // Clear animation flag after cascade completes
+  const handleExpand = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      // Phase 1: Lift the top photo
+      setLiftingTop(true);
       setTimeout(() => {
-        setAnimatingExpand(false);
-      }, stack.photos.length * PHOTO_STAGGER_MS + 250);
-    }, 200);
-  }, [stack.photos.length]);
+        // Phase 2: Expand and cascade
+        setExpanded(true);
+        setAnimatingExpand(true);
+        setLiftingTop(false);
+        // Clear animation flag after cascade completes
+        setTimeout(
+          () => {
+            setAnimatingExpand(false);
+          },
+          stack.photos.length * PHOTO_STAGGER_MS + 250
+        );
+      }, 200);
+    },
+    [stack.photos.length]
+  );
 
   const handleCollapse = useCallback(() => {
     setAnimatingCollapse(true);
@@ -65,7 +76,10 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
         className={`col-span-full transition-opacity duration-200 ${
           animatingCollapse ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
         }`}
-        style={{ transformOrigin: 'top center', transition: 'opacity 200ms ease-out, transform 200ms ease-out' }}
+        style={{
+          transformOrigin: 'top center',
+          transition: 'opacity 200ms ease-out, transform 200ms ease-out',
+        }}
       >
         {/* Stack header — fades in */}
         <div
@@ -102,7 +116,9 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
                 onClick={() => onCheck(photo.id)}
                 style={{
                   opacity: animatingExpand ? 0 : 1,
-                  transform: animatingExpand ? 'scale(0.9) translateY(12px)' : 'scale(1) translateY(0)',
+                  transform: animatingExpand
+                    ? 'scale(0.9) translateY(12px)'
+                    : 'scale(1) translateY(0)',
                   transition: `opacity 200ms ease-out, transform 250ms cubic-bezier(0.22, 1, 0.36, 1)`,
                   transitionDelay: `${i * PHOTO_STAGGER_MS}ms`,
                 }}
@@ -173,7 +189,11 @@ export function PhotoStack({ stack, isChecked, onCheck, onPhotoTap }: PhotoStack
             : 'bg-[var(--color-surface-overlay)]/40 border border-white/60 scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100'
         }`}
       >
-        <Check size={16} strokeWidth={2.5} className={topChecked ? 'text-white' : 'text-white/80'} />
+        <Check
+          size={16}
+          strokeWidth={2.5}
+          className={topChecked ? 'text-white' : 'text-white/80'}
+        />
       </div>
 
       {/* Stack indicator — bottom-right badge showing count */}

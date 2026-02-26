@@ -22,14 +22,18 @@ function BarChart({ data, maxItems = 10 }: { data: [string, number][]; maxItems?
     <div className="space-y-1.5">
       {items.map(([label, value]) => (
         <div key={label} className="flex items-center gap-2">
-          <span className="text-xs text-[var(--color-ink-secondary)] w-28 truncate text-right">{label}</span>
+          <span className="text-xs text-[var(--color-ink-secondary)] w-28 truncate text-right">
+            {label}
+          </span>
           <div className="flex-1 h-5 bg-[var(--color-surface-sunken)] rounded overflow-hidden">
             <div
               className="h-full bg-[var(--color-action)] rounded transition-all"
               style={{ width: `${(value / max) * 100}%` }}
             />
           </div>
-          <span className="text-xs text-[var(--color-ink-tertiary)] w-12 text-right">{value.toLocaleString()}</span>
+          <span className="text-xs text-[var(--color-ink-tertiary)] w-12 text-right">
+            {value.toLocaleString()}
+          </span>
         </div>
       ))}
     </div>
@@ -44,18 +48,29 @@ export default function AdminPhotosPage() {
     try {
       const res = await fetch('/api/admin/photos');
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Photo Analytics</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+          Photo Analytics
+        </h1>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -69,7 +84,9 @@ export default function AdminPhotosPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Photo Analytics</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+        Photo Analytics
+      </h1>
 
       {/* Overview Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -46,9 +46,7 @@ export function AdminLayout({ children, adminEmail }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-6">
-          {children}
-        </main>
+        <main className="p-6">{children}</main>
       </div>
     </div>
   );

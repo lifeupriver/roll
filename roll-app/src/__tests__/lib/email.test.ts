@@ -31,7 +31,7 @@ describe('sendEmail', () => {
     expect(mockFetch).toHaveBeenCalledWith('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer test-api-key',
+        Authorization: 'Bearer test-api-key',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

@@ -6,7 +6,10 @@ import { captureError } from '@/lib/sentry';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -74,7 +77,11 @@ export async function GET() {
     }
 
     const profilesMap = new Map<string, { display_name: string; avatar_url: string | null }>();
-    for (const p of (profilesResult.data ?? []) as Array<{ id: string; display_name: string; avatar_url: string | null }>) {
+    for (const p of (profilesResult.data ?? []) as Array<{
+      id: string;
+      display_name: string;
+      avatar_url: string | null;
+    }>) {
       profilesMap.set(p.id, { display_name: p.display_name, avatar_url: p.avatar_url });
     }
 

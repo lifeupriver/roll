@@ -7,11 +7,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminGroupLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminGroupLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
 
   if (!admin) {

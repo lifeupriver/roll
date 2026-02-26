@@ -1,6 +1,10 @@
 import { getServiceClient } from '../service';
 import { buildSystemSnapshot } from './aggregator';
-import { buildDailyBriefingPrompt, buildWeeklyDeepDivePrompt, buildSectionAnalysisPrompt } from './prompts';
+import {
+  buildDailyBriefingPrompt,
+  buildWeeklyDeepDivePrompt,
+  buildSectionAnalysisPrompt,
+} from './prompts';
 import { captureError } from '@/lib/sentry';
 
 interface InsightPayload {
@@ -61,7 +65,16 @@ function parseInsights(rawResponse: string): InsightPayload[] {
 
     const validTypes = ['anomaly', 'growth', 'cost', 'security', 'performance', 'churn', 'revenue'];
     const validSeverities = ['info', 'warning', 'critical'];
-    const validSections = ['home', 'users', 'photos', 'rolls', 'orders', 'circles', 'pipeline', 'growth'];
+    const validSections = [
+      'home',
+      'users',
+      'photos',
+      'rolls',
+      'orders',
+      'circles',
+      'pipeline',
+      'growth',
+    ];
 
     return parsed
       .filter((item: unknown): item is InsightPayload => {

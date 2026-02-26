@@ -9,11 +9,7 @@ interface CheckmarkButtonProps {
   disabled?: boolean; // True when roll is full (36/36) and photo not already checked
 }
 
-export function CheckmarkButton({
-  isChecked,
-  onChange,
-  disabled = false,
-}: CheckmarkButtonProps) {
+export function CheckmarkButton({ isChecked, onChange, disabled = false }: CheckmarkButtonProps) {
   const [animating, setAnimating] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -74,9 +70,7 @@ export function CheckmarkButton({
         type="button"
         role="checkbox"
         aria-checked={isChecked}
-        aria-label={
-          isChecked ? 'Remove photo from roll' : 'Select photo for roll'
-        }
+        aria-label={isChecked ? 'Remove photo from roll' : 'Select photo for roll'}
         disabled={disabled}
         onClick={(e) => {
           e.stopPropagation();
@@ -94,14 +88,8 @@ export function CheckmarkButton({
           animating ? 'checkmark-animate' : '',
           // State-dependent styles
           isChecked
-            ? [
-                'bg-[var(--color-action)]',
-                'border-[var(--color-action)]',
-              ].join(' ')
-            : [
-                'bg-[oklch(0_0_0/0.3)]',
-                'border-white',
-              ].join(' '),
+            ? ['bg-[var(--color-action)]', 'border-[var(--color-action)]'].join(' ')
+            : ['bg-[oklch(0_0_0/0.3)]', 'border-white'].join(' '),
           // Background fill transition (80ms, simultaneous with press)
           'transition-[background-color,border-color] duration-[80ms] ease-in',
           // Disabled state
@@ -110,14 +98,7 @@ export function CheckmarkButton({
           'outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
         ].join(' ')}
       >
-        {isChecked && (
-          <Check
-            size={16}
-            strokeWidth={2}
-            className="text-white"
-            aria-hidden="true"
-          />
-        )}
+        {isChecked && <Check size={16} strokeWidth={2} className="text-white" aria-hidden="true" />}
       </button>
     </>
   );

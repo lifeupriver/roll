@@ -19,7 +19,11 @@ export function EmailCaptureForm({ id, trustLine }: { id?: string; trustLine?: s
   };
 
   return (
-    <form onSubmit={handleSubmit} id={id} className="flex flex-col gap-[var(--space-element)] w-full max-w-[400px]">
+    <form
+      onSubmit={handleSubmit}
+      id={id}
+      className="flex flex-col gap-[var(--space-element)] w-full max-w-[400px]"
+    >
       <div className="flex gap-[var(--space-tight)]">
         <input
           type="email"

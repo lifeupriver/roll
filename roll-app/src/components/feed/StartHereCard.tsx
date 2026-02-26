@@ -40,7 +40,11 @@ export function StartHereCard() {
           const dateGroups = new Map<string, Photo[]>();
           for (const photo of photos) {
             const date = photo.date_taken
-              ? new Date(photo.date_taken).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              ? new Date(photo.date_taken).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
               : 'Unknown date';
             if (!dateGroups.has(date)) dateGroups.set(date, []);
             dateGroups.get(date)!.push(photo);

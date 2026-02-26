@@ -4,13 +4,17 @@ import { captureError } from '@/lib/sentry';
 import { autoDesignMagazine, selectCoverPhoto } from '@/lib/magazine/auto-design';
 import { getDefaultDateRange } from '@/lib/magazine/templates';
 import { calculateMagazinePrice } from '@/lib/prodigi/magazine';
+import { buildAssetUrl } from '@/lib/prodigi';
 import type { MagazineTemplate, MagazineFormat } from '@/types/magazine';
 
 // GET /api/magazines — list user's magazines
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -39,7 +43,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -65,7 +72,9 @@ export async function POST(request: NextRequest) {
     // Fetch user's favorites within date range
     const { data: favorites, error: favError } = await supabase
       .from('favorites')
-      .select('id, photo_id, photos(id, thumbnail_url, developed_url, width, height, taken_at, aesthetic_score, face_count)')
+      .select(
+        'id, photo_id, photos(id, thumbnail_url, storage_key, width, height, date_taken, aesthetic_score, face_count)'
+      )
       .eq('user_id', user.id)
       .gte('created_at', start.toISOString())
       .lte('created_at', end.toISOString())
@@ -94,10 +103,10 @@ export async function POST(request: NextRequest) {
         id: f.id as string,
         photo_id: f.photo_id as string,
         thumbnail_url: (photo?.thumbnail_url as string) || '',
-        developed_url: (photo?.developed_url as string) || '',
+        developed_url: photo?.storage_key ? buildAssetUrl(photo.storage_key as string) : '',
         width: (photo?.width as number) || 0,
         height: (photo?.height as number) || 0,
-        taken_at: (photo?.taken_at as string) || undefined,
+        taken_at: (photo?.date_taken as string) || undefined,
         aesthetic_score: (photo?.aesthetic_score as number) || undefined,
         face_count: (photo?.face_count as number) || undefined,
         caption: captionMap.get(f.photo_id as string) || undefined,

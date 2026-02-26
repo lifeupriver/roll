@@ -5,7 +5,10 @@ import { captureError } from '@/lib/sentry';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -45,7 +48,7 @@ export async function GET() {
       data: {
         backed_up_count: count ?? 0,
         total_bytes: profile?.storage_used_bytes ?? 0,
-        last_backup_at: lastError ? null : lastPhoto?.created_at ?? null,
+        last_backup_at: lastError ? null : (lastPhoto?.created_at ?? null),
       },
     });
   } catch (err) {

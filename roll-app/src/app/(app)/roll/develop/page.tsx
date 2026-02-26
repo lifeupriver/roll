@@ -185,8 +185,17 @@ function DevelopPageContent() {
               ))}
             </div>
             <div className="flex items-center gap-[var(--space-tight)]">
-              <Sun size={18} className={processMode === 'color' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-secondary)]'} />
-              <span className={`text-[length:var(--text-label)] font-medium ${processMode === 'color' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+              <Sun
+                size={18}
+                className={
+                  processMode === 'color'
+                    ? 'text-[var(--color-action)]'
+                    : 'text-[var(--color-ink-secondary)]'
+                }
+              />
+              <span
+                className={`text-[length:var(--text-label)] font-medium ${processMode === 'color' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+              >
                 Color
               </span>
             </div>
@@ -223,8 +232,17 @@ function DevelopPageContent() {
               ))}
             </div>
             <div className="flex items-center gap-[var(--space-tight)]">
-              <Moon size={18} className={processMode === 'bw' ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink-secondary)]'} />
-              <span className={`text-[length:var(--text-label)] font-medium ${processMode === 'bw' ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink)]'}`}>
+              <Moon
+                size={18}
+                className={
+                  processMode === 'bw'
+                    ? 'text-[var(--color-ink)]'
+                    : 'text-[var(--color-ink-secondary)]'
+                }
+              />
+              <span
+                className={`text-[length:var(--text-label)] font-medium ${processMode === 'bw' ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink)]'}`}
+              >
                 Black & White
               </span>
             </div>
@@ -248,7 +266,9 @@ function DevelopPageContent() {
           </div>
           <div>
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
-              {processMode === 'bw' ? 'Professional B&W Conversion' : 'Professional Color Correction'}
+              {processMode === 'bw'
+                ? 'Professional B&W Conversion'
+                : 'Professional Color Correction'}
             </h2>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
               Cloud-powered per-photo processing
@@ -273,9 +293,13 @@ function DevelopPageContent() {
           </Badge>
           <Badge variant={processMode === 'bw' ? 'processing' : 'action'}>
             {processMode === 'bw' ? (
-              <><Moon size={12} className="mr-0.5 inline" /> Black & White</>
+              <>
+                <Moon size={12} className="mr-0.5 inline" /> Black & White
+              </>
             ) : (
-              <><Sun size={12} className="mr-0.5 inline" /> Color</>
+              <>
+                <Sun size={12} className="mr-0.5 inline" /> Color
+              </>
             )}
           </Badge>
         </div>

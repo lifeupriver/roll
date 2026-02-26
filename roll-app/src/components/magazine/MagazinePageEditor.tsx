@@ -41,9 +41,7 @@ export function MagazinePageEditor({
       </h3>
       <div className="flex flex-col gap-1 max-h-[400px] overflow-y-auto">
         {pages.map((page, i) => {
-          const firstPhotoUrl = page.photos[0]
-            ? photoUrlMap.get(page.photos[0].id)
-            : null;
+          const firstPhotoUrl = page.photos[0] ? photoUrlMap.get(page.photos[0].id) : null;
 
           return (
             <div

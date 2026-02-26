@@ -25,9 +25,7 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-[#1a1a1a]">
           {gallery.title}
         </h1>
-        {gallery.description && (
-          <p className="text-[#666] mt-2">{gallery.description}</p>
-        )}
+        {gallery.description && <p className="text-[#666] mt-2">{gallery.description}</p>}
         <p className="text-[#999] text-sm mt-1">{gallery.photo_count} photos</p>
       </div>
 
@@ -47,9 +45,8 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
                 loading="lazy"
                 className="w-full"
                 style={{
-                  aspectRatio: photo.width && photo.height
-                    ? `${photo.width}/${photo.height}`
-                    : undefined,
+                  aspectRatio:
+                    photo.width && photo.height ? `${photo.width}/${photo.height}` : undefined,
                 }}
               />
             </button>
@@ -71,7 +68,10 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
             <X size={24} />
           </button>
           <img
-            src={gallery.photos[lightboxIndex]?.developed_url || gallery.photos[lightboxIndex]?.thumbnail_url}
+            src={
+              gallery.photos[lightboxIndex]?.developed_url ||
+              gallery.photos[lightboxIndex]?.thumbnail_url
+            }
             alt=""
             className="max-w-[90vw] max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}

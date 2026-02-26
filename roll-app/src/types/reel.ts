@@ -8,17 +8,45 @@ export type AudioMood = 'original' | 'quiet_film' | 'silent_film' | 'ambient';
 
 export type TransitionType = 'crossfade' | 'cut' | 'dip_to_black';
 
-export const REEL_SIZE_CONFIG: Record<ReelSize, { label: string; maxDurationMs: number; tier: 'free' | 'plus' }> = {
+export const REEL_SIZE_CONFIG: Record<
+  ReelSize,
+  { label: string; maxDurationMs: number; tier: 'free' | 'plus' }
+> = {
   short: { label: 'Short Reel', maxDurationMs: 60_000, tier: 'free' },
   standard: { label: 'Standard Reel', maxDurationMs: 180_000, tier: 'plus' },
   feature: { label: 'Feature Reel', maxDurationMs: 300_000, tier: 'plus' },
 };
 
-export const AUDIO_MOODS: Array<{ id: AudioMood; label: string; description: string; tier: 'free' | 'plus' }> = [
-  { id: 'original', label: 'Original', description: 'Keep all original audio, normalized across clips', tier: 'free' },
-  { id: 'quiet_film', label: 'Quiet Film', description: 'Lower original audio, add gentle score underneath', tier: 'plus' },
-  { id: 'silent_film', label: 'Silent Film', description: 'Remove original audio, gentle piano/strings score', tier: 'plus' },
-  { id: 'ambient', label: 'Ambient', description: 'Keep original audio, add subtle ambient texture', tier: 'plus' },
+export const AUDIO_MOODS: Array<{
+  id: AudioMood;
+  label: string;
+  description: string;
+  tier: 'free' | 'plus';
+}> = [
+  {
+    id: 'original',
+    label: 'Original',
+    description: 'Keep all original audio, normalized across clips',
+    tier: 'free',
+  },
+  {
+    id: 'quiet_film',
+    label: 'Quiet Film',
+    description: 'Lower original audio, add gentle score underneath',
+    tier: 'plus',
+  },
+  {
+    id: 'silent_film',
+    label: 'Silent Film',
+    description: 'Remove original audio, gentle piano/strings score',
+    tier: 'plus',
+  },
+  {
+    id: 'ambient',
+    label: 'Ambient',
+    description: 'Keep original audio, add subtle ambient texture',
+    tier: 'plus',
+  },
 ];
 
 export const MIN_REEL_CLIPS = 3;
@@ -35,6 +63,7 @@ export interface Reel {
   target_duration_ms: number;
   current_duration_ms: number;
   clip_count: number;
+  default_clip_length_s: number | null;
   processing_started_at: string | null;
   processing_completed_at: string | null;
   processing_error: string | null;

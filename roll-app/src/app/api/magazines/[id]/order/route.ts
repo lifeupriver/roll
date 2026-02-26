@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 import { buildMagazineOrder, calculateMagazinePrice } from '@/lib/prodigi/magazine';
+import { buildAssetUrl } from '@/lib/prodigi';
 import type { MagazineFormat } from '@/types/magazine';
 
 // POST /api/magazines/[id]/order — submit magazine to Prodigi for printing
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -36,25 +37,32 @@ export async function POST(
     const body = await request.json();
     const { shippingAddress } = body;
 
-    if (!shippingAddress?.name || !shippingAddress?.line1 || !shippingAddress?.postalCode || !shippingAddress?.country) {
+    if (
+      !shippingAddress?.name ||
+      !shippingAddress?.line1 ||
+      !shippingAddress?.postalCode ||
+      !shippingAddress?.country
+    ) {
       return NextResponse.json({ error: 'Complete shipping address is required' }, { status: 400 });
     }
 
     // Parse pages to get photo IDs for URL generation
     const pages = typeof magazine.pages === 'string' ? JSON.parse(magazine.pages) : magazine.pages;
     const photoIds = pages
-      .flatMap((p: { photos?: { id: string }[] }) => (p.photos ?? []).map((ph: { id: string }) => ph.id))
+      .flatMap((p: { photos?: { id: string }[] }) =>
+        (p.photos ?? []).map((ph: { id: string }) => ph.id)
+      )
       .filter(Boolean);
 
-    // Fetch photo URLs
+    // Fetch photo storage keys for direct CDN URLs (not authenticated /api/photos/serve)
     const { data: photos } = await supabase
       .from('photos')
-      .select('id, developed_url')
+      .select('id, storage_key')
       .in('id', photoIds.length > 0 ? photoIds : ['__none__']);
 
     const photoUrlMap = new Map<string, string>();
-    (photos ?? []).forEach((p: { id: string; developed_url: string }) => {
-      photoUrlMap.set(p.id, p.developed_url);
+    (photos ?? []).forEach((p: { id: string; storage_key: string }) => {
+      photoUrlMap.set(p.id, buildAssetUrl(p.storage_key));
     });
 
     // Build page URLs (in order)
@@ -70,10 +78,12 @@ export async function POST(
     if (magazine.cover_photo_id) {
       const { data: coverPhoto } = await supabase
         .from('photos')
-        .select('developed_url')
+        .select('storage_key')
         .eq('id', magazine.cover_photo_id)
         .single();
-      coverUrl = coverPhoto?.developed_url || pageUrls[0] || '';
+      coverUrl = coverPhoto?.storage_key
+        ? buildAssetUrl(coverPhoto.storage_key)
+        : pageUrls[0] || '';
     } else {
       coverUrl = pageUrls[0] || '';
     }

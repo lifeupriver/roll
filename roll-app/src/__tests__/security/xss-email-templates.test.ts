@@ -35,7 +35,11 @@ describe('email templates — XSS prevention', () => {
 
   describe('printShippedEmail', () => {
     it('escapes HTML in roll name', () => {
-      const { html, subject } = printShippedEmail(XSS_PAYLOAD, 'https://track.example.com', '2026-03-01');
+      const { html, subject } = printShippedEmail(
+        XSS_PAYLOAD,
+        'https://track.example.com',
+        '2026-03-01'
+      );
       expect(html).not.toContain('<script>');
       expect(html).toContain('&lt;script&gt;');
       expect(subject).not.toContain('<script>');
@@ -44,7 +48,10 @@ describe('email templates — XSS prevention', () => {
 
   describe('referralInviteEmail', () => {
     it('escapes HTML in inviter name', () => {
-      const { html, subject } = referralInviteEmail(XSS_PAYLOAD, 'https://roll.photos/signup?ref=abc');
+      const { html, subject } = referralInviteEmail(
+        XSS_PAYLOAD,
+        'https://roll.photos/signup?ref=abc'
+      );
       expect(html).not.toContain('<script>');
       expect(html).toContain('&lt;script&gt;');
       expect(subject).not.toContain('<script>');
@@ -60,12 +67,20 @@ describe('email templates — XSS prevention', () => {
 
   describe('circleInviteEmail', () => {
     it('escapes HTML in inviter name', () => {
-      const { html } = circleInviteEmail(XSS_PAYLOAD, 'Family Photos', 'https://roll.photos/join/abc');
+      const { html } = circleInviteEmail(
+        XSS_PAYLOAD,
+        'Family Photos',
+        'https://roll.photos/join/abc'
+      );
       expect(html).not.toContain('<script>');
     });
 
     it('escapes HTML in circle name', () => {
-      const { html, subject } = circleInviteEmail('Alice', XSS_PAYLOAD, 'https://roll.photos/join/abc');
+      const { html, subject } = circleInviteEmail(
+        'Alice',
+        XSS_PAYLOAD,
+        'https://roll.photos/join/abc'
+      );
       expect(html).not.toContain('<script>');
       expect(html).toContain('&lt;script&gt;');
       expect(subject).not.toContain('<script>');

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 import { parseBody, createReelSchema } from '@/lib/validation';
-import { REEL_SHORT_DURATION_MS, REEL_STANDARD_DURATION_MS, REEL_FEATURE_DURATION_MS } from '@/lib/utils/constants';
+import {
+  REEL_SHORT_DURATION_MS,
+  REEL_STANDARD_DURATION_MS,
+  REEL_FEATURE_DURATION_MS,
+} from '@/lib/utils/constants';
 import type { Reel } from '@/types/reel';
 
 const SIZE_TO_DURATION: Record<string, number> = {
@@ -14,7 +18,10 @@ const SIZE_TO_DURATION: Record<string, number> = {
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -40,7 +47,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -60,7 +70,7 @@ export async function POST(request: NextRequest) {
       if (profile?.tier !== 'plus') {
         return NextResponse.json(
           { error: 'Roll+ required for standard and feature reels' },
-          { status: 403 },
+          { status: 403 }
         );
       }
     }

@@ -6,9 +6,7 @@ import { computePerceptualHash, findDuplicates } from './duplicateDetection';
 import { detectExposure } from './exposureDetection';
 import { detectTextRegions, isDocument } from './documentDetection';
 import { getObject } from '@/lib/storage/r2';
-import {
-  BLUR_THRESHOLD,
-} from '@/lib/utils/constants';
+import { BLUR_THRESHOLD } from '@/lib/utils/constants';
 
 interface PhotoInput {
   id: string;
@@ -51,9 +49,7 @@ async function detectFaces(imageBuffer: Buffer): Promise<number> {
 
 async function classifyScene(imageBuffer: Buffer): Promise<string[]> {
   // Simplified scene classification based on color analysis
-  const stats = await sharp(imageBuffer)
-    .resize(64, 64, { fit: 'inside' })
-    .stats();
+  const stats = await sharp(imageBuffer).resize(64, 64, { fit: 'inside' }).stats();
 
   const labels: string[] = [];
 

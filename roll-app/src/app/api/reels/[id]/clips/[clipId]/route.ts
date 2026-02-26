@@ -6,12 +6,15 @@ import type { ReelClip } from '@/types/reel';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; clipId: string }> },
+  { params }: { params: Promise<{ id: string; clipId: string }> }
 ) {
   try {
     const { id: reelId, clipId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -31,7 +34,7 @@ export async function PATCH(
     if (reel.status !== 'building' && reel.status !== 'ready') {
       return NextResponse.json(
         { error: 'Clips can only be edited on reels in building or ready status' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 

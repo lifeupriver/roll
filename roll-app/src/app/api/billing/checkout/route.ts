@@ -6,7 +6,10 @@ import { captureError } from '@/lib/sentry';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -25,12 +28,18 @@ export async function POST(request: NextRequest) {
     const targetTier = requestedTier === 'pro' ? 'pro' : 'plus';
 
     if (profile.tier === targetTier) {
-      return NextResponse.json({ error: `Already subscribed to Roll ${targetTier === 'pro' ? 'Pro' : '+'}` }, { status: 400 });
+      return NextResponse.json(
+        { error: `Already subscribed to Roll ${targetTier === 'pro' ? 'Pro' : '+'}` },
+        { status: 400 }
+      );
     }
 
     // Can't downgrade via checkout — use billing portal
     if (profile.tier === 'pro' && targetTier === 'plus') {
-      return NextResponse.json({ error: 'Use billing portal to change your plan' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Use billing portal to change your plan' },
+        { status: 400 }
+      );
     }
 
     const customerId = await getOrCreateCustomer(
@@ -41,10 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Save customer ID if it's new
     if (!profile.stripe_customer_id) {
-      await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', user.id);
+      await supabase.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id);
     }
 
     const priceId = targetTier === 'pro' ? STRIPE_CONFIG.priceIdPro : STRIPE_CONFIG.priceIdPlus;

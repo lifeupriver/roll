@@ -13,15 +13,21 @@ export default async function AdminSettingsPage() {
         <h2 className="text-sm font-medium">Admin Account</h2>
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-xs text-[var(--color-ink-tertiary)] uppercase tracking-[0.06em]">Email</p>
+            <p className="text-xs text-[var(--color-ink-tertiary)] uppercase tracking-[0.06em]">
+              Email
+            </p>
             <p className="mt-0.5">{admin.email}</p>
           </div>
           <div>
-            <p className="text-xs text-[var(--color-ink-tertiary)] uppercase tracking-[0.06em]">User ID</p>
+            <p className="text-xs text-[var(--color-ink-tertiary)] uppercase tracking-[0.06em]">
+              User ID
+            </p>
             <p className="mt-0.5 font-mono text-xs">{admin.id}</p>
           </div>
           <div>
-            <p className="text-xs text-[var(--color-ink-tertiary)] uppercase tracking-[0.06em]">Role</p>
+            <p className="text-xs text-[var(--color-ink-tertiary)] uppercase tracking-[0.06em]">
+              Role
+            </p>
             <p className="mt-0.5">{admin.role}</p>
           </div>
         </div>
@@ -30,8 +36,12 @@ export default async function AdminSettingsPage() {
       <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-6 space-y-4">
         <h2 className="text-sm font-medium">AI Analysis Configuration</h2>
         <p className="text-xs text-[var(--color-ink-tertiary)]">
-          Set the <code className="font-mono bg-[var(--color-surface-sunken)] px-1 py-0.5 rounded">ANTHROPIC_API_KEY</code> environment variable to enable AI-powered insights.
-          The system uses Claude Sonnet for cost-efficient daily and weekly analysis.
+          Set the{' '}
+          <code className="font-mono bg-[var(--color-surface-sunken)] px-1 py-0.5 rounded">
+            ANTHROPIC_API_KEY
+          </code>{' '}
+          environment variable to enable AI-powered insights. The system uses Claude Sonnet for
+          cost-efficient daily and weekly analysis.
         </p>
         <div className="text-xs text-[var(--color-ink-tertiary)]">
           <p>Estimated costs:</p>

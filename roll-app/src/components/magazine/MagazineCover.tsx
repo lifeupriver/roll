@@ -24,11 +24,7 @@ export function MagazineCover({ magazine, coverUrl, size = 'md', onClick }: Maga
       className={`relative ${sizeClasses[size]} bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] group transition-transform hover:scale-[1.02]`}
     >
       {coverUrl ? (
-        <img
-          src={coverUrl}
-          alt={magazine.title}
-          className="w-full h-full object-cover"
-        />
+        <img src={coverUrl} alt={magazine.title} className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
           <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />
@@ -49,12 +45,17 @@ export function MagazineCover({ magazine, coverUrl, size = 'md', onClick }: Maga
       {/* Status badge */}
       {magazine.status !== 'draft' && (
         <div className="absolute top-2 right-2">
-          <span className={`px-2 py-0.5 rounded-[var(--radius-pill)] text-[10px] font-bold uppercase tracking-wider ${
-            magazine.status === 'ordered' ? 'bg-blue-500/80 text-white' :
-            magazine.status === 'shipped' ? 'bg-amber-500/80 text-white' :
-            magazine.status === 'delivered' ? 'bg-green-500/80 text-white' :
-            'bg-black/40 text-white'
-          }`}>
+          <span
+            className={`px-2 py-0.5 rounded-[var(--radius-pill)] text-[10px] font-bold uppercase tracking-wider ${
+              magazine.status === 'ordered'
+                ? 'bg-blue-500/80 text-white'
+                : magazine.status === 'shipped'
+                  ? 'bg-amber-500/80 text-white'
+                  : magazine.status === 'delivered'
+                    ? 'bg-green-500/80 text-white'
+                    : 'bg-black/40 text-white'
+            }`}
+          >
             {magazine.status}
           </span>
         </div>

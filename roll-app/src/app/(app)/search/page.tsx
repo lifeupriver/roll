@@ -130,7 +130,9 @@ export default function SearchPage() {
               >
                 <option value="">All scenes</option>
                 {filters.scenes.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
             </div>
@@ -147,7 +149,9 @@ export default function SearchPage() {
               >
                 <option value="">All cameras</option>
                 {filters.cameras.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
@@ -217,7 +221,10 @@ export default function SearchPage() {
 
       {!loading && !hasSearched && (
         <div className="flex flex-col items-center justify-center py-[var(--space-hero)] text-center">
-          <SearchIcon size={48} className="text-[var(--color-ink-tertiary)] mb-[var(--space-component)]" />
+          <SearchIcon
+            size={48}
+            className="text-[var(--color-ink-tertiary)] mb-[var(--space-component)]"
+          />
           <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
             Search your photos by caption, filename, scene, camera, date, or people.
           </p>

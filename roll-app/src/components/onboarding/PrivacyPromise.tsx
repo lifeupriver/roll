@@ -29,7 +29,16 @@ export function PrivacyPromise({ onContinue }: PrivacyPromiseProps) {
         {PROMISES.map((promise, i) => (
           <li key={i} className="flex items-start gap-[var(--space-element)]">
             <span className="shrink-0 mt-0.5 w-6 h-6 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </span>

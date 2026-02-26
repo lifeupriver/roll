@@ -47,11 +47,7 @@ export function EmbedCodeGenerator({ slug, appUrl }: EmbedCodeGeneratorProps) {
             value={directLink}
             className="flex-1 px-3 py-2 bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink)]"
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => copyToClipboard(directLink, 'link')}
-          >
+          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(directLink, 'link')}>
             {copied === 'link' ? <Check size={14} /> : <Copy size={14} />}
           </Button>
         </div>
@@ -69,11 +65,7 @@ export function EmbedCodeGenerator({ slug, appUrl }: EmbedCodeGeneratorProps) {
             rows={3}
             className="flex-1 px-3 py-2 bg-[var(--color-surface-sunken)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink)] resize-none"
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => copyToClipboard(iframeCode, 'iframe')}
-          >
+          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(iframeCode, 'iframe')}>
             {copied === 'iframe' ? <Check size={14} /> : <Copy size={14} />}
           </Button>
         </div>

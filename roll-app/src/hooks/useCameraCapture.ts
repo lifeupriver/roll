@@ -25,58 +25,63 @@ export function useCameraCapture(): UseCameraCaptureReturn {
   useEffect(() => {
     setIsSupported(
       typeof window !== 'undefined' &&
-      'mediaDevices' in navigator &&
-      'getUserMedia' in navigator.mediaDevices
+        'mediaDevices' in navigator &&
+        'getUserMedia' in navigator.mediaDevices
     );
   }, []);
 
-  const startCamera = useCallback(async (facingMode: 'user' | 'environment' = 'environment') => {
-    setError(null);
+  const startCamera = useCallback(
+    async (facingMode: 'user' | 'environment' = 'environment') => {
+      setError(null);
 
-    if (!isSupported) {
-      setError('Camera is not available on this device');
-      return;
-    }
-
-    try {
-      // Stop any existing stream first
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+      if (!isSupported) {
+        setError('Camera is not available on this device');
+        return;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: facingMode },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-        audio: false,
-      });
-
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
-      setIsActive(true);
-    } catch (err) {
-      if (err instanceof DOMException) {
-        if (err.name === 'NotAllowedError') {
-          setError('Camera access was denied. Please allow camera access in your browser settings.');
-        } else if (err.name === 'NotFoundError') {
-          setError('No camera found on this device.');
-        } else if (err.name === 'NotReadableError') {
-          setError('Camera is already in use by another application.');
-        } else {
-          setError(`Camera error: ${err.message}`);
+      try {
+        // Stop any existing stream first
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
         }
-      } else {
-        setError('Failed to access camera');
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+          },
+          audio: false,
+        });
+
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+
+        setIsActive(true);
+      } catch (err) {
+        if (err instanceof DOMException) {
+          if (err.name === 'NotAllowedError') {
+            setError(
+              'Camera access was denied. Please allow camera access in your browser settings.'
+            );
+          } else if (err.name === 'NotFoundError') {
+            setError('No camera found on this device.');
+          } else if (err.name === 'NotReadableError') {
+            setError('Camera is already in use by another application.');
+          } else {
+            setError(`Camera error: ${err.message}`);
+          }
+        } else {
+          setError('Failed to access camera');
+        }
       }
-    }
-  }, [isSupported]);
+    },
+    [isSupported]
+  );
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {

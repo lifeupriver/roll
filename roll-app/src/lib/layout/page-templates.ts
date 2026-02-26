@@ -89,7 +89,10 @@ export function selectLayout(
 /**
  * Return CSS grid template string for rendering a layout.
  */
-export function getGridCSS(templateId: string): { gridTemplateRows: string; gridTemplateColumns: string } {
+export function getGridCSS(templateId: string): {
+  gridTemplateRows: string;
+  gridTemplateColumns: string;
+} {
   const template = PAGE_TEMPLATES[templateId];
   if (!template) {
     return { gridTemplateRows: '1fr', gridTemplateColumns: '1fr' };

@@ -47,7 +47,9 @@ export async function POST(request: NextRequest) {
         // Fetch user's favorites in the date range
         const { data: favorites } = await supabase
           .from('favorites')
-          .select('id, photo_id, photos(id, thumbnail_url, developed_url, width, height, taken_at, aesthetic_score, face_count)')
+          .select(
+            'id, photo_id, photos(id, thumbnail_url, developed_url, width, height, taken_at, aesthetic_score, face_count)'
+          )
           .eq('user_id', sub.user_id)
           .gte('created_at', start.toISOString())
           .lte('created_at', end.toISOString())
@@ -74,7 +76,10 @@ export async function POST(request: NextRequest) {
         });
 
         // Auto-design
-        const pages = autoDesignMagazine(designPhotos, sub.template as MagazineTemplate, { start, end });
+        const pages = autoDesignMagazine(designPhotos, sub.template as MagazineTemplate, {
+          start,
+          end,
+        });
         const coverId = selectCoverPhoto(designPhotos);
         const priceCents = calculateMagazinePrice(sub.format as MagazineFormat, pages.length);
 

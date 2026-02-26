@@ -73,14 +73,20 @@ export async function POST(request: NextRequest) {
         const userId = book.user_id as string;
         if (sentSet.has(userId)) continue;
 
-        const profile = (book as Record<string, unknown>).profiles as Record<string, unknown> | null;
+        const profile = (book as Record<string, unknown>).profiles as Record<
+          string,
+          unknown
+        > | null;
         const email = profile?.email as string;
         if (!email) continue;
 
         // Send via Resend
         const resendKey = process.env.RESEND_API_KEY;
         if (resendKey) {
-          const title = (book as Record<string, unknown>).name || (book as Record<string, unknown>).title || 'your photo book';
+          const title =
+            (book as Record<string, unknown>).name ||
+            (book as Record<string, unknown>).title ||
+            'your photo book';
           await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -92,11 +98,12 @@ export async function POST(request: NextRequest) {
               to: email,
               subject: window.subject,
               html: `<p>Hi ${profile?.display_name || 'there'},</p>
-                <p>${window.daysAgo === 3
-                  ? `Your book "${title}" has pages but no captions yet. Add a few words while the memories are fresh?`
-                  : window.daysAgo === 7
-                  ? `Your "${title}" is ready to print. Order now while the moment is fresh.`
-                  : `You started "${title}" 30 days ago. It's still waiting for you.`
+                <p>${
+                  window.daysAgo === 3
+                    ? `Your book "${title}" has pages but no captions yet. Add a few words while the memories are fresh?`
+                    : window.daysAgo === 7
+                      ? `Your "${title}" is ready to print. Order now while the moment is fresh.`
+                      : `You started "${title}" 30 days ago. It's still waiting for you.`
                 }</p>
                 <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/projects">Open your projects</a></p>`,
             }),

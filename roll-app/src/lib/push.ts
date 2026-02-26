@@ -38,11 +38,7 @@ export async function sendPushNotification(
       return false;
     }
 
-    webpush.setVapidDetails(
-      'mailto:hello@roll.photos',
-      getVapidPublicKey(),
-      vapidPrivateKey
-    );
+    webpush.setVapidDetails('mailto:hello@roll.photos', getVapidPublicKey(), vapidPrivateKey);
 
     await webpush.sendNotification(
       {

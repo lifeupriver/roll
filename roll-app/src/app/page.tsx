@@ -2,7 +2,12 @@ import { EmailCaptureForm } from '@/components/landing/EmailCaptureForm';
 import { FilmProfileShowcase } from '@/components/landing/FilmProfileShowcase';
 import { AnimatedCounter } from '@/components/landing/AnimatedCounter';
 import { HeroVisual } from '@/components/landing/HeroVisual';
-import { FeedVisual, RollVisual, DevelopVisual, PrintsVisual } from '@/components/landing/FeatureVisuals';
+import {
+  FeedVisual,
+  RollVisual,
+  DevelopVisual,
+  PrintsVisual,
+} from '@/components/landing/FeatureVisuals';
 import Link from 'next/link';
 
 export const dynamic = 'force-static';
@@ -35,11 +40,26 @@ const PRIMARY_FEATURES = [
 ];
 
 const SECONDARY_FEATURES = [
-  { title: 'Circle', desc: 'Share your best photos with family and friends in a private feed. No ads, no algorithm.' },
-  { title: 'Books', desc: 'Turn your favorites into a hardcover photo book. Flip through pages in the app, then order a printed copy.' },
-  { title: 'Video', desc: 'Roll corrects your videos with the same film stock as your photos. Same beautiful look. No editing required.' },
-  { title: 'Stories & Captions', desc: 'Write the story behind a roll. Caption individual photos. Turn images into a narrative.' },
-  { title: 'Photo Map', desc: 'See where your photos were taken on a world map. Your life, geographically.' },
+  {
+    title: 'Circle',
+    desc: 'Share your best photos with family and friends in a private feed. No ads, no algorithm.',
+  },
+  {
+    title: 'Books',
+    desc: 'Turn your favorites into a hardcover photo book. Flip through pages in the app, then order a printed copy.',
+  },
+  {
+    title: 'Video',
+    desc: 'Roll corrects your videos with the same film stock as your photos. Same beautiful look. No editing required.',
+  },
+  {
+    title: 'Stories & Captions',
+    desc: 'Write the story behind a roll. Caption individual photos. Turn images into a narrative.',
+  },
+  {
+    title: 'Photo Map',
+    desc: 'See where your photos were taken on a world map. Your life, geographically.',
+  },
   { title: 'Backup', desc: 'Every photo you upload is backed up in the cloud. Encrypted. Safe.' },
 ];
 
@@ -104,13 +124,19 @@ export default function LandingPage() {
           </div>
           <div className="w-full md:w-1/2 text-center md:text-left">
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] mb-[var(--space-component)]">
-              <AnimatedCounter from={30000} to={36} duration={2800} className="font-[family-name:var(--font-mono)]" /> photos on your phone.
+              <AnimatedCounter
+                from={30000}
+                to={36}
+                duration={2800}
+                className="font-[family-name:var(--font-mono)]"
+              />{' '}
+              photos on your phone.
               <br />
               Zero on your wall.
             </h2>
             <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] leading-[1.6] max-w-[45ch]">
-              The good ones are buried under screenshots, duplicates, and blurry shots.
-              Nothing gets printed. Nothing gets shared.
+              The good ones are buried under screenshots, duplicates, and blurry shots. Nothing gets
+              printed. Nothing gets shared.
             </p>
           </div>
         </div>
@@ -122,14 +148,25 @@ export default function LandingPage() {
       <section className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
         <div className="max-w-[600px] mx-auto">
           <div className="rounded-[var(--radius-card)] bg-[var(--color-surface-raised)] shadow-[var(--shadow-floating)] p-[var(--space-region)] text-center">
-            <svg className="mx-auto mb-[var(--space-component)] text-[var(--color-action)]" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M11.3 2.3c-.4-.2-.8-.3-1.3-.3C7.2 2 5 4.7 5 8c0 2 .7 3.7 2 5v6c0 1.7 1.3 3 3 3h2c1.7 0 3-1.3 3-3v-6c0-1.7-1.3-3-3-3H9.3C9.1 8.7 9 7.4 9 6c0-1.1.3-2.1.8-2.8l1.5.1zm10 0c-.4-.2-.8-.3-1.3-.3-2.8 0-5 2.7-5 6 0 2 .7 3.7 2 5v6c0 1.7 1.3 3 3 3h2c1.7 0 3-1.3 3-3v-6c0-1.7-1.3-3-3-3h-2.7c-.2-1.3-.3-2.6-.3-4 0-1.1.3-2.1.8-2.8l1.5.1z" /></svg>
+            <svg
+              className="mx-auto mb-[var(--space-component)] text-[var(--color-action)]"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M11.3 2.3c-.4-.2-.8-.3-1.3-.3C7.2 2 5 4.7 5 8c0 2 .7 3.7 2 5v6c0 1.7 1.3 3 3 3h2c1.7 0 3-1.3 3-3v-6c0-1.7-1.3-3-3-3H9.3C9.1 8.7 9 7.4 9 6c0-1.1.3-2.1.8-2.8l1.5.1zm10 0c-.4-.2-.8-.3-1.3-.3-2.8 0-5 2.7-5 6 0 2 .7 3.7 2 5v6c0 1.7 1.3 3 3 3h2c1.7 0 3-1.3 3-3v-6c0-1.7-1.3-3-3-3h-2.7c-.2-1.3-.3-2.6-.3-4 0-1.1.3-2.1.8-2.8l1.5.1z" />
+            </svg>
             <blockquote className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)] leading-[1.5] mb-[var(--space-component)]">
-              I finally printed photos of my kids. They&apos;re on the fridge now, not buried in my phone.
+              I finally printed photos of my kids. They&apos;re on the fridge now, not buried in my
+              phone.
             </blockquote>
             <div className="flex items-center justify-center gap-[var(--space-element)]">
               {/* Optional avatar placeholder */}
               <div className="w-10 h-10 rounded-full bg-[var(--color-surface-sunken)] flex items-center justify-center">
-                <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-ink-tertiary)]">S</span>
+                <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-ink-tertiary)]">
+                  S
+                </span>
               </div>
               <div className="text-left">
                 <p className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-label)] text-[var(--color-ink)]">
@@ -154,10 +191,26 @@ export default function LandingPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-[var(--space-section)]">
             {[
-              { step: '1', title: 'Upload', body: 'Drop in your camera roll. Roll automatically filters out the noise — screenshots, duplicates, blurry shots.' },
-              { step: '2', title: 'Curate', body: 'Browse your feed. Checkmark your favorites. Fill a roll of 36 photos — like loading a real roll of film.' },
-              { step: '3', title: 'Develop', body: 'Choose a film stock. Hit develop. We color-correct every photo to match the look of real analog film.' },
-              { step: '4', title: 'Keep', body: 'Order prints, create photo books, share to your Circle, or write the story behind each roll.' },
+              {
+                step: '1',
+                title: 'Upload',
+                body: 'Drop in your camera roll. Roll automatically filters out the noise — screenshots, duplicates, blurry shots.',
+              },
+              {
+                step: '2',
+                title: 'Curate',
+                body: 'Browse your feed. Checkmark your favorites. Fill a roll of 36 photos — like loading a real roll of film.',
+              },
+              {
+                step: '3',
+                title: 'Develop',
+                body: 'Choose a film stock. Hit develop. We color-correct every photo to match the look of real analog film.',
+              },
+              {
+                step: '4',
+                title: 'Keep',
+                body: 'Order prints, create photo books, share to your Circle, or write the story behind each roll.',
+              },
             ].map(({ step, title, body }) => (
               <div key={step} className="flex flex-col gap-[var(--space-tight)]">
                 <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-display)] text-[var(--color-action)] tracking-[0.05em]">
@@ -238,14 +291,27 @@ export default function LandingPage() {
             <summary className="cursor-pointer font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)] text-center list-none">
               <span className="inline-flex items-center gap-[var(--space-tight)] hover:text-[var(--color-action)] transition-colors">
                 And more...
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-transform"
+                >
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </span>
             </summary>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[var(--space-component)] mt-[var(--space-section)]">
               {SECONDARY_FEATURES.map(({ title, desc }) => (
-                <div key={title} className="flex flex-col gap-[var(--space-micro)] p-[var(--space-component)] rounded-[var(--radius-card)] bg-[var(--color-surface-raised)]">
+                <div
+                  key={title}
+                  className="flex flex-col gap-[var(--space-micro)] p-[var(--space-component)] rounded-[var(--radius-card)] bg-[var(--color-surface-raised)]"
+                >
                   <h4 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
                     {title}
                   </h4>
@@ -307,7 +373,8 @@ export default function LandingPage() {
                 Books
               </h3>
               <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
-                Turn your favorites into a hardcover photo book. Flip through it in the app or order a printed copy.
+                Turn your favorites into a hardcover photo book. Flip through it in the app or order
+                a printed copy.
               </p>
             </div>
 
@@ -321,7 +388,8 @@ export default function LandingPage() {
                 Circle
               </h3>
               <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-body)] text-[var(--color-ink-secondary)] leading-[1.6]">
-                Share your best photos with family and friends in a private feed. No ads. No algorithm.
+                Share your best photos with family and friends in a private feed. No ads. No
+                algorithm.
               </p>
             </div>
           </div>
@@ -336,7 +404,19 @@ export default function LandingPage() {
           <div className="rounded-[var(--radius-modal)] bg-[var(--color-surface-raised)] shadow-[var(--shadow-floating)] p-[var(--space-region)] md:p-[var(--space-page)]">
             <div className="flex items-center justify-center mb-[var(--space-section)]">
               <div className="w-14 h-14 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
               </div>
             </div>
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)] text-center mb-[var(--space-component)]">
@@ -354,7 +434,18 @@ export default function LandingPage() {
               ].map((item) => (
                 <div key={item} className="flex items-start gap-[var(--space-tight)]">
                   <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-[var(--color-developed)] flex items-center justify-center">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </span>
                   <span className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-label)] text-[var(--color-ink-secondary)] leading-[1.5]">
                     {item}
@@ -386,19 +477,63 @@ export default function LandingPage() {
               </p>
               <ul className="flex flex-col gap-[var(--space-tight)] font-[family-name:var(--font-body)] font-light text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-developed)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-developed)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   1 film stock (Warmth)
                 </li>
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-developed)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-developed)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   First 36 prints free
                 </li>
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-developed)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-developed)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   1 private Circle
                 </li>
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-developed)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-developed)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   Photo map and search
                 </li>
               </ul>
@@ -410,26 +545,73 @@ export default function LandingPage() {
                 <h3 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-lead)] text-[var(--color-ink)]">
                   Roll+
                 </h3>
-                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-body)] text-[var(--color-action)]">$4.99/mo</span>
+                <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-body)] text-[var(--color-action)]">
+                  $4.99/mo
+                </span>
               </div>
               <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-label)] text-[var(--color-ink-secondary)] mb-[var(--space-component)] leading-[1.5]">
-                Unlimited rolls developed monthly. Prints delivered to your door. Your best photos — always backed up.
+                Unlimited rolls developed monthly. Prints delivered to your door. Your best photos —
+                always backed up.
               </p>
               <ul className="flex flex-col gap-[var(--space-tight)] font-[family-name:var(--font-body)] font-light text-[length:var(--text-label)] text-[var(--color-ink-secondary)]">
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-action)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-action)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   All 6 film stocks
                 </li>
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-action)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-action)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   Unlimited rolls and cloud backup
                 </li>
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-action)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-action)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   Photo Books from your favorites
                 </li>
                 <li className="flex items-center gap-[var(--space-tight)]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-action)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-action)"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                   Unlimited Circles
                 </li>
               </ul>
@@ -445,7 +627,10 @@ export default function LandingPage() {
       {/* ================================================
           Section 9: Final CTA — Single button
           ================================================ */}
-      <section id="signup" className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20">
+      <section
+        id="signup"
+        className="w-full px-[var(--space-component)] md:px-[var(--space-section)] py-20"
+      >
         <div className="max-w-[500px] mx-auto flex flex-col items-center text-center gap-[var(--space-section)]">
           <h2
             className="font-[family-name:var(--font-display)] font-medium text-[var(--color-ink)]"
@@ -454,8 +639,8 @@ export default function LandingPage() {
             Develop your roll.
           </h2>
           <p className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-lead)] text-[var(--color-ink-secondary)] leading-[1.6] max-w-[40ch]">
-            Upload your photos. Pick your 36 favorites.
-            We develop them and ship your prints — on us.
+            Upload your photos. Pick your 36 favorites. We develop them and ship your prints — on
+            us.
           </p>
           <EmailCaptureForm
             id="hero-email"
@@ -473,13 +658,22 @@ export default function LandingPage() {
             Roll — Made with love for the photos that matter.
           </p>
           <nav className="flex gap-[var(--space-component)]" aria-label="Footer links">
-            <a href="/privacy" className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] hover:underline">
+            <a
+              href="/privacy"
+              className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] hover:underline"
+            >
               Privacy
             </a>
-            <a href="/terms" className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] hover:underline">
+            <a
+              href="/terms"
+              className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] hover:underline"
+            >
               Terms
             </a>
-            <a href="mailto:hello@roll.photos" className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] hover:underline">
+            <a
+              href="mailto:hello@roll.photos"
+              className="font-[family-name:var(--font-body)] font-light text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] hover:underline"
+            >
               Contact
             </a>
           </nav>

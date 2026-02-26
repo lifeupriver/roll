@@ -27,28 +27,32 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
     async function fetchMagazine() {
       try {
         const res = await fetch(`/api/magazines/${id}`);
-        if (res.ok) {
-          const json = await res.json();
-          const mag = json.data as Magazine;
-          setMagazine(mag);
-          const parsedPages = typeof mag.pages === 'string' ? JSON.parse(mag.pages) : mag.pages;
-          setPages(parsedPages);
+        if (!res.ok) {
+          const errJson = await res.json().catch(() => ({}));
+          toast(errJson.error || 'Failed to load magazine', 'error');
+          return;
+        }
 
-          // Fetch photo URLs for all photos in the magazine
-          const photoIds = parsedPages
-            .flatMap((p: MagazinePage) => p.photos.map((ph) => ph.id))
-            .filter(Boolean);
+        const json = await res.json();
+        const mag = json.data as Magazine;
+        setMagazine(mag);
+        const parsedPages = typeof mag.pages === 'string' ? JSON.parse(mag.pages) : mag.pages;
+        setPages(parsedPages);
 
-          if (photoIds.length > 0) {
-            const photoRes = await fetch(`/api/photos?ids=${photoIds.join(',')}`);
-            if (photoRes.ok) {
-              const photoJson = await photoRes.json();
-              const map = new Map<string, string>();
-              (photoJson.data ?? []).forEach((p: { id: string; thumbnail_url: string }) => {
-                map.set(p.id, p.thumbnail_url);
-              });
-              setPhotoUrlMap(map);
-            }
+        // Fetch photo URLs for all photos in the magazine
+        const photoIds = parsedPages
+          .flatMap((p: MagazinePage) => p.photos.map((ph) => ph.id))
+          .filter(Boolean);
+
+        if (photoIds.length > 0) {
+          const photoRes = await fetch(`/api/photos?ids=${photoIds.join(',')}`);
+          if (photoRes.ok) {
+            const photoJson = await photoRes.json();
+            const map = new Map<string, string>();
+            (photoJson.data ?? []).forEach((p: { id: string; thumbnail_url: string }) => {
+              map.set(p.id, p.thumbnail_url);
+            });
+            setPhotoUrlMap(map);
           }
         }
       } catch {
@@ -74,9 +78,7 @@ export default function MagazineDetailPage({ params }: { params: Promise<{ id: s
   }, []);
 
   const handleCaptionChange = useCallback((pageIndex: number, caption: string) => {
-    setPages((prev) =>
-      prev.map((p, i) => (i === pageIndex ? { ...p, caption } : p))
-    );
+    setPages((prev) => prev.map((p, i) => (i === pageIndex ? { ...p, caption } : p)));
   }, []);
 
   const handleSave = async () => {

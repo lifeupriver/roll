@@ -17,10 +17,13 @@ export interface Memory {
  * Returns photos taken on this day in previous years ("On This Day" feature).
  * Looks for photos taken within ±1 day of the current month/day in any prior year.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -61,9 +64,7 @@ export async function GET(request: NextRequest) {
       const photoMonth = photoDate.getMonth();
       const photoDay = photoDate.getDate();
 
-      const dayDiff = Math.abs(
-        (month * 31 + day) - (photoMonth * 31 + photoDay)
-      );
+      const dayDiff = Math.abs(month * 31 + day - (photoMonth * 31 + photoDay));
 
       if (dayDiff <= 1 || dayDiff >= 364) {
         const yearsAgo = currentYear - photoYear;

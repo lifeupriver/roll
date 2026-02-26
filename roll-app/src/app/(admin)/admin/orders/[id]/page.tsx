@@ -56,15 +56,26 @@ export default function AdminOrderDetailPage() {
         setOrder(data.order);
         setItems(data.items);
       }
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  useEffect(() => { fetchOrder(); }, [fetchOrder]);
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
 
   if (loading || !order) {
     return (
       <div className="space-y-4">
-        <button onClick={() => router.back()} className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]">&larr; Back</button>
+        <button
+          onClick={() => router.back()}
+          className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+        >
+          &larr; Back
+        </button>
         <div className="h-64 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
       </div>
     );
@@ -72,7 +83,12 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <button onClick={() => router.push('/admin/orders')} className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]">&larr; Back to orders</button>
+      <button
+        onClick={() => router.push('/admin/orders')}
+        className="text-sm text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
+      >
+        &larr; Back to orders
+      </button>
 
       <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-6">
         <div className="flex items-center justify-between mb-4">
@@ -125,10 +141,14 @@ export default function AdminOrderDetailPage() {
 
         {/* Shipping */}
         <div className="border-t border-[var(--color-border)] pt-4 mb-4">
-          <h3 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-2">Shipping</h3>
+          <h3 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-2">
+            Shipping
+          </h3>
           <p className="text-sm">{order.shipping_name}</p>
           <p className="text-sm text-[var(--color-ink-secondary)]">{order.shipping_line1}</p>
-          {order.shipping_line2 && <p className="text-sm text-[var(--color-ink-secondary)]">{order.shipping_line2}</p>}
+          {order.shipping_line2 && (
+            <p className="text-sm text-[var(--color-ink-secondary)]">{order.shipping_line2}</p>
+          )}
           <p className="text-sm text-[var(--color-ink-secondary)]">
             {order.shipping_city}, {order.shipping_state} {order.shipping_postal_code}
           </p>
@@ -139,22 +159,34 @@ export default function AdminOrderDetailPage() {
         <div className="border-t border-[var(--color-border)] pt-4 grid grid-cols-2 gap-4 text-xs">
           <div>
             <span className="text-[var(--color-ink-tertiary)] uppercase">User</span>
-            <a href={`/admin/users/${order.user_id}`} className="block text-[var(--color-action)] hover:underline mt-0.5">
+            <a
+              href={`/admin/users/${order.user_id}`}
+              className="block text-[var(--color-action)] hover:underline mt-0.5"
+            >
               {order.user_id.slice(0, 8)}...
             </a>
           </div>
           <div>
             <span className="text-[var(--color-ink-tertiary)] uppercase">Prodigi ID</span>
-            <p className="text-[var(--color-ink-secondary)] mt-0.5">{order.prodigi_order_id || '—'}</p>
+            <p className="text-[var(--color-ink-secondary)] mt-0.5">
+              {order.prodigi_order_id || '—'}
+            </p>
           </div>
           <div>
             <span className="text-[var(--color-ink-tertiary)] uppercase">Created</span>
-            <p className="text-[var(--color-ink-secondary)] mt-0.5">{new Date(order.created_at).toLocaleString()}</p>
+            <p className="text-[var(--color-ink-secondary)] mt-0.5">
+              {new Date(order.created_at).toLocaleString()}
+            </p>
           </div>
           <div>
             <span className="text-[var(--color-ink-tertiary)] uppercase">Tracking</span>
             {order.tracking_url ? (
-              <a href={order.tracking_url} target="_blank" rel="noopener noreferrer" className="block text-[var(--color-action)] hover:underline mt-0.5">
+              <a
+                href={order.tracking_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-[var(--color-action)] hover:underline mt-0.5"
+              >
                 Track package
               </a>
             ) : (

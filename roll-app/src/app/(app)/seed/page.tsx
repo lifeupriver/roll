@@ -66,8 +66,8 @@ export default function SeedPage() {
   return (
     <div className="flex flex-col gap-[var(--space-section)] max-w-lg mx-auto">
       <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-        Populate your account with realistic mock data to preview the full UI.
-        This creates photos, rolls, favorites, circles, print orders, and referrals.
+        Populate your account with realistic mock data to preview the full UI. This creates photos,
+        rolls, favorites, circles, print orders, and referrals.
       </p>
 
       <Card>

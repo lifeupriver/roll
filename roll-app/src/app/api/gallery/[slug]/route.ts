@@ -41,7 +41,9 @@ export async function GET(
     // Fetch developed photos for this roll
     const { data: rollPhotos } = await supabase
       .from('roll_photos')
-      .select('photo_id, position, caption, photos(id, thumbnail_url, developed_url, width, height)')
+      .select(
+        'photo_id, position, caption, photos(id, thumbnail_url, developed_url, width, height)'
+      )
       .eq('roll_id', roll.id)
       .order('position', { ascending: true });
 

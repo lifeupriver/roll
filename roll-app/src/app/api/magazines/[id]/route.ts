@@ -3,14 +3,14 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 
 // GET /api/magazines/[id]
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -37,14 +37,14 @@ export async function GET(
 }
 
 // PATCH /api/magazines/[id]
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -95,16 +95,15 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { error } = await supabase
-      .from('magazines')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
+    const { error } = await supabase.from('magazines').delete().eq('id', id).eq('user_id', user.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

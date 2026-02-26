@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Grid3X3, Image } from 'lucide-react';
+import { Grid3X3 } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
@@ -28,7 +28,7 @@ interface SharedPhoto {
 
 export default function MemberProfilePage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
+  const _router = useRouter();
   const memberId = params.id;
 
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -81,7 +81,11 @@ export default function MemberProfilePage() {
       <div className="flex items-center gap-[var(--space-component)]">
         <div className="w-20 h-20 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0 overflow-hidden">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="w-full h-full rounded-full object-cover"
+            />
           ) : (
             <span className="text-[length:var(--text-title)] font-medium text-[var(--color-action)]">
               {initial}

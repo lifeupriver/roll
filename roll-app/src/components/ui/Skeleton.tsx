@@ -8,12 +8,7 @@ interface SkeletonProps {
   height?: string;
 }
 
-export function Skeleton({
-  className = '',
-  variant = 'rect',
-  width,
-  height,
-}: SkeletonProps) {
+export function Skeleton({ className = '', variant = 'rect', width, height }: SkeletonProps) {
   const variantClasses: Record<string, string> = {
     text: 'h-4 rounded-[var(--radius-sharp)]',
     circle: 'rounded-full',

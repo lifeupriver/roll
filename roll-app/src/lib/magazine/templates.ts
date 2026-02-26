@@ -70,9 +70,7 @@ export function getTemplateConfig(templateId: MagazineTemplate): MagazineTemplat
 /**
  * Calculate default date range from a template.
  */
-export function getDefaultDateRange(
-  templateId: MagazineTemplate
-): { start: Date; end: Date } {
+export function getDefaultDateRange(templateId: MagazineTemplate): { start: Date; end: Date } {
   const config = getTemplateConfig(templateId);
   const end = new Date();
   const start = new Date();

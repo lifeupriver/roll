@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
-import { parseBody, createCirclePostSchema, createCircleReelPostSchema } from '@/lib/validation';
+import { createCirclePostSchema, createCircleReelPostSchema } from '@/lib/validation';
 import type { CirclePost } from '@/types/circle';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -31,7 +31,9 @@ export async function GET(
     // Fetch posts with joined photos, profiles, and reactions
     const { data: posts, error: postsError } = await supabase
       .from('circle_posts')
-      .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))')
+      .select(
+        '*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))'
+      )
       .eq('circle_id', id)
       .order('created_at', { ascending: false });
 
@@ -47,14 +49,14 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -124,7 +126,9 @@ export async function POST(
       // Re-fetch with joined data
       const { data: fullPost, error: fetchError } = await supabase
         .from('circle_posts')
-        .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))')
+        .select(
+          '*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))'
+        )
         .eq('id', post.id)
         .single();
 
@@ -166,9 +170,7 @@ export async function POST(
       position: index,
     }));
 
-    const { error: photosError } = await supabase
-      .from('circle_post_photos')
-      .insert(photoInserts);
+    const { error: photosError } = await supabase.from('circle_post_photos').insert(photoInserts);
 
     if (photosError) {
       return NextResponse.json({ error: photosError.message }, { status: 500 });
@@ -177,7 +179,9 @@ export async function POST(
     // Re-fetch the post with joined data
     const { data: fullPost, error: fetchError } = await supabase
       .from('circle_posts')
-      .select('*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))')
+      .select(
+        '*, photos:circle_post_photos(*), profiles(display_name, email, avatar_url), reactions:circle_reactions(*), comments:circle_comments(*, profiles(display_name, email, avatar_url))'
+      )
       .eq('id', post.id)
       .single();
 
@@ -193,11 +197,7 @@ export async function POST(
         .eq('circle_id', id)
         .neq('user_id', user.id);
 
-      const { data: circle } = await supabase
-        .from('circles')
-        .select('name')
-        .eq('id', id)
-        .single();
+      const { data: circle } = await supabase.from('circles').select('name').eq('id', id).single();
 
       const { data: poster } = await supabase
         .from('profiles')
@@ -217,9 +217,10 @@ export async function POST(
 
         for (const sub of subscriptions ?? []) {
           try {
-            const subData = typeof sub.subscription_data === 'string'
-              ? JSON.parse(sub.subscription_data)
-              : sub.subscription_data;
+            const subData =
+              typeof sub.subscription_data === 'string'
+                ? JSON.parse(sub.subscription_data)
+                : sub.subscription_data;
             // Web Push API — fire and forget
             await fetch(subData.endpoint, {
               method: 'POST',

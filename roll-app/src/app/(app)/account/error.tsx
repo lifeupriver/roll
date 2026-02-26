@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/Button';
 
 export default function AccountError({
-  error,
+  error: _error,
   reset,
 }: {
   error: Error;

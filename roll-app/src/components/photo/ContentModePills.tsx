@@ -9,13 +9,13 @@ interface ContentModePillsProps {
   variant?: 'primary' | 'secondary';
 }
 
-export function ContentModePills({ activeMode, onChange, options, variant = 'secondary' }: ContentModePillsProps) {
+export function ContentModePills({
+  activeMode,
+  onChange,
+  options,
+  variant = 'secondary',
+}: ContentModePillsProps) {
   return (
-    <TabPill
-      activeValue={activeMode}
-      onChange={onChange}
-      options={options}
-      variant={variant}
-    />
+    <TabPill activeValue={activeMode} onChange={onChange} options={options} variant={variant} />
   );
 }

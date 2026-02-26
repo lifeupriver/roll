@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
 
         // In preview mode, use thumbnail_url (points to local /photos/ files)
         const storageKey = isPreview
-          ? (photoRecord as Record<string, unknown>)?.thumbnail_url as string
+          ? ((photoRecord as Record<string, unknown>)?.thumbnail_url as string)
           : photoRecord?.storage_key;
 
         if (storageKey) {
@@ -165,9 +165,10 @@ export async function POST(request: NextRequest) {
       }
 
       // In preview mode, store the R2 public URL so the browser can load it directly
-      const storedKey = isPreview && process.env.R2_PUBLIC_URL
-        ? `${process.env.R2_PUBLIC_URL}/${processedKey}`
-        : processedKey;
+      const storedKey =
+        isPreview && process.env.R2_PUBLIC_URL
+          ? `${process.env.R2_PUBLIC_URL}/${processedKey}`
+          : processedKey;
 
       const { error: photoUpdateError } = await supabase
         .from('roll_photos')

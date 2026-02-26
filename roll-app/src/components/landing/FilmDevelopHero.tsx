@@ -31,14 +31,30 @@ export function FilmDevelopHero() {
 
   // Palette of warm oklch colors for "developed" thumbnails
   const warmColors = [
-    'oklch(0.72 0.10 55)', 'oklch(0.65 0.12 40)', 'oklch(0.78 0.06 80)',
-    'oklch(0.58 0.14 35)', 'oklch(0.70 0.08 65)', 'oklch(0.62 0.10 50)',
-    'oklch(0.75 0.04 90)', 'oklch(0.68 0.12 45)', 'oklch(0.80 0.06 70)',
-    'oklch(0.55 0.08 38)', 'oklch(0.73 0.10 58)', 'oklch(0.66 0.14 42)',
-    'oklch(0.77 0.05 85)', 'oklch(0.60 0.12 48)', 'oklch(0.71 0.08 62)',
-    'oklch(0.64 0.10 52)', 'oklch(0.79 0.06 75)', 'oklch(0.57 0.14 40)',
-    'oklch(0.74 0.08 68)', 'oklch(0.67 0.12 44)', 'oklch(0.76 0.05 82)',
-    'oklch(0.61 0.10 46)', 'oklch(0.69 0.08 58)', 'oklch(0.63 0.12 50)',
+    'oklch(0.72 0.10 55)',
+    'oklch(0.65 0.12 40)',
+    'oklch(0.78 0.06 80)',
+    'oklch(0.58 0.14 35)',
+    'oklch(0.70 0.08 65)',
+    'oklch(0.62 0.10 50)',
+    'oklch(0.75 0.04 90)',
+    'oklch(0.68 0.12 45)',
+    'oklch(0.80 0.06 70)',
+    'oklch(0.55 0.08 38)',
+    'oklch(0.73 0.10 58)',
+    'oklch(0.66 0.14 42)',
+    'oklch(0.77 0.05 85)',
+    'oklch(0.60 0.12 48)',
+    'oklch(0.71 0.08 62)',
+    'oklch(0.64 0.10 52)',
+    'oklch(0.79 0.06 75)',
+    'oklch(0.57 0.14 40)',
+    'oklch(0.74 0.08 68)',
+    'oklch(0.67 0.12 44)',
+    'oklch(0.76 0.05 82)',
+    'oklch(0.61 0.10 46)',
+    'oklch(0.69 0.08 58)',
+    'oklch(0.63 0.12 50)',
   ];
 
   return (

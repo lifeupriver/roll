@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: memberId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -50,7 +50,9 @@ export async function GET(
         // Get photos from those posts
         const { data: postPhotos } = await supabase
           .from('circle_post_photos')
-          .select('photos(id, thumbnail_url, storage_key, date_taken, camera_make, camera_model, latitude, longitude)')
+          .select(
+            'photos(id, thumbnail_url, storage_key, date_taken, camera_make, camera_model, latitude, longitude)'
+          )
           .in('post_id', postIds);
 
         photos = (postPhotos ?? [])

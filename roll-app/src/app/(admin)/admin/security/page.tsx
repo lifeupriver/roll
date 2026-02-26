@@ -32,14 +32,22 @@ export default function AdminSecurityPage() {
       if (actionFilter) params.set('action', actionFilter);
       const res = await fetch(`/api/admin/audit-log?${params}`);
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, [page, actionFilter]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
     <div className="space-y-8">
-      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Security & Audit Log</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+        Security & Audit Log
+      </h1>
 
       {/* Filter */}
       <div className="flex gap-3">
@@ -47,7 +55,10 @@ export default function AdminSecurityPage() {
           type="text"
           placeholder="Filter by action..."
           value={actionFilter}
-          onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setActionFilter(e.target.value);
+            setPage(1);
+          }}
           className="px-3 py-2 text-sm bg-[var(--color-surface-raised)] border border-[var(--color-border)] rounded-[var(--radius-sharp)] text-[var(--color-ink)] placeholder:text-[var(--color-ink-tertiary)] focus:outline-none focus:border-[var(--color-border-focus)] w-64"
         />
       </div>
@@ -66,7 +77,9 @@ export default function AdminSecurityPage() {
               <div key={entry.id} className="px-4 py-3">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[var(--color-action)]">{entry.action}</span>
+                    <span className="text-sm font-medium text-[var(--color-action)]">
+                      {entry.action}
+                    </span>
                     {entry.target_type && (
                       <span className="text-xs text-[var(--color-ink-tertiary)]">
                         on {entry.target_type}

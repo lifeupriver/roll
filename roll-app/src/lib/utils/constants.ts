@@ -25,11 +25,7 @@ export const SCREENSHOT_RATIOS = [
 ];
 
 // Video constants
-export const ALLOWED_VIDEO_CONTENT_TYPES = [
-  'video/mp4',
-  'video/quicktime',
-  'video/x-m4v',
-] as const;
+export const ALLOWED_VIDEO_CONTENT_TYPES = ['video/mp4', 'video/quicktime', 'video/x-m4v'] as const;
 
 export const ALL_ALLOWED_CONTENT_TYPES = [
   ...ALLOWED_CONTENT_TYPES,

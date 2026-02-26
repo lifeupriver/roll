@@ -80,10 +80,7 @@ export default function CircleJoinPage() {
               You can now see and share photos with this circle.
             </p>
           </div>
-          <Button
-            variant="primary"
-            onClick={() => router.push(`/circle/${state.circleId}`)}
-          >
+          <Button variant="primary" onClick={() => router.push(`/circle/${state.circleId}`)}>
             Go to Circle
           </Button>
         </>
@@ -103,10 +100,7 @@ export default function CircleJoinPage() {
               {state.message}
             </p>
           </div>
-          <Button
-            variant="secondary"
-            onClick={() => router.push('/circle')}
-          >
+          <Button variant="secondary" onClick={() => router.push('/circle')}>
             <ArrowLeft size={16} className="mr-1" /> Go to Circles
           </Button>
         </>

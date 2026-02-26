@@ -107,7 +107,9 @@ function SpreadPage({
       {/* Caption overlay */}
       {page.caption && page.layout === 'caption_heavy' && (
         <div className="absolute bottom-0 inset-x-0 p-2 bg-black/40">
-          <p className="text-white text-[length:var(--text-caption)] line-clamp-2">{page.caption}</p>
+          <p className="text-white text-[length:var(--text-caption)] line-clamp-2">
+            {page.caption}
+          </p>
         </div>
       )}
 

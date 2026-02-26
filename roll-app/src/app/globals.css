@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   /* === PRIMITIVE TOKENS === */
@@ -8,24 +8,24 @@
 
   --color-darkroom: oklch(0.15 0.02 55);
   --color-darkroom-wall: oklch(0.22 0.02 50);
-  --color-darkroom-bench: oklch(0.30 0.02 45);
+  --color-darkroom-bench: oklch(0.3 0.02 45);
 
   --color-safelight: oklch(0.57 0.16 42);
   --color-safelight-dim: oklch(0.48 0.14 40);
-  --color-safelight-glow: oklch(0.90 0.06 50);
+  --color-safelight-glow: oklch(0.9 0.06 50);
   --color-fixer: oklch(0.58 0.02 60);
   --color-developer: oklch(0.44 0.02 55);
 
-  --color-stock-warmth: oklch(0.75 0.10 60);
+  --color-stock-warmth: oklch(0.75 0.1 60);
   --color-stock-golden: oklch(0.73 0.12 85);
-  --color-stock-vivid: oklch(0.60 0.12 135);
-  --color-stock-classic: oklch(0.35 0.00 0);
+  --color-stock-vivid: oklch(0.6 0.12 135);
+  --color-stock-classic: oklch(0.35 0 0);
   --color-stock-gentle: oklch(0.58 0.02 60);
   --color-stock-modern: oklch(0.22 0.02 50);
 
-  --color-heart: oklch(0.55 0.20 25);
+  --color-heart: oklch(0.55 0.2 25);
   --color-heart-hover: oklch(0.48 0.18 25);
-  --color-developed: oklch(0.55 0.10 145);
+  --color-developed: oklch(0.55 0.1 145);
   --color-processing: oklch(0.73 0.12 85);
   --color-error: oklch(0.62 0.15 45);
 
@@ -49,7 +49,7 @@
   --color-action-subtle: var(--color-safelight-glow);
 
   --color-border: oklch(0.91 0.02 70 / 0.6);
-  --color-border-strong: oklch(0.80 0.02 65 / 0.8);
+  --color-border-strong: oklch(0.8 0.02 65 / 0.8);
   --color-border-focus: var(--color-safelight);
 
   /* === TYPOGRAPHY === */
@@ -103,7 +103,7 @@
     --color-surface: var(--color-darkroom);
     --color-surface-raised: var(--color-darkroom-wall);
     --color-surface-sunken: oklch(0.12 0.02 55);
-    --color-surface-overlay: oklch(0.10 0.02 55);
+    --color-surface-overlay: oklch(0.1 0.02 55);
 
     --color-ink: var(--color-paper);
     --color-ink-secondary: oklch(0.78 0.02 70);
@@ -114,36 +114,36 @@
     --color-action-hover: oklch(0.68 0.16 48);
     --color-action-subtle: oklch(0.25 0.06 45);
 
-    --color-border: oklch(0.30 0.02 50 / 0.5);
-    --color-border-strong: oklch(0.40 0.02 50 / 0.6);
+    --color-border: oklch(0.3 0.02 50 / 0.5);
+    --color-border-strong: oklch(0.4 0.02 50 / 0.6);
 
-    --shadow-raised: 0 0 0 1px oklch(0.30 0.02 50 / 0.3);
-    --shadow-floating: 0 0 0 1px oklch(0.30 0.02 50 / 0.4), 0 4px 12px oklch(0 0 0 / 0.3);
-    --shadow-overlay: 0 0 0 1px oklch(0.30 0.02 50 / 0.5), 0 12px 32px oklch(0 0 0 / 0.5);
+    --shadow-raised: 0 0 0 1px oklch(0.3 0.02 50 / 0.3);
+    --shadow-floating: 0 0 0 1px oklch(0.3 0.02 50 / 0.4), 0 4px 12px oklch(0 0 0 / 0.3);
+    --shadow-overlay: 0 0 0 1px oklch(0.3 0.02 50 / 0.5), 0 12px 32px oklch(0 0 0 / 0.5);
   }
 
   /* Darkroom mode — deep charcoal + warm cream text + terracotta accents only */
   .darkroom {
     /* Backgrounds: deep charcoal, not pure black — creates depth */
-    --color-surface: oklch(0.14 0.01 55);          /* #1A1614 — deep charcoal */
-    --color-surface-raised: oklch(0.20 0.01 50);   /* #2C2520 — lifted charcoal for cards */
+    --color-surface: oklch(0.14 0.01 55); /* #1A1614 — deep charcoal */
+    --color-surface-raised: oklch(0.2 0.01 50); /* #2C2520 — lifted charcoal for cards */
     --color-surface-sunken: oklch(0.11 0.01 55);
     --color-surface-overlay: oklch(0.09 0.01 55);
 
     /* Text: warm cream hierarchy — NOT red/terracotta */
     /* #FAF7F2 on #1A1614 → ~14:1 contrast ratio (WCAG AAA) */
-    --color-ink: oklch(0.97 0.01 80);              /* #FAF7F2 — warm cream, headings + primary text */
+    --color-ink: oklch(0.97 0.01 80); /* #FAF7F2 — warm cream, headings + primary text */
     /* #C4B8A8 on #1A1614 → ~7.5:1 contrast ratio (WCAG AA+) */
-    --color-ink-secondary: oklch(0.76 0.02 70);    /* #C4B8A8 — muted warm gray, body text */
+    --color-ink-secondary: oklch(0.76 0.02 70); /* #C4B8A8 — muted warm gray, body text */
     /* Tertiary for muted/less important text */
-    --color-ink-tertiary: oklch(0.58 0.02 60);     /* #8C8074 — fixer silver */
+    --color-ink-tertiary: oklch(0.58 0.02 60); /* #8C8074 — fixer silver */
     --color-ink-inverse: oklch(0.14 0.01 55);
 
     /* Action: terracotta ONLY for CTAs, links, interactive highlights */
     /* #C45D3E on #1A1614 → ~4.2:1 (passes WCAG AA for large text, 3:1 min) */
-    --color-action: oklch(0.62 0.15 45);           /* #C45D3E — terracotta accent */
+    --color-action: oklch(0.62 0.15 45); /* #C45D3E — terracotta accent */
     --color-action-hover: oklch(0.68 0.16 48);
-    --color-action-subtle: oklch(0.20 0.04 45);
+    --color-action-subtle: oklch(0.2 0.04 45);
 
     /* Borders: subtle warm tint */
     --color-border: oklch(0.26 0.01 55 / 0.6);
@@ -156,9 +156,9 @@
     --color-safelight-glow: oklch(0.22 0.04 45);
 
     /* Status colors: keep distinct for meaning */
-    --color-heart: oklch(0.55 0.20 25);
+    --color-heart: oklch(0.55 0.2 25);
     --color-heart-hover: oklch(0.48 0.18 25);
-    --color-developed: oklch(0.55 0.10 145);
+    --color-developed: oklch(0.55 0.1 145);
     --color-processing: oklch(0.73 0.12 85);
     --color-error: oklch(0.62 0.15 45);
 
@@ -179,8 +179,17 @@
   }
 }
 
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Darkroom mode: range sliders use safelight red with orange outline, no white */
-.darkroom input[type="range"] {
+.darkroom input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
   accent-color: var(--color-action);
@@ -188,13 +197,13 @@
   background: transparent;
   cursor: pointer;
 }
-.darkroom input[type="range"]::-webkit-slider-runnable-track {
+.darkroom input[type='range']::-webkit-slider-runnable-track {
   height: 6px;
   background: var(--color-surface-raised);
   border-radius: 9999px;
   border: 1px solid var(--color-action);
 }
-.darkroom input[type="range"]::-webkit-slider-thumb {
+.darkroom input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 16px;
@@ -204,13 +213,13 @@
   border: 2px solid var(--color-action);
   margin-top: -5px;
 }
-.darkroom input[type="range"]::-moz-range-track {
+.darkroom input[type='range']::-moz-range-track {
   height: 6px;
   background: var(--color-surface-raised);
   border-radius: 9999px;
   border: 1px solid var(--color-action);
 }
-.darkroom input[type="range"]::-moz-range-thumb {
+.darkroom input[type='range']::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
@@ -220,20 +229,20 @@
 
 /* Mobile-optimized range sliders — ensure 44px touch target */
 @media (max-width: 768px) {
-  input[type="range"] {
+  input[type='range'] {
     -webkit-appearance: none;
     appearance: none;
     height: 8px;
     min-height: 44px;
     cursor: pointer;
   }
-  input[type="range"]::-webkit-slider-runnable-track {
+  input[type='range']::-webkit-slider-runnable-track {
     height: 8px;
     border-radius: 9999px;
     background: var(--color-surface-sunken);
     border: 1px solid var(--color-border);
   }
-  input[type="range"]::-webkit-slider-thumb {
+  input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     width: 28px;
@@ -241,45 +250,45 @@
     border-radius: 50%;
     background: var(--color-action);
     border: 2px solid var(--color-surface);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     margin-top: -10px;
   }
-  input[type="range"]::-moz-range-track {
+  input[type='range']::-moz-range-track {
     height: 8px;
     border-radius: 9999px;
     background: var(--color-surface-sunken);
     border: 1px solid var(--color-border);
   }
-  input[type="range"]::-moz-range-thumb {
+  input[type='range']::-moz-range-thumb {
     width: 28px;
     height: 28px;
     border-radius: 50%;
     background: var(--color-action);
     border: 2px solid var(--color-surface);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   }
 }
 
 /* Darkroom mobile sliders */
 @media (max-width: 768px) {
-  .darkroom input[type="range"]::-webkit-slider-runnable-track {
+  .darkroom input[type='range']::-webkit-slider-runnable-track {
     height: 8px;
     background: var(--color-surface-raised);
     border: 1px solid var(--color-action);
   }
-  .darkroom input[type="range"]::-webkit-slider-thumb {
+  .darkroom input[type='range']::-webkit-slider-thumb {
     width: 28px;
     height: 28px;
     background: var(--color-action);
     border: 2px solid var(--color-action);
     margin-top: -10px;
   }
-  .darkroom input[type="range"]::-moz-range-track {
+  .darkroom input[type='range']::-moz-range-track {
     height: 8px;
     background: var(--color-surface-raised);
     border: 1px solid var(--color-action);
   }
-  .darkroom input[type="range"]::-moz-range-thumb {
+  .darkroom input[type='range']::-moz-range-thumb {
     width: 28px;
     height: 28px;
     background: var(--color-action);
@@ -314,17 +323,32 @@
 }
 
 @keyframes grain-shift {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(-5%, -5%); }
-  50% { transform: translate(5%, 0); }
-  75% { transform: translate(0, 5%); }
-  100% { transform: translate(0, 0); }
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-5%, -5%);
+  }
+  50% {
+    transform: translate(5%, 0);
+  }
+  75% {
+    transform: translate(0, 5%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
 }
 
 /* Skeleton pulse animation */
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .skeleton-pulse {
@@ -333,8 +357,12 @@
 
 /* Skeleton shimmer animation */
 @keyframes skeleton-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton-shimmer {
@@ -350,8 +378,12 @@
 
 /* Slide down for banners */
 @keyframes slide-down {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-down {
@@ -360,18 +392,30 @@
 
 /* Drawer animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 /* Focus system */
@@ -387,12 +431,12 @@
 }
 
 /* Date input text: use primary ink, never inherit action color */
-input[type="date"],
-input[type="date"]::-webkit-datetime-edit,
-input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+input[type='date'],
+input[type='date']::-webkit-datetime-edit,
+input[type='date']::-webkit-datetime-edit-fields-wrapper {
   color: var(--color-ink);
 }
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
   opacity: 0.5;
   cursor: pointer;
 }
@@ -402,20 +446,24 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   :root {
     --color-ink: #000000;
     --color-ink-secondary: #333333;
-    --color-surface: #FFFFFF;
-    --color-action: #B34426;
+    --color-surface: #ffffff;
+    --color-action: #b34426;
     --color-border: #333333;
   }
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .film-grain::after { animation: none; }
+  .film-grain::after {
+    animation: none;
+  }
 }
 
 /* Typography utilities */
@@ -455,10 +503,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* Safe area insets for native shells (notch, home indicator) */
-.safe-area-inset-top { padding-top: env(safe-area-inset-top, 0px); }
-.safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-.safe-area-inset-left { padding-left: env(safe-area-inset-left, 0px); }
-.safe-area-inset-right { padding-right: env(safe-area-inset-right, 0px); }
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-area-inset-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.safe-area-inset-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
 
 /* Standalone PWA body adjustment */
 @media (display-mode: standalone) {
@@ -490,8 +546,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
    Tab content crossfade (Task 3.3)
    ================================================ */
 @keyframes tab-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .tab-content-enter {
@@ -502,9 +562,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
    Checkmark selection glow (Task 3.2)
    ================================================ */
 @keyframes selection-glow {
-  0% { box-shadow: 0 0 0 0 rgba(196, 93, 62, 0.4); }
-  50% { box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.4); }
-  100% { box-shadow: 0 0 0 3px rgba(196, 93, 62, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(196, 93, 62, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(196, 93, 62, 0);
+  }
 }
 
 .selection-glow-pulse {
@@ -515,13 +581,25 @@ input[type="date"]::-webkit-calendar-picker-indicator {
    Number flip transition (Task 3.2)
    ================================================ */
 @keyframes number-flip-out {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-100%); opacity: 0; }
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
 }
 
 @keyframes number-flip-in {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .number-flip-enter {
@@ -532,8 +610,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
    Heart flash burst (Task 3.4)
    ================================================ */
 @keyframes heart-flash {
-  0% { transform: scale(0.3); opacity: 0.6; }
-  100% { transform: scale(1.8); opacity: 0; }
+  0% {
+    transform: scale(0.3);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
 }
 
 .heart-flash {
@@ -560,9 +644,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* Film profile preview filters */
-.preview-warmth { filter: saturate(1.1) sepia(0.15) brightness(1.05); }
-.preview-golden { filter: saturate(1.2) sepia(0.25) brightness(1.08) contrast(1.05); }
-.preview-vivid { filter: saturate(1.4) contrast(1.1) brightness(1.02); }
-.preview-classic { filter: grayscale(1) contrast(1.3) brightness(0.95); }
-.preview-gentle { filter: grayscale(1) contrast(0.9) brightness(1.1); }
-.preview-modern { filter: grayscale(1) contrast(1.1) brightness(1.0); }
+.preview-warmth {
+  filter: saturate(1.1) sepia(0.15) brightness(1.05);
+}
+.preview-golden {
+  filter: saturate(1.2) sepia(0.25) brightness(1.08) contrast(1.05);
+}
+.preview-vivid {
+  filter: saturate(1.4) contrast(1.1) brightness(1.02);
+}
+.preview-classic {
+  filter: grayscale(1) contrast(1.3) brightness(0.95);
+}
+.preview-gentle {
+  filter: grayscale(1) contrast(0.9) brightness(1.1);
+}
+.preview-modern {
+  filter: grayscale(1) contrast(1.1) brightness(1);
+}

@@ -5,14 +5,14 @@ import { parseBody, photoTagCreateSchema, photoTagDeleteSchema } from '@/lib/val
 import type { PhotoTag } from '@/types/people';
 
 // GET — list tags for a photo
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -47,14 +47,14 @@ export async function GET(
 }
 
 // POST — add a tag to a photo
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -111,7 +111,10 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -132,10 +135,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
     }
 
-    const { error: deleteError } = await supabase
-      .from('photo_tags')
-      .delete()
-      .eq('id', tagId);
+    const { error: deleteError } = await supabase.from('photo_tags').delete().eq('id', tagId);
 
     if (deleteError) {
       return NextResponse.json({ error: deleteError.message }, { status: 500 });

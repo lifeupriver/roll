@@ -7,7 +7,10 @@ import type { Circle } from '@/types/circle';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -50,7 +53,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -106,13 +112,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Add creator as a member with role 'creator'
-    const { error: memberError } = await supabase
-      .from('circle_members')
-      .insert({
-        circle_id: circle.id,
-        user_id: user.id,
-        role: 'creator',
-      });
+    const { error: memberError } = await supabase.from('circle_members').insert({
+      circle_id: circle.id,
+      user_id: user.id,
+      role: 'creator',
+    });
 
     if (memberError) {
       return NextResponse.json({ error: memberError.message }, { status: 500 });

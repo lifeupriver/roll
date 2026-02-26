@@ -57,7 +57,9 @@ export default function SignupPage() {
           placeholder="Password (min 8 characters)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          error={validationError && validationError.includes('Password') ? validationError : undefined}
+          error={
+            validationError && validationError.includes('Password') ? validationError : undefined
+          }
         />
         <Input
           type="password"
@@ -66,7 +68,11 @@ export default function SignupPage() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           error={validationError && validationError.includes('match') ? validationError : undefined}
         />
-        {(error || (validationError && !validationError.includes('email') && !validationError.includes('Password') && !validationError.includes('match'))) && (
+        {(error ||
+          (validationError &&
+            !validationError.includes('email') &&
+            !validationError.includes('Password') &&
+            !validationError.includes('match'))) && (
           <p className="text-[length:var(--text-caption)] text-[var(--color-error)]">
             {error || validationError}
           </p>

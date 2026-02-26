@@ -1,6 +1,10 @@
 import sharp from 'sharp';
-import type { FilterResult, FilterReason } from '@/types/photo';
-import type { DurationCategory, AudioClassification } from '@/types/photo';
+import type {
+  FilterResult,
+  FilterReason,
+  DurationCategory,
+  AudioClassification,
+} from '@/types/photo';
 import { detectScreenshot } from './screenshotDetection';
 import { computePerceptualHash, findDuplicates } from './duplicateDetection';
 import { getObject } from '@/lib/storage/r2';
@@ -49,7 +53,7 @@ function isAccidentalRecording(durationMs: number): boolean {
  */
 function isScreenRecording(
   dimensions: { width: number; height: number },
-  exif: { cameraMake: string | null; cameraModel: string | null },
+  exif: { cameraMake: string | null; cameraModel: string | null }
 ): boolean {
   return detectScreenshot(dimensions, exif);
 }
@@ -60,9 +64,7 @@ function isScreenRecording(
  * For the prototype, we use the thumbnail/key frame.
  */
 async function analyzeKeyFrameLuminance(keyFrameBuffer: Buffer): Promise<number> {
-  const stats = await sharp(keyFrameBuffer)
-    .resize(64, 64, { fit: 'inside' })
-    .stats();
+  const stats = await sharp(keyFrameBuffer).resize(64, 64, { fit: 'inside' }).stats();
   const meanR = stats.channels[0]?.mean ?? 0;
   const meanG = stats.channels[1]?.mean ?? 0;
   const meanB = stats.channels[2]?.mean ?? 0;
@@ -122,9 +124,7 @@ async function detectFaces(imageBuffer: Buffer): Promise<number> {
  * Classify scene from key frame (same as photo pipeline).
  */
 async function classifyScene(imageBuffer: Buffer): Promise<string[]> {
-  const stats = await sharp(imageBuffer)
-    .resize(64, 64, { fit: 'inside' })
-    .stats();
+  const stats = await sharp(imageBuffer).resize(64, 64, { fit: 'inside' }).stats();
 
   const labels: string[] = [];
   const meanR = stats.channels[0]?.mean ?? 0;
@@ -160,12 +160,16 @@ export async function filterVideo(video: VideoInput): Promise<VideoFilterResult>
         channels: 3,
         background: { r: 128, g: 128, b: 128 },
       },
-    }).jpeg().toBuffer();
+    })
+      .jpeg()
+      .toBuffer();
   } catch {
     // If we can't get the video, create a neutral analysis frame
     keyFrameBuffer = await sharp({
       create: { width: 128, height: 128, channels: 3, background: { r: 128, g: 128, b: 128 } },
-    }).jpeg().toBuffer();
+    })
+      .jpeg()
+      .toBuffer();
   }
 
   const durationCategory = categorizeDuration(video.duration_ms);
@@ -176,7 +180,7 @@ export async function filterVideo(video: VideoInput): Promise<VideoFilterResult>
   const isAccidental = isAccidentalRecording(video.duration_ms);
   const isScreen = isScreenRecording(
     { width: video.width, height: video.height },
-    { cameraMake: video.camera_make, cameraModel: video.camera_model },
+    { cameraMake: video.camera_make, cameraModel: video.camera_model }
   );
 
   const luminance = await analyzeKeyFrameLuminance(keyFrameBuffer);
@@ -188,13 +192,17 @@ export async function filterVideo(video: VideoInput): Promise<VideoFilterResult>
   const phash = await computePerceptualHash(keyFrameBuffer);
 
   // Aesthetic score for videos
-  const aestheticScore = Math.min(1, Math.max(0,
-    0.5
-    + (stabilizationScore * 0.2)
-    + (faceCount > 0 ? 0.05 : 0)
-    + (video.duration_ms > 3000 ? 0.1 : 0)
-    + (luminance > 50 ? 0.1 : 0)
-  ));
+  const aestheticScore = Math.min(
+    1,
+    Math.max(
+      0,
+      0.5 +
+        stabilizationScore * 0.2 +
+        (faceCount > 0 ? 0.05 : 0) +
+        (video.duration_ms > 3000 ? 0.1 : 0) +
+        (luminance > 50 ? 0.1 : 0)
+    )
+  );
 
   // Determine filter status
   let filterStatus: 'visible' | 'filtered_auto' = 'visible';
@@ -232,7 +240,7 @@ export async function filterVideo(video: VideoInput): Promise<VideoFilterResult>
  */
 export async function runVideoFilterPipeline(
   videos: VideoInput[],
-  updateVideo: (videoId: string, result: VideoFilterResult) => Promise<void>,
+  updateVideo: (videoId: string, result: VideoFilterResult) => Promise<void>
 ): Promise<void> {
   const concurrency = 3;
   const results: Array<{ id: string; result: VideoFilterResult }> = [];
@@ -244,7 +252,7 @@ export async function runVideoFilterPipeline(
         const result = await filterVideo(video);
         await updateVideo(video.id, result);
         return { id: video.id, result };
-      }),
+      })
     );
 
     for (const r of batchResults) {

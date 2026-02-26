@@ -9,23 +9,15 @@ export async function DELETE(
   try {
     const { photoId } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify the favorite exists and belongs to user
-    const { data: favorite, error: findError } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('photo_id', photoId)
-      .single();
-
-    if (findError || !favorite) {
-      return NextResponse.json({ error: 'Favorite not found' }, { status: 404 });
-    }
-
+    // Delete the favorite if it exists (idempotent – already-removed is not an error)
     const { error: deleteError } = await supabase
       .from('favorites')
       .delete()

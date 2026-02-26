@@ -19,17 +19,22 @@ export interface SmartCollection {
  * Returns automatically generated smart collections based on photo metadata.
  * Groups by: trips (date+location clusters), people, seasons, cameras.
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data: photos, error: photosError } = await supabase
       .from('photos')
-      .select('id, thumbnail_url, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, created_at')
+      .select(
+        'id, thumbnail_url, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, created_at'
+      )
       .eq('user_id', user.id)
       .eq('filter_status', 'visible')
       .order('date_taken', { ascending: true, nullsFirst: false });
@@ -75,10 +80,26 @@ export async function GET(request: NextRequest) {
         const end = trip[trip.length - 1].date_taken!;
         const startDate = new Date(start);
         const endDate = new Date(end);
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthNames = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
 
         let title: string;
-        if (startDate.getMonth() === endDate.getMonth() && startDate.getFullYear() === endDate.getFullYear()) {
+        if (
+          startDate.getMonth() === endDate.getMonth() &&
+          startDate.getFullYear() === endDate.getFullYear()
+        ) {
           title = `${monthNames[startDate.getMonth()]} ${startDate.getDate()}–${endDate.getDate()}, ${startDate.getFullYear()}`;
         } else {
           title = `${monthNames[startDate.getMonth()]} ${startDate.getDate()} – ${monthNames[endDate.getMonth()]} ${endDate.getDate()}, ${endDate.getFullYear()}`;
@@ -86,7 +107,10 @@ export async function GET(request: NextRequest) {
 
         // Pick the best cover photo (highest aesthetic score or most faces)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const cover = trip.reduce((best: any, p: any) => (p.face_count > best.face_count ? p : best), trip[0]);
+        const cover = trip.reduce(
+          (best: any, p: any) => (p.face_count > best.face_count ? p : best),
+          trip[0]
+        );
 
         collections.push({
           id: `trip-${start}`,

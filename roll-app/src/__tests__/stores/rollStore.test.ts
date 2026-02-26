@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useRollStore } from '@/stores/rollStore';
 import type { RollPhoto } from '@/types/roll';
 
-function makeRollPhoto(overrides: Partial<RollPhoto> & { photo_id: string; position: number }): RollPhoto {
+function makeRollPhoto(
+  overrides: Partial<RollPhoto> & { photo_id: string; position: number }
+): RollPhoto {
   return {
     id: `rp-${overrides.photo_id}`,
     roll_id: 'roll-1',
@@ -66,11 +68,13 @@ describe('rollStore', () => {
 
   describe('reorderPhotos', () => {
     it('moves a photo from one position to another', () => {
-      useRollStore.getState().setRollPhotos([
-        makeRollPhoto({ photo_id: 'p1', position: 1 }),
-        makeRollPhoto({ photo_id: 'p2', position: 2 }),
-        makeRollPhoto({ photo_id: 'p3', position: 3 }),
-      ]);
+      useRollStore
+        .getState()
+        .setRollPhotos([
+          makeRollPhoto({ photo_id: 'p1', position: 1 }),
+          makeRollPhoto({ photo_id: 'p2', position: 2 }),
+          makeRollPhoto({ photo_id: 'p3', position: 3 }),
+        ]);
 
       useRollStore.getState().reorderPhotos(0, 2);
       const photos = useRollStore.getState().rollPhotos;
@@ -84,11 +88,13 @@ describe('rollStore', () => {
   describe('removeFromRoll', () => {
     it('removes photo and renumbers positions', () => {
       useRollStore.getState().checkPhoto('p2');
-      useRollStore.getState().setRollPhotos([
-        makeRollPhoto({ photo_id: 'p1', position: 1 }),
-        makeRollPhoto({ photo_id: 'p2', position: 2 }),
-        makeRollPhoto({ photo_id: 'p3', position: 3 }),
-      ]);
+      useRollStore
+        .getState()
+        .setRollPhotos([
+          makeRollPhoto({ photo_id: 'p1', position: 1 }),
+          makeRollPhoto({ photo_id: 'p2', position: 2 }),
+          makeRollPhoto({ photo_id: 'p3', position: 3 }),
+        ]);
 
       useRollStore.getState().removeFromRoll('p2');
       const photos = useRollStore.getState().rollPhotos;
@@ -116,10 +122,9 @@ describe('rollStore', () => {
 
   describe('updateRollStatus', () => {
     it('updates matching roll in rolls array', () => {
-      useRollStore.getState().setRolls([
-        { id: 'r1', status: 'building' } as any,
-        { id: 'r2', status: 'ready' } as any,
-      ]);
+      useRollStore
+        .getState()
+        .setRolls([{ id: 'r1', status: 'building' } as any, { id: 'r2', status: 'ready' } as any]);
 
       useRollStore.getState().updateRollStatus('r1', { status: 'ready' } as any);
       const r1 = useRollStore.getState().rolls.find((r) => r.id === 'r1');

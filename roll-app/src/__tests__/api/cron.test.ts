@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // Mock Supabase client
-const mockDelete = vi.fn();
-const mockUpdate = vi.fn();
-const mockSelect = vi.fn();
+const _mockDelete = vi.fn();
+const _mockUpdate = vi.fn();
+const _mockSelect = vi.fn();
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
-    from: vi.fn((table: string) => ({
+    from: vi.fn((_table: string) => ({
       delete: vi.fn(() => ({
         is: vi.fn(() => ({
           lt: vi.fn(() => ({

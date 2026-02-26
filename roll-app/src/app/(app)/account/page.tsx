@@ -10,7 +10,28 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
 import { Input } from '@/components/ui/Input';
-import { EyeOff, Undo2, Package, ExternalLink, CreditCard, Gift, Copy, Send, Bell, BellOff, CalendarHeart, ChevronRight, Layers, Clock, Search, MapPin, Moon, Sun, Info, Shield, Printer } from 'lucide-react';
+import {
+  EyeOff,
+  Undo2,
+  ExternalLink,
+  CreditCard,
+  Gift,
+  Copy,
+  Send,
+  Bell,
+  BellOff,
+  CalendarHeart,
+  ChevronRight,
+  Layers,
+  Clock,
+  Search,
+  MapPin,
+  Moon,
+  Sun,
+  Info,
+  Shield,
+  Printer,
+} from 'lucide-react';
 import Link from 'next/link';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
@@ -26,7 +47,12 @@ export default function AccountPage() {
   const { toast } = useToast();
   const [showFiltered, setShowFiltered] = useState(false);
   // Stack settings (persisted via store)
-  const { mode: stackMode, sensitivity: stackSensitivity, setMode: setStackMode, setSensitivity: setStackSensitivity } = useStackStore();
+  const {
+    mode: stackMode,
+    sensitivity: stackSensitivity,
+    setMode: setStackMode,
+    setSensitivity: setStackSensitivity,
+  } = useStackStore();
   const [showSensitivityInfo, setShowSensitivityInfo] = useState(false);
   const [orders, setOrders] = useState<PrintOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -34,7 +60,13 @@ export default function AccountPage() {
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [referralEmail, setReferralEmail] = useState('');
   const [referralSending, setReferralSending] = useState(false);
-  const { permission: pushPermission, isSubscribed: pushSubscribed, isLoading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const {
+    permission: pushPermission,
+    isSubscribed: pushSubscribed,
+    isLoading: pushLoading,
+    subscribe: pushSubscribe,
+    unsubscribe: pushUnsubscribe,
+  } = usePushNotifications();
   const { theme, toggle: toggleTheme } = useTheme();
 
   // Fetch referral stats
@@ -70,7 +102,9 @@ export default function AccountPage() {
         toast(`Invite sent to ${referralEmail}`, 'success');
         setReferralEmail('');
         // Refresh stats
-        setReferralStats((prev) => prev ? { ...prev, totalInvited: prev.totalInvited + 1 } : prev);
+        setReferralStats((prev) =>
+          prev ? { ...prev, totalInvited: prev.totalInvited + 1 } : prev
+        );
       } else {
         toast(json.error || 'Failed to send invite', 'error');
       }
@@ -179,7 +213,13 @@ export default function AccountPage() {
               {user?.email}
             </p>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-mono)]">
-              Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
+              Member since{' '}
+              {user?.created_at
+                ? new Date(user.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : '—'}
             </p>
           </div>
         </div>
@@ -199,7 +239,9 @@ export default function AccountPage() {
                 Darkroom Mode
               </h2>
               <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                {theme === 'darkroom' ? 'Deep charcoal with safelight accents' : 'Light paper theme'}
+                {theme === 'darkroom'
+                  ? 'Deep charcoal with safelight accents'
+                  : 'Light paper theme'}
               </p>
             </div>
           </div>
@@ -209,9 +251,7 @@ export default function AccountPage() {
             aria-checked={theme === 'darkroom'}
             aria-label="Darkroom mode"
             className={`relative w-12 h-7 rounded-[var(--radius-pill)] transition-colors duration-200 ${
-              theme === 'darkroom'
-                ? 'bg-[var(--color-action)]'
-                : 'bg-[var(--color-surface-sunken)]'
+              theme === 'darkroom' ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
             }`}
           >
             <span
@@ -240,7 +280,11 @@ export default function AccountPage() {
               {user?.tier === 'pro' ? 'Roll Pro' : user?.tier === 'plus' ? 'Roll+' : 'Free'}
             </Badge>
             <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              {user?.tier === 'pro' ? 'Business features + all profiles' : user?.tier === 'plus' ? 'All film profiles unlocked' : '1 film profile (Warmth)'}
+              {user?.tier === 'pro'
+                ? 'Business features + all profiles'
+                : user?.tier === 'plus'
+                  ? 'All film profiles unlocked'
+                  : '1 film profile (Warmth)'}
             </span>
           </div>
           {user?.tier === 'plus' || user?.tier === 'pro' ? (
@@ -254,12 +298,7 @@ export default function AccountPage() {
               Manage
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleUpgrade}
-              isLoading={billingLoading}
-            >
+            <Button variant="primary" size="sm" onClick={handleUpgrade} isLoading={billingLoading}>
               Upgrade
             </Button>
           )}
@@ -275,15 +314,25 @@ export default function AccountPage() {
         <div className="mt-[var(--space-component)] border-t border-[var(--color-border)] pt-[var(--space-component)]">
           <div className="grid grid-cols-2 gap-[var(--space-tight)] text-[length:var(--text-caption)]">
             <div className="text-[var(--color-ink-secondary)]">Film profiles</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' || user?.tier === 'plus' ? 'All 6' : 'Warmth only'}</div>
+            <div className="text-[var(--color-ink)]">
+              {user?.tier === 'pro' || user?.tier === 'plus' ? 'All 6' : 'Warmth only'}
+            </div>
             <div className="text-[var(--color-ink-secondary)]">Circle sharing</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' || user?.tier === 'plus' ? 'Unlimited circles' : '1 circle'}</div>
+            <div className="text-[var(--color-ink)]">
+              {user?.tier === 'pro' || user?.tier === 'plus' ? 'Unlimited circles' : '1 circle'}
+            </div>
             <div className="text-[var(--color-ink-secondary)]">Print sizes</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' || user?.tier === 'plus' ? '4×6 and 5×7' : '4×6 only'}</div>
+            <div className="text-[var(--color-ink)]">
+              {user?.tier === 'pro' || user?.tier === 'plus' ? '4×6 and 5×7' : '4×6 only'}
+            </div>
             <div className="text-[var(--color-ink-secondary)]">Public galleries</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' ? 'Unlimited' : '—'}</div>
+            <div className="text-[var(--color-ink)]">
+              {user?.tier === 'pro' ? 'Unlimited' : '—'}
+            </div>
             <div className="text-[var(--color-ink-secondary)]">Business branding</div>
-            <div className="text-[var(--color-ink)]">{user?.tier === 'pro' ? 'Custom logo & colors' : '—'}</div>
+            <div className="text-[var(--color-ink)]">
+              {user?.tier === 'pro' ? 'Custom logo & colors' : '—'}
+            </div>
           </div>
         </div>
       </Card>
@@ -318,13 +367,16 @@ export default function AccountPage() {
           </h2>
         </div>
         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-component)]">
-          Similar photos are grouped into stacks. The best photo is automatically chosen for your roll. Tap a stack to see all photos inside.
+          Similar photos are grouped into stacks. The best photo is automatically chosen for your
+          roll. Tap a stack to see all photos inside.
         </p>
 
         {/* Stack mode */}
         <div className="flex flex-col gap-[var(--space-element)]">
           <div className="flex items-center justify-between">
-            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Stacking mode</span>
+            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+              Stacking mode
+            </span>
             <div className="flex items-center gap-[var(--space-tight)]">
               {(['auto', 'manual', 'off'] as const).map((mode) => (
                 <button
@@ -361,7 +413,9 @@ export default function AccountPage() {
                   </button>
                 </div>
                 <div className="flex items-center gap-[var(--space-element)]">
-                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Low</span>
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Low
+                  </span>
                   <input
                     type="range"
                     min={0.3}
@@ -371,13 +425,19 @@ export default function AccountPage() {
                     onChange={(e) => setStackSensitivity(Number(e.target.value))}
                     className="w-24 accent-[var(--color-action)]"
                   />
-                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">High</span>
+                  <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    High
+                  </span>
                 </div>
               </div>
               {showSensitivityInfo && (
                 <div className="bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] p-[var(--space-element)]">
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] leading-relaxed">
-                    <strong>Low sensitivity</strong> only groups nearly identical photos (e.g. burst shots of the same moment). <strong>High sensitivity</strong> groups photos that are loosely similar (e.g. multiple shots from the same scene or angle). Adjust to control how aggressively photos are grouped — the best photo from each stack is automatically chosen for your roll.
+                    <strong>Low sensitivity</strong> only groups nearly identical photos (e.g. burst
+                    shots of the same moment). <strong>High sensitivity</strong> groups photos that
+                    are loosely similar (e.g. multiple shots from the same scene or angle). Adjust
+                    to control how aggressively photos are grouped — the best photo from each stack
+                    is automatically chosen for your roll.
                   </p>
                 </div>
               )}
@@ -385,7 +445,8 @@ export default function AccountPage() {
           )}
           {stackMode === 'manual' && (
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              You choose which photos to group. Long-press a photo in the feed to create or add to a stack.
+              You choose which photos to group. Long-press a photo in the feed to create or add to a
+              stack.
             </p>
           )}
           {stackMode === 'off' && (
@@ -420,8 +481,12 @@ export default function AccountPage() {
           <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
             <Shield size={18} className="text-[var(--color-action)] shrink-0" />
             <div>
-              <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Privacy & Data</span>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Your data, your control</p>
+              <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+                Privacy & Data
+              </span>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                Your data, your control
+              </p>
             </div>
           </Card>
         </Link>
@@ -429,8 +494,12 @@ export default function AccountPage() {
           <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
             <Printer size={18} className="text-[var(--color-action)] shrink-0" />
             <div>
-              <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Monthly Prints</span>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">$4.99/mo auto-prints</p>
+              <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+                Monthly Prints
+              </span>
+              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                $4.99/mo auto-prints
+              </p>
             </div>
           </Card>
         </Link>
@@ -441,25 +510,33 @@ export default function AccountPage() {
         <Link href="/collections">
           <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
             <Layers size={18} className="text-[var(--color-action)] shrink-0" />
-            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Collections</span>
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+              Collections
+            </span>
           </Card>
         </Link>
         <Link href="/memories">
           <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
             <Clock size={18} className="text-[var(--color-stock-warmth)] shrink-0" />
-            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Memories</span>
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+              Memories
+            </span>
           </Card>
         </Link>
         <Link href="/search">
           <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
             <Search size={18} className="text-[var(--color-ink-secondary)] shrink-0" />
-            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Search</span>
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+              Search
+            </span>
           </Card>
         </Link>
         <Link href="/map">
           <Card className="flex items-center gap-[var(--space-element)] cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow">
             <MapPin size={18} className="text-[var(--color-stock-golden)] shrink-0" />
-            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">Photo Map</span>
+            <span className="font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] text-[var(--color-ink)]">
+              Photo Map
+            </span>
           </Card>
         </Link>
       </div>
@@ -517,19 +594,25 @@ export default function AccountPage() {
                 <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-heading)] text-[var(--color-ink)]">
                   {referralStats.totalInvited}
                 </p>
-                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Invited</p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  Invited
+                </p>
               </div>
               <div>
                 <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-heading)] text-[var(--color-ink)]">
                   {referralStats.totalSignedUp}
                 </p>
-                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Joined</p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  Joined
+                </p>
               </div>
               <div>
                 <p className="font-[family-name:var(--font-mono)] text-[length:var(--text-heading)] text-[var(--color-action)]">
                   {referralStats.totalConverted}
                 </p>
-                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">Converted</p>
+                <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                  Converted
+                </p>
               </div>
             </div>
           </div>
@@ -551,12 +634,14 @@ export default function AccountPage() {
           </p>
         ) : pushPermission === 'denied' ? (
           <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-            Notifications are blocked. Enable them in your browser settings to get notified when your rolls are ready, prints ship, and friends share photos.
+            Notifications are blocked. Enable them in your browser settings to get notified when
+            your rolls are ready, prints ship, and friends share photos.
           </p>
         ) : (
           <>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-component)]">
-              Get notified when your rolls are developed, prints ship, or friends invite you to a circle.
+              Get notified when your rolls are developed, prints ship, or friends invite you to a
+              circle.
             </p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-[var(--space-element)]">

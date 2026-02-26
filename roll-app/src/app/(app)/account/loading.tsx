@@ -18,7 +18,12 @@ export default function AccountLoading() {
 
       {/* Subscription card */}
       <div className="rounded-[var(--radius-sharp)] border border-[var(--color-border)] p-[var(--space-component)]">
-        <Skeleton variant="text" width="120px" height="20px" className="mb-[var(--space-element)]" />
+        <Skeleton
+          variant="text"
+          width="120px"
+          height="20px"
+          className="mb-[var(--space-element)]"
+        />
         <div className="flex items-center justify-between">
           <Skeleton variant="rect" width="64px" height="24px" />
           <Skeleton variant="rect" width="80px" height="32px" />
@@ -28,7 +33,12 @@ export default function AccountLoading() {
       {/* Storage card */}
       <div className="rounded-[var(--radius-sharp)] border border-[var(--color-border)] p-[var(--space-component)]">
         <Skeleton variant="text" width="80px" height="20px" className="mb-[var(--space-element)]" />
-        <Skeleton variant="rect" width="100%" height="8px" className="rounded-[var(--radius-pill)]" />
+        <Skeleton
+          variant="rect"
+          width="100%"
+          height="8px"
+          className="rounded-[var(--radius-pill)]"
+        />
       </div>
     </div>
   );

@@ -5,14 +5,14 @@ import { parseBody, circleCommentSchema, deleteCommentSchema } from '@/lib/valid
 import type { CircleComment } from '@/types/circle';
 
 // POST — add a comment to a circle post
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -75,7 +75,10 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -106,7 +109,10 @@ export async function DELETE(
         .single();
 
       if (!membership || membership.role !== 'creator') {
-        return NextResponse.json({ error: 'Not authorized to delete this comment' }, { status: 403 });
+        return NextResponse.json(
+          { error: 'Not authorized to delete this comment' },
+          { status: 403 }
+        );
       }
     }
 

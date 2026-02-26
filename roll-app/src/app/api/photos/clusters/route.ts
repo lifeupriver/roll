@@ -10,7 +10,10 @@ import { captureError } from '@/lib/sentry';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -18,7 +21,9 @@ export async function GET() {
     // Fetch visible photos with date_taken, ordered chronologically
     const { data: photos, error: photosError } = await supabase
       .from('photos')
-      .select('id, thumbnail_url, date_taken, latitude, longitude, aesthetic_score, face_count, scene_classification')
+      .select(
+        'id, thumbnail_url, date_taken, latitude, longitude, aesthetic_score, face_count, scene_classification'
+      )
       .eq('user_id', user.id)
       .eq('filter_status', 'visible')
       .not('date_taken', 'is', null)
@@ -46,7 +51,7 @@ export async function GET() {
     }
     const clusters: Array<{
       id: string;
-      cover_photo: typeof photos[0];
+      cover_photo: (typeof photos)[0];
       date_range: string;
       count: number;
       location?: string;

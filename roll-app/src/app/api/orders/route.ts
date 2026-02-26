@@ -13,7 +13,10 @@ import type { PrintOrder, PrintOrderItem } from '@/types/print';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -43,7 +46,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest) {
     if (roll.status !== 'developed') {
       return NextResponse.json(
         { error: 'Only developed rolls can be ordered for printing' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -98,10 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!rollPhotos || rollPhotos.length === 0) {
-      return NextResponse.json(
-        { error: 'No photos found for this roll' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'No photos found for this roll' }, { status: 400 });
     }
 
     // (d) Insert the print order
@@ -139,9 +142,7 @@ export async function POST(request: NextRequest) {
       position: rp.position,
     }));
 
-    const { error: itemsError } = await supabase
-      .from('print_order_items')
-      .insert(orderItems);
+    const { error: itemsError } = await supabase.from('print_order_items').insert(orderItems);
 
     if (itemsError) {
       return NextResponse.json({ error: itemsError.message }, { status: 500 });
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
     // (e) Submit to Prodigi (or simulate)
     const prodigiResponse = await createProdigiOrder(
       order as PrintOrder,
-      orderItems as PrintOrderItem[],
+      orderItems as PrintOrderItem[]
     );
 
     // (f) Update order with Prodigi details
@@ -171,10 +172,7 @@ export async function POST(request: NextRequest) {
     }
 
     // (g) Return the created order
-    return NextResponse.json(
-      { data: updatedOrder as PrintOrder },
-      { status: 201 },
-    );
+    return NextResponse.json({ data: updatedOrder as PrintOrder }, { status: 201 });
   } catch (err) {
     captureError(err, { context: 'orders-create' });
     const message = err instanceof Error ? err.message : 'Internal server error';

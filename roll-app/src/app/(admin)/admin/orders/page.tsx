@@ -42,10 +42,16 @@ export default function AdminOrdersPage() {
       const params = statusFilter ? `?status=${statusFilter}` : '';
       const res = await fetch(`/api/admin/orders${params}`);
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, [statusFilter]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
@@ -53,7 +59,10 @@ export default function AdminOrdersPage() {
         <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Orders</h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -75,7 +84,9 @@ export default function AdminOrdersPage() {
 
       {/* Status Pipeline */}
       <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4">
-        <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">Order Pipeline</h2>
+        <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">
+          Order Pipeline
+        </h2>
         <div className="flex items-center gap-1">
           {ORDER_PIPELINE.map((status, i) => {
             const count = data.statusBreakdown[status] ?? 0;
@@ -84,11 +95,15 @@ export default function AdminOrdersPage() {
                 key={status}
                 onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
                 className={`flex-1 text-center py-3 rounded-[var(--radius-sharp)] border transition-colors ${
-                  statusFilter === status ? 'bg-[var(--color-action-subtle)] border-[var(--color-action)]' : 'border-[var(--color-border)] hover:bg-[var(--color-surface-sunken)]'
+                  statusFilter === status
+                    ? 'bg-[var(--color-action-subtle)] border-[var(--color-action)]'
+                    : 'border-[var(--color-border)] hover:bg-[var(--color-surface-sunken)]'
                 }`}
               >
                 <p className="text-lg font-medium">{count}</p>
-                <p className="text-[10px] uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)]">{status.replace('_', ' ')}</p>
+                <p className="text-[10px] uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)]">
+                  {status.replace('_', ' ')}
+                </p>
                 {i < ORDER_PIPELINE.length - 1 && (
                   <span className="absolute right-0 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]" />
                 )}
@@ -114,7 +129,9 @@ export default function AdminOrdersPage() {
             <div className="min-w-0">
               <p className="text-sm">
                 {order.product} · {order.print_size} · {order.photo_count} photos
-                {order.is_free_first_roll && <span className="ml-1 text-[11px] text-amber-400">(Free first roll)</span>}
+                {order.is_free_first_roll && (
+                  <span className="ml-1 text-[11px] text-amber-400">(Free first roll)</span>
+                )}
               </p>
               <p className="text-xs text-[var(--color-ink-tertiary)]">
                 {order.shipping_name} · {new Date(order.created_at).toLocaleDateString()}
@@ -129,7 +146,9 @@ export default function AdminOrdersPage() {
           </button>
         ))}
         {data.orders.length === 0 && (
-          <p className="p-8 text-center text-sm text-[var(--color-ink-tertiary)]">No orders found</p>
+          <p className="p-8 text-center text-sm text-[var(--color-ink-tertiary)]">
+            No orders found
+          </p>
         )}
       </div>
     </div>

@@ -20,8 +20,20 @@ function makePhoto(id: string, createdAt: string): Photo {
     longitude: null,
     camera_make: null,
     camera_model: null,
-    filter_status: 'passed',
+    filter_status: 'visible',
+    filter_reason: null,
+    aesthetic_score: null,
+    phash: null,
+    face_count: 0,
+    scene_classification: [],
     created_at: createdAt,
+    updated_at: createdAt,
+    media_type: 'photo',
+    duration_ms: null,
+    duration_category: null,
+    preview_storage_key: null,
+    audio_classification: null,
+    stabilization_score: null,
   } as Photo;
 }
 
@@ -74,19 +86,17 @@ describe('photoStore', () => {
   });
 
   it('hidePhoto removes from photos array', () => {
-    usePhotoStore.getState().setPhotos([
-      makePhoto('1', '2026-01-01T00:00:00Z'),
-      makePhoto('2', '2026-01-02T00:00:00Z'),
-    ]);
+    usePhotoStore
+      .getState()
+      .setPhotos([makePhoto('1', '2026-01-01T00:00:00Z'), makePhoto('2', '2026-01-02T00:00:00Z')]);
     usePhotoStore.getState().hidePhoto('1');
     expect(usePhotoStore.getState().photos.map((p) => p.id)).toEqual(['2']);
   });
 
   it('recoverPhoto inserts in sorted order by created_at (newest first)', () => {
-    usePhotoStore.getState().setPhotos([
-      makePhoto('1', '2026-01-03T00:00:00Z'),
-      makePhoto('3', '2026-01-01T00:00:00Z'),
-    ]);
+    usePhotoStore
+      .getState()
+      .setPhotos([makePhoto('1', '2026-01-03T00:00:00Z'), makePhoto('3', '2026-01-01T00:00:00Z')]);
 
     usePhotoStore.getState().recoverPhoto('2', makePhoto('2', '2026-01-02T00:00:00Z'));
 

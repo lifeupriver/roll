@@ -36,18 +36,29 @@ export default function AdminRollsPage() {
       const params = statusFilter ? `?status=${statusFilter}` : '';
       const res = await fetch(`/api/admin/rolls${params}`);
       if (res.ok) setData(await res.json());
-    } catch { /* silent */ } finally { setLoading(false); }
+    } catch {
+      /* silent */
+    } finally {
+      setLoading(false);
+    }
   }, [statusFilter]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading || !data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">Roll Analytics</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-xl font-medium">
+          Roll Analytics
+        </h1>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse" />
+            <div
+              key={i}
+              className="h-24 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] skeleton-pulse"
+            />
           ))}
         </div>
       </div>
@@ -69,14 +80,18 @@ export default function AdminRollsPage() {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Status Breakdown */}
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4">
-          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">Status Breakdown</h2>
+          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">
+            Status Breakdown
+          </h2>
           <div className="space-y-2">
             {Object.entries(data.statusBreakdown).map(([status, count]) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
                 className={`flex items-center justify-between w-full px-2 py-1.5 rounded-[var(--radius-sharp)] transition-colors ${
-                  statusFilter === status ? 'bg-[var(--color-action-subtle)]' : 'hover:bg-[var(--color-surface-sunken)]'
+                  statusFilter === status
+                    ? 'bg-[var(--color-action-subtle)]'
+                    : 'hover:bg-[var(--color-surface-sunken)]'
                 }`}
               >
                 <StatusBadge status={status} />
@@ -88,17 +103,26 @@ export default function AdminRollsPage() {
 
         {/* Film Profile Popularity */}
         <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] border border-[var(--color-border)] p-4">
-          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">Film Profile Popularity</h2>
+          <h2 className="text-xs font-medium uppercase tracking-[0.06em] text-[var(--color-ink-tertiary)] mb-4">
+            Film Profile Popularity
+          </h2>
           <div className="space-y-1.5">
             {data.filmProfileBreakdown.map(([profile, count]) => {
               const max = data.filmProfileBreakdown[0]?.[1] ?? 1;
               return (
                 <div key={profile} className="flex items-center gap-2">
-                  <span className="text-xs text-[var(--color-ink-secondary)] w-16 text-right">{profile}</span>
+                  <span className="text-xs text-[var(--color-ink-secondary)] w-16 text-right">
+                    {profile}
+                  </span>
                   <div className="flex-1 h-5 bg-[var(--color-surface-sunken)] rounded overflow-hidden">
-                    <div className="h-full bg-[var(--color-action)] rounded" style={{ width: `${(count / max) * 100}%` }} />
+                    <div
+                      className="h-full bg-[var(--color-action)] rounded"
+                      style={{ width: `${(count / max) * 100}%` }}
+                    />
                   </div>
-                  <span className="text-xs text-[var(--color-ink-tertiary)] w-10 text-right">{count}</span>
+                  <span className="text-xs text-[var(--color-ink-tertiary)] w-10 text-right">
+                    {count}
+                  </span>
                 </div>
               );
             })}
@@ -113,7 +137,10 @@ export default function AdminRollsPage() {
             Recent Rolls {statusFilter && `(${statusFilter})`}
           </h2>
           {statusFilter && (
-            <button onClick={() => setStatusFilter('')} className="text-xs text-[var(--color-action)] hover:underline">
+            <button
+              onClick={() => setStatusFilter('')}
+              className="text-xs text-[var(--color-action)] hover:underline"
+            >
               Clear filter
             </button>
           )}

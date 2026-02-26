@@ -9,12 +9,7 @@ interface AnimatedCounterProps {
   className?: string;
 }
 
-export function AnimatedCounter({
-  from,
-  to,
-  duration = 2500,
-  className,
-}: AnimatedCounterProps) {
+export function AnimatedCounter({ from, to, duration = 2500, className }: AnimatedCounterProps) {
   const [value, setValue] = useState(from);
   const [hasStarted, setHasStarted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);

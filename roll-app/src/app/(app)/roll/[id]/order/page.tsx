@@ -44,7 +44,7 @@ export default function OrderPrintsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user: _user } = useUser();
 
   const rollId = params.id;
 
@@ -74,7 +74,9 @@ export default function OrderPrintsPage() {
     postalCode: '',
     country: 'US',
   });
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ShippingAddress, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ShippingAddress, string>>>(
+    {}
+  );
 
   // Step 3 – submitting
   const [submitting, setSubmitting] = useState(false);
@@ -85,7 +87,8 @@ export default function OrderPrintsPage() {
   const selectedSize = orderType === 'prints' ? printSize : magazineSize;
   const selectedProduct: PrintProduct = orderType === 'prints' ? 'roll_prints' : 'magazine';
   const pricePerUnit = orderType === 'prints' ? (PRINT_PRICES[printSize] ?? 30) : 0;
-  const unitSubtotal = orderType === 'prints' ? photoCount * pricePerUnit : (MAGAZINE_PRICES[magazineSize] ?? 2499);
+  const unitSubtotal =
+    orderType === 'prints' ? photoCount * pricePerUnit : (MAGAZINE_PRICES[magazineSize] ?? 2499);
   const subtotalCents = unitSubtotal * quantity;
   const totalCents = isFreeOrder ? 0 : subtotalCents + SHIPPING_CENTS;
 
@@ -216,7 +219,7 @@ export default function OrderPrintsPage() {
       <div className="flex items-center gap-[var(--space-element)]">
         <BackButton onClick={handleBack} />
         <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
-          Order This Roll
+          Print This Roll
         </h1>
       </div>
 
@@ -286,10 +289,21 @@ export default function OrderPrintsPage() {
                   : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-border-strong)]',
               ].join(' ')}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${orderType === 'prints' ? 'bg-[var(--color-action)]/15' : 'bg-[var(--color-surface-sunken)]'}`}>
-                <Printer size={24} className={orderType === 'prints' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-tertiary)]'} />
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${orderType === 'prints' ? 'bg-[var(--color-action)]/15' : 'bg-[var(--color-surface-sunken)]'}`}
+              >
+                <Printer
+                  size={24}
+                  className={
+                    orderType === 'prints'
+                      ? 'text-[var(--color-action)]'
+                      : 'text-[var(--color-ink-tertiary)]'
+                  }
+                />
               </div>
-              <span className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${orderType === 'prints' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+              <span
+                className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${orderType === 'prints' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+              >
                 Prints
               </span>
               <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center">
@@ -307,10 +321,21 @@ export default function OrderPrintsPage() {
                   : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-border-strong)]',
               ].join(' ')}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${orderType === 'magazine' ? 'bg-[var(--color-action)]/15' : 'bg-[var(--color-surface-sunken)]'}`}>
-                <BookOpen size={24} className={orderType === 'magazine' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-tertiary)]'} />
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${orderType === 'magazine' ? 'bg-[var(--color-action)]/15' : 'bg-[var(--color-surface-sunken)]'}`}
+              >
+                <BookOpen
+                  size={24}
+                  className={
+                    orderType === 'magazine'
+                      ? 'text-[var(--color-action)]'
+                      : 'text-[var(--color-ink-tertiary)]'
+                  }
+                />
               </div>
-              <span className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${orderType === 'magazine' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+              <span
+                className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${orderType === 'magazine' ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+              >
                 Magazine
               </span>
               <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] text-center">
@@ -339,7 +364,9 @@ export default function OrderPrintsPage() {
                         : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-border-strong)]',
                     ].join(' ')}
                   >
-                    <span className={`font-[family-name:var(--font-mono)] text-[length:var(--text-body)] ${printSize === size ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+                    <span
+                      className={`font-[family-name:var(--font-mono)] text-[length:var(--text-body)] ${printSize === size ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+                    >
                       {label}
                     </span>
                     <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
@@ -362,7 +389,9 @@ export default function OrderPrintsPage() {
                         : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-border-strong)]',
                     ].join(' ')}
                   >
-                    <span className={`font-[family-name:var(--font-mono)] text-[length:var(--text-body)] ${magazineSize === size ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+                    <span
+                      className={`font-[family-name:var(--font-mono)] text-[length:var(--text-body)] ${magazineSize === size ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+                    >
                       {label}
                     </span>
                     <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
@@ -407,23 +436,38 @@ export default function OrderPrintsPage() {
             <div className="flex flex-col gap-[var(--space-tight)]">
               {orderType === 'prints' ? (
                 <div className="flex items-center justify-between text-[length:var(--text-body)]">
-                  <span className="text-[var(--color-ink-secondary)]">{photoCount} photos x {formatCents(pricePerUnit)}{quantity > 1 ? ` x ${quantity}` : ''}</span>
-                  <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">{formatCents(subtotalCents)}</span>
+                  <span className="text-[var(--color-ink-secondary)]">
+                    {photoCount} photos x {formatCents(pricePerUnit)}
+                    {quantity > 1 ? ` x ${quantity}` : ''}
+                  </span>
+                  <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">
+                    {formatCents(subtotalCents)}
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center justify-between text-[length:var(--text-body)]">
-                  <span className="text-[var(--color-ink-secondary)]">{magazineSize} Magazine{quantity > 1 ? ` x ${quantity}` : ''}</span>
-                  <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">{formatCents(subtotalCents)}</span>
+                  <span className="text-[var(--color-ink-secondary)]">
+                    {magazineSize} Magazine{quantity > 1 ? ` x ${quantity}` : ''}
+                  </span>
+                  <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">
+                    {formatCents(subtotalCents)}
+                  </span>
                 </div>
               )}
               <div className="flex items-center justify-between text-[length:var(--text-body)]">
                 <span className="text-[var(--color-ink-secondary)]">Shipping</span>
-                <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">{isFreeOrder ? 'Free' : formatCents(SHIPPING_CENTS)}</span>
+                <span className="font-[family-name:var(--font-mono)] text-[var(--color-ink)]">
+                  {isFreeOrder ? 'Free' : formatCents(SHIPPING_CENTS)}
+                </span>
               </div>
               <div className="h-px bg-[var(--color-border)]" />
               <div className="flex items-center justify-between">
-                <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">Total</span>
-                <span className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${isFreeOrder ? 'text-[var(--color-developed)]' : 'text-[var(--color-ink)]'}`}>
+                <span className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)]">
+                  Total
+                </span>
+                <span
+                  className={`font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] ${isFreeOrder ? 'text-[var(--color-developed)]' : 'text-[var(--color-ink)]'}`}
+                >
                   {isFreeOrder ? 'Free' : formatCents(totalCents)}
                 </span>
               </div>
@@ -524,7 +568,9 @@ export default function OrderPrintsPage() {
                     'transition-colors duration-150',
                     'focus-visible:outline-2 focus-visible:outline-[var(--color-border-focus)] focus-visible:outline-offset-2',
                     'appearance-none cursor-pointer',
-                    fieldErrors.country ? 'border-[var(--color-error)]' : 'border-[var(--color-border)]',
+                    fieldErrors.country
+                      ? 'border-[var(--color-error)]'
+                      : 'border-[var(--color-border)]',
                   ].join(' ')}
                 >
                   <option value="US">United States</option>

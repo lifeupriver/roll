@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/stores/toastStore';
 
 export default function PrintSubscriptionPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -110,7 +110,8 @@ export default function PrintSubscriptionPage() {
           <div>
             <p className="font-medium text-[var(--color-ink)]">$4.99/month — 36 prints delivered</p>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mt-1">
-              Every month, we auto-select 36 of your most recent favorites and ship them as beautiful prints. No effort required.
+              Every month, we auto-select 36 of your most recent favorites and ship them as
+              beautiful prints. No effort required.
             </p>
           </div>
         </div>
@@ -179,12 +180,22 @@ export default function PrintSubscriptionPage() {
           <Input label="State" value={state} onChange={(e) => setState(e.target.value)} />
         </div>
         <div className="grid grid-cols-2 gap-[var(--space-element)]">
-          <Input label="Postal Code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+          <Input
+            label="Postal Code"
+            value={postalCode}
+            onChange={(e) => setPostalCode(e.target.value)}
+          />
           <Input label="Country" value={country} onChange={(e) => setCountry(e.target.value)} />
         </div>
       </div>
 
-      <Button variant="primary" size="lg" onClick={handleSave} isLoading={saving} className="w-full">
+      <Button
+        variant="primary"
+        size="lg"
+        onClick={handleSave}
+        isLoading={saving}
+        className="w-full"
+      >
         <Printer size={16} className="mr-1.5" />
         Save Subscription
       </Button>

@@ -21,7 +21,9 @@ export default async function CallbackPage({
     }
 
     // Check if user has photos to decide redirect
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { count } = await supabase
         .from('photos')

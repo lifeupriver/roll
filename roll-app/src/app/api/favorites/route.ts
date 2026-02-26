@@ -7,14 +7,19 @@ import type { Favorite } from '@/types/favorite';
 export async function GET() {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { data, error } = await supabase
       .from('favorites')
-      .select('*, photos(thumbnail_url, date_taken, camera_make, camera_model, width, height), rolls(name, film_profile)')
+      .select(
+        '*, photos(thumbnail_url, date_taken, camera_make, camera_model, width, height), rolls(name, film_profile)'
+      )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -33,7 +38,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -66,15 +74,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
-    // Check if already favorited
+    // Check if already favorited (use maybeSingle to avoid PGRST116 error on 0 rows)
     const { data: existing, error: existingError } = await supabase
       .from('favorites')
       .select('*')
       .eq('user_id', user.id)
       .eq('photo_id', photoId)
-      .single();
+      .maybeSingle();
 
-    if (existing && !existingError) {
+    if (existingError) {
+      return NextResponse.json({ error: existingError.message }, { status: 500 });
+    }
+
+    if (existing) {
       return NextResponse.json({ data: existing as Favorite }, { status: 201 });
     }
 

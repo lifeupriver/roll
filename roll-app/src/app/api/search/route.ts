@@ -16,7 +16,10 @@ import { captureError } from '@/lib/sentry';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -33,7 +36,9 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('photos')
-      .select('id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, caption, created_at')
+      .select(
+        'id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, caption, created_at'
+      )
       .eq('user_id', user.id)
       .eq('filter_status', 'visible')
       .order('date_taken', { ascending: false, nullsFirst: false })
@@ -103,7 +108,9 @@ export async function GET(request: NextRequest) {
       if (additionalPhotoIds.length > 0) {
         const { data: additionalPhotos } = await supabase
           .from('photos')
-          .select('id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, caption, created_at')
+          .select(
+            'id, thumbnail_url, filename, date_taken, latitude, longitude, camera_make, camera_model, face_count, scene_classification, aesthetic_score, caption, created_at'
+          )
           .eq('user_id', user.id)
           .eq('filter_status', 'visible')
           .in('id', additionalPhotoIds);
