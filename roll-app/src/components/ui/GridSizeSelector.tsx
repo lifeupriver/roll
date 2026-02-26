@@ -24,7 +24,7 @@ export function GridSizeSelector({ value, onChange, options = [2, 3, 4] }: GridS
     } catch {
       // localStorage unavailable
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [options, onChange, value]);
 
   const handleChange = (cols: number) => {
     try { localStorage.setItem(STORAGE_KEY, String(cols)); } catch { /* noop */ }

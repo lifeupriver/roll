@@ -134,10 +134,14 @@ export default function GalleryPage() {
                   thumbnail_url: c.photos?.thumbnail_url,
                 }))
               );
+            } else {
+              setCurrentReelClips([]);
             }
           } catch {
-            // Non-critical
+            setCurrentReelClips([]);
           }
+        } else {
+          setCurrentReelClips([]);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load reels');
