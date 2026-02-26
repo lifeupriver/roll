@@ -9,7 +9,6 @@ import { Empty } from '@/components/ui/Empty';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import Link from 'next/link';
-import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import type { Roll } from '@/types/roll';
 import type { Reel, ReelClip } from '@/types/reel';
 
@@ -58,7 +57,6 @@ export default function GalleryPage() {
   const [error, setError] = useState<string | null>(null);
   const [rollCovers, setRollCovers] = useState<Map<string, string>>(new Map());
   const [showArchived, setShowArchived] = useState(false);
-  const [gridColumns, setGridColumns] = useState(3);
   const [currentReelClips, setCurrentReelClips] = useState<Array<{ id: string; photo_id: string; thumbnail_url?: string }>>([]);
 
   // Fetch rolls
@@ -158,16 +156,13 @@ export default function GalleryPage() {
 
   return (
     <div className="flex flex-col gap-[var(--space-section)]">
-      {/* Section toggle + grid slider */}
-      <div className="flex items-center justify-between">
-        <ContentModePills
-          activeMode={activeSection}
-          onChange={(mode) => setActiveSection(mode as GallerySection)}
-          options={SECTION_OPTIONS}
-          variant="primary"
-        />
-        <GridSizeSelector value={gridColumns} onChange={setGridColumns} />
-      </div>
+      {/* Section toggle */}
+      <ContentModePills
+        activeMode={activeSection}
+        onChange={(mode) => setActiveSection(mode as GallerySection)}
+        options={SECTION_OPTIONS}
+        variant="primary"
+      />
 
       {/* Rolls section */}
       {activeSection === 'rolls' && (
@@ -265,13 +260,17 @@ export default function GalleryPage() {
                   Developed
                 </h2>
               )}
-              <div className="grid gap-[var(--space-element)]" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+              <div
+                className="flex flex-row gap-[var(--space-element)] overflow-x-auto px-[var(--space-component)] -mx-[var(--space-component)] pb-[var(--space-tight)] scrollbar-hide"
+                style={{ scrollSnapType: 'x mandatory' }}
+              >
                 {developedRolls.map((roll) => (
                   <button
                     key={roll.id}
                     type="button"
                     onClick={() => router.push(`/roll/${roll.id}`)}
-                    className="text-left group cursor-pointer"
+                    className="text-left group cursor-pointer shrink-0 w-72"
+                    style={{ scrollSnapAlign: 'start' }}
                   >
                     <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                       {rollCovers.get(roll.id) ? (
@@ -319,13 +318,17 @@ export default function GalleryPage() {
                 <span>{showArchived ? 'Hide' : 'Show'} archived ({archivedRolls.length})</span>
               </button>
               {showArchived && (
-                <div className="grid gap-[var(--space-element)] opacity-60" style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
+                <div
+                  className="flex flex-row gap-[var(--space-element)] overflow-x-auto px-[var(--space-component)] -mx-[var(--space-component)] pb-[var(--space-tight)] opacity-60 scrollbar-hide"
+                  style={{ scrollSnapType: 'x mandatory' }}
+                >
                   {archivedRolls.map((roll) => (
                     <button
                       key={roll.id}
                       type="button"
                       onClick={() => router.push(`/roll/${roll.id}`)}
-                      className="text-left group cursor-pointer"
+                      className="text-left group cursor-pointer shrink-0 w-72"
+                      style={{ scrollSnapAlign: 'start' }}
                     >
                       <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -460,7 +463,10 @@ export default function GalleryPage() {
                     Developed Reels
                   </h2>
                 )}
-                <div className="flex flex-col gap-[var(--space-element)]">
+                <div
+                  className="flex flex-row gap-[var(--space-element)] overflow-x-auto px-[var(--space-component)] -mx-[var(--space-component)] pb-[var(--space-tight)] scrollbar-hide"
+                  style={{ scrollSnapType: 'x mandatory' }}
+                >
                   {developedReels.map((reel) => {
                     const duration = reel.assembled_duration_ms ?? reel.current_duration_ms;
                     const badgeVariant = REEL_STATUS_BADGE[reel.status] || 'info';
@@ -470,48 +476,47 @@ export default function GalleryPage() {
                         key={reel.id}
                         type="button"
                         onClick={() => router.push(`/library/reels/${reel.id}`)}
-                        className="w-full text-left bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] shadow-[var(--shadow-raised)] hover:shadow-[var(--shadow-floating)] transition-shadow duration-150 cursor-pointer"
+                        className="text-left shrink-0 w-72 bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] shadow-[var(--shadow-raised)] hover:shadow-[var(--shadow-floating)] transition-shadow duration-150 cursor-pointer"
+                        style={{ scrollSnapAlign: 'start' }}
                       >
-                        <div className="flex gap-[var(--space-element)]">
-                          {/* Thumbnail */}
-                          <div className="relative shrink-0 w-20 h-14 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
-                            {reel.poster_storage_key ? (
-                              <img
-                                src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Film size={16} className="text-[var(--color-ink-tertiary)]" />
-                              </div>
-                            )}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <Play size={18} className="text-white/80" fill="white" fillOpacity={0.6} />
+                        {/* Thumbnail */}
+                        <div className="relative w-full aspect-video rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] mb-[var(--space-tight)]">
+                          {reel.poster_storage_key ? (
+                            <img
+                              src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Film size={20} className="text-[var(--color-ink-tertiary)]" />
                             </div>
-                          </div>
-
-                          {/* Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-[var(--space-tight)]">
-                              <h3 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] truncate">
-                                {reel.name || 'Untitled Reel'}
-                              </h3>
-                              <Badge variant={badgeVariant}>{statusLabel.label}</Badge>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                              <Play size={16} className="text-white ml-0.5" fill="white" fillOpacity={0.8} />
                             </div>
-                            <p className="mt-[var(--space-micro)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                              {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
-                              {' \u00B7 '}
-                              <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatDuration(duration)}</span>
-                              {reel.film_profile && (
-                                <>{' \u00B7 '}<span className="capitalize">{reel.film_profile}</span></>
-                              )}
-                              {' \u00B7 '}
-                              {formatDate(reel.updated_at || reel.created_at)}
-                            </p>
                           </div>
                         </div>
+
+                        {/* Details */}
+                        <div className="flex items-center justify-between gap-[var(--space-tight)] mb-[var(--space-micro)]">
+                          <h3 className="font-[family-name:var(--font-display)] text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate">
+                            {reel.name || 'Untitled Reel'}
+                          </h3>
+                          <Badge variant={badgeVariant}>{statusLabel.label}</Badge>
+                        </div>
+                        <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                          {reel.clip_count} clip{reel.clip_count !== 1 ? 's' : ''}
+                          {' \u00B7 '}
+                          <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatDuration(duration)}</span>
+                          {reel.film_profile && (
+                            <>{' \u00B7 '}<span className="capitalize">{reel.film_profile}</span></>
+                          )}
+                          {' \u00B7 '}
+                          {formatDate(reel.updated_at || reel.created_at)}
+                        </p>
                       </button>
                     );
                   })}
