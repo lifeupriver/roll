@@ -4,6 +4,7 @@ import { captureError } from '@/lib/sentry';
 import { autoDesignMagazine, selectCoverPhoto } from '@/lib/magazine/auto-design';
 import { getDefaultDateRange } from '@/lib/magazine/templates';
 import { calculateMagazinePrice } from '@/lib/prodigi/magazine';
+import { buildAssetUrl } from '@/lib/prodigi';
 import type { MagazineTemplate, MagazineFormat } from '@/types/magazine';
 
 // GET /api/magazines — list user's magazines
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
         id: f.id as string,
         photo_id: f.photo_id as string,
         thumbnail_url: (photo?.thumbnail_url as string) || '',
-        developed_url: (photo?.storage_key as string) || '',
+        developed_url: photo?.storage_key ? buildAssetUrl(photo.storage_key as string) : '',
         width: (photo?.width as number) || 0,
         height: (photo?.height as number) || 0,
         taken_at: (photo?.date_taken as string) || undefined,

@@ -80,7 +80,7 @@ const SKU_MAP: Record<PrintSize, string> = {
  * Build the public URL for a processed photo so Prodigi can fetch it.
  * Uses the R2_PUBLIC_URL env var plus the processed storage key.
  */
-function buildAssetUrl(processedStorageKey: string): string {
+export function buildAssetUrl(processedStorageKey: string): string {
   const publicUrl = process.env.R2_PUBLIC_URL || 'https://photos.roll.photos';
   return `${publicUrl}/${processedStorageKey}`;
 }

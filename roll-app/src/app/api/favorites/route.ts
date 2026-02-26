@@ -67,12 +67,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already favorited (use maybeSingle to avoid PGRST116 error on 0 rows)
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('favorites')
       .select('*')
       .eq('user_id', user.id)
       .eq('photo_id', photoId)
       .maybeSingle();
+
+    if (existingError) {
+      return NextResponse.json({ error: existingError.message }, { status: 500 });
+    }
 
     if (existing) {
       return NextResponse.json({ data: existing as Favorite }, { status: 201 });

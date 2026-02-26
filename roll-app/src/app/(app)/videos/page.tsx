@@ -465,7 +465,7 @@ export default function VideosPage() {
       {/* Fixed bottom action bar — slides up when clips are selected */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ease-out ${
-          selectMode && reelCount > 0 ? 'translate-y-0' : 'translate-y-full'
+          selectMode && reelCount > 0 && section === 'clips' ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         <div className="bg-[var(--color-surface)] border-t border-[var(--color-border)] px-[var(--space-component)] py-[var(--space-element)] safe-area-bottom">

@@ -141,6 +141,7 @@ export const updateReelSchema = z.object({
   status: z.enum(['building', 'ready', 'processing', 'developed', 'error']).optional(),
   film_profile: z.enum(['warmth', 'golden', 'vivid', 'classic', 'gentle', 'modern']).optional(),
   audio_mood: z.enum(['original', 'quiet_film', 'silent_film', 'ambient']).optional(),
+  default_clip_length_s: z.number().int().min(1).max(30).optional(),
 }).refine((data) => Object.keys(data).length > 0, {
   message: 'At least one field is required',
 });

@@ -223,7 +223,7 @@ export default function ReelDetailPage() {
       const res = await fetch(`/api/reels/${currentReel.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: configName.trim() || currentReel.name }),
+        body: JSON.stringify({ name: configName.trim() || currentReel.name, default_clip_length_s: defaultClipLengthS }),
       });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
@@ -250,11 +250,21 @@ export default function ReelDetailPage() {
     }
   }, [currentReel, configName, clipTrims, reelClips, defaultClipLengthS, toast, router]);
 
-  const handleSkipConfig = useCallback(() => {
+  const handleSkipConfig = useCallback(async () => {
     if (!currentReel) return;
+    // Persist default clip length even when skipping
+    try {
+      await fetch(`/api/reels/${currentReel.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ default_clip_length_s: defaultClipLengthS }),
+      });
+    } catch {
+      // Non-critical — continue to screen
+    }
     setShowConfig(false);
     router.push(`/library/reels/${currentReel.id}/screen`);
-  }, [currentReel, router]);
+  }, [currentReel, defaultClipLengthS, router]);
 
   if (loading) {
     return (

@@ -35,6 +35,7 @@ export interface Reel {
   target_duration_ms: number;
   current_duration_ms: number;
   clip_count: number;
+  default_clip_length_s: number | null;
   processing_started_at: string | null;
   processing_completed_at: string | null;
   processing_error: string | null;

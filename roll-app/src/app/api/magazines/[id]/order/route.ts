@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 import { buildMagazineOrder, calculateMagazinePrice } from '@/lib/prodigi/magazine';
+import { buildAssetUrl } from '@/lib/prodigi';
 import type { MagazineFormat } from '@/types/magazine';
 
 // POST /api/magazines/[id]/order — submit magazine to Prodigi for printing
@@ -46,15 +47,15 @@ export async function POST(
       .flatMap((p: { photos?: { id: string }[] }) => (p.photos ?? []).map((ph: { id: string }) => ph.id))
       .filter(Boolean);
 
-    // Fetch photo URLs
+    // Fetch photo storage keys for direct CDN URLs (not authenticated /api/photos/serve)
     const { data: photos } = await supabase
       .from('photos')
-      .select('id, thumbnail_url')
+      .select('id, storage_key')
       .in('id', photoIds.length > 0 ? photoIds : ['__none__']);
 
     const photoUrlMap = new Map<string, string>();
-    (photos ?? []).forEach((p: { id: string; thumbnail_url: string }) => {
-      photoUrlMap.set(p.id, p.thumbnail_url);
+    (photos ?? []).forEach((p: { id: string; storage_key: string }) => {
+      photoUrlMap.set(p.id, buildAssetUrl(p.storage_key));
     });
 
     // Build page URLs (in order)
@@ -70,10 +71,10 @@ export async function POST(
     if (magazine.cover_photo_id) {
       const { data: coverPhoto } = await supabase
         .from('photos')
-        .select('thumbnail_url')
+        .select('storage_key')
         .eq('id', magazine.cover_photo_id)
         .single();
-      coverUrl = coverPhoto?.thumbnail_url || pageUrls[0] || '';
+      coverUrl = coverPhoto?.storage_key ? buildAssetUrl(coverPhoto.storage_key) : pageUrls[0] || '';
     } else {
       coverUrl = pageUrls[0] || '';
     }

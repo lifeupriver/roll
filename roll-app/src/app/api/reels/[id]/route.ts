@@ -84,7 +84,7 @@ export async function PATCH(
 
     const parsed = await parseBody(request, updateReelSchema);
     if (parsed.error) return parsed.error;
-    const { name, status, film_profile, audio_mood } = parsed.data;
+    const { name, status, film_profile, audio_mood, default_clip_length_s } = parsed.data;
 
     if (status) {
       const currentStatus = existingReel.status as ReelStatus;
@@ -102,6 +102,7 @@ export async function PATCH(
     if (status !== undefined) updateData.status = status;
     if (film_profile !== undefined) updateData.film_profile = film_profile;
     if (audio_mood !== undefined) updateData.audio_mood = audio_mood;
+    if (default_clip_length_s !== undefined) updateData.default_clip_length_s = default_clip_length_s;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
