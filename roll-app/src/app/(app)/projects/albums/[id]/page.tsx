@@ -676,7 +676,7 @@ function BookDetailContent() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setLightboxPhotoId(currentPages[0]!.photoId)}
+                        onClick={() => setLightboxPhotoId(currentPages[0]!.photoId ?? null)}
                         className="absolute top-2 right-2 p-1.5 rounded-[var(--radius-sharp)] bg-black/40 text-white opacity-0 hover:opacity-100 transition-opacity"
                       >
                         <Maximize2 size={14} />
