@@ -10,7 +10,8 @@ import { X, Film, Printer, Share2, AlertCircle, Wand2, MessageSquare, Users, Che
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { BackButton } from '@/components/ui/BackButton';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
-import { BeforeAfterCompare } from '@/components/photo/BeforeAfterCompare';
+// Before/after comparison temporarily disabled — will re-enable later
+// import { BeforeAfterCompare } from '@/components/photo/BeforeAfterCompare';
 import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
 import { ShareToCircleModal } from '@/components/circle/ShareToCircleModal';
 import { Modal } from '@/components/ui/Modal';
@@ -648,19 +649,7 @@ export default function RollDetailPage() {
           </div>
         )}
 
-        {/* Before/After comparison for first photo */}
-        {photos.length > 0 && photos[0].processed_storage_key && (
-          <div className="flex flex-col gap-[var(--space-tight)]">
-            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-              Before &amp; after
-            </p>
-            <BeforeAfterCompare
-              originalUrl={photos[0].photos.thumbnail_url}
-              developedUrl={photos[0].processed_storage_key}
-              className="aspect-[3/4]"
-            />
-          </div>
-        )}
+        {/* Before/after comparison temporarily disabled — will re-enable later */}
 
         {/* Favorites summary */}
         {favoriteCount > 0 && (
