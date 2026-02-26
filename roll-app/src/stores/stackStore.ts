@@ -9,20 +9,20 @@ interface StackState {
 }
 
 function loadFromStorage(): { mode: StackMode; sensitivity: number } {
-  if (typeof window === 'undefined') return { mode: 'auto', sensitivity: 0.7 };
+  if (typeof window === 'undefined') return { mode: 'off', sensitivity: 0.7 };
   try {
     const stored = localStorage.getItem('roll-stack-settings');
     if (stored) {
       const parsed = JSON.parse(stored);
       return {
-        mode: parsed.mode || 'auto',
+        mode: parsed.mode || 'off',
         sensitivity: typeof parsed.sensitivity === 'number' ? parsed.sensitivity : 0.7,
       };
     }
   } catch {
     // Ignore
   }
-  return { mode: 'auto', sensitivity: 0.7 };
+  return { mode: 'off', sensitivity: 0.7 };
 }
 
 function saveToStorage(mode: StackMode, sensitivity: number) {

@@ -21,6 +21,7 @@ import {
   UserRound,
   Images,
   Globe,
+  Palette,
 } from 'lucide-react';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { BackButton } from '@/components/ui/BackButton';
@@ -107,6 +108,9 @@ export default function RollDetailPage() {
   const [showStoryModal, setShowStoryModal] = useState(false);
   const [storyText, setStoryText] = useState('');
   const [savedStory, setSavedStory] = useState('');
+
+  // Magazine design state
+  const [creatingMagazine, setCreatingMagazine] = useState(false);
 
   // Filter toggles
   const [mediaFilter, setMediaFilter] = useState<'all' | 'photo' | 'video'>('all');
@@ -438,6 +442,37 @@ export default function RollDetailPage() {
   }, []);
 
   // ------------------------------------------------------------------
+  // Send to Magazine Design
+  // ------------------------------------------------------------------
+  const handleCreateMagazine = useCallback(async () => {
+    if (!roll || creatingMagazine) return;
+    setCreatingMagazine(true);
+    try {
+      const res = await fetch('/api/magazines', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: roll.theme_name || roll.name || 'Untitled Magazine',
+          rollIds: [rollId],
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Failed to create magazine');
+      }
+      const json = await res.json();
+      const magazineId = json.data?.id;
+      if (magazineId) {
+        router.push(`/projects/magazines/${magazineId}`);
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Failed to create magazine design', 'error');
+    } finally {
+      setCreatingMagazine(false);
+    }
+  }, [roll, creatingMagazine, rollId, router, toast]);
+
+  // ------------------------------------------------------------------
   // Save story
   // ------------------------------------------------------------------
   const handleSaveStory = useCallback(async () => {
@@ -689,24 +724,6 @@ export default function RollDetailPage() {
           </span>
         </div>
 
-        {/* Print This Roll — prominent CTA at top */}
-        <Link href={`/roll/${rollId}/order`} className="block">
-          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
-            <div className="flex items-center gap-[var(--space-element)]">
-              <Printer size={24} />
-              <div>
-                <p className="text-[length:var(--text-body)] font-medium">Print This Roll</p>
-                <p className="text-[length:var(--text-caption)] opacity-80">
-                  Prints or book delivered to your door
-                </p>
-              </div>
-            </div>
-            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
-              Order
-            </div>
-          </div>
-        </Link>
-
         {/* Share options + Add a story */}
         <div className="flex items-center gap-[var(--space-element)] flex-wrap">
           <Button variant="secondary" size="md" onClick={handleOpenCirclePicker}>
@@ -728,7 +745,34 @@ export default function RollDetailPage() {
             <BookOpen size={18} className="mr-2" />
             {savedStory ? 'Edit Story' : 'Add a Story'}
           </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handleCreateMagazine}
+            disabled={creatingMagazine}
+          >
+            <Palette size={18} className="mr-2" />
+            {creatingMagazine ? 'Creating…' : 'Send to Magazine Design'}
+          </Button>
         </div>
+
+        {/* Print This Roll */}
+        <Link href={`/roll/${rollId}/order`} className="block">
+          <div className="bg-[var(--color-action)] text-white rounded-[var(--radius-card)] p-[var(--space-component)] flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity">
+            <div className="flex items-center gap-[var(--space-element)]">
+              <Printer size={24} />
+              <div>
+                <p className="text-[length:var(--text-body)] font-medium">Print This Roll</p>
+                <p className="text-[length:var(--text-caption)] opacity-80">
+                  Prints or book delivered to your door
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 bg-white/20 rounded-[var(--radius-pill)] px-3 py-1.5 text-[length:var(--text-label)] font-medium">
+              Order
+            </div>
+          </div>
+        </Link>
 
         {/* Display saved story */}
         {savedStory && (

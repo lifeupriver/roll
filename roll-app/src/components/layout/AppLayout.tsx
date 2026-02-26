@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3X3, Film, Image, BookOpen, Users, User, Menu, X } from 'lucide-react';
+import { Grid3X3, Film, Users, User, Menu, X, Palette } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
 import { useUser } from '@/hooks/useUser';
@@ -75,8 +75,7 @@ function DarkroomBulbIcon({ active }: { active: boolean }) {
 const navItems = [
   { href: '/feed', label: 'Photos', icon: Grid3X3 },
   { href: '/videos', label: 'Videos', icon: Film },
-  { href: '/library', label: 'Gallery', icon: Image },
-  { href: '/projects/magazines', label: 'Magazines', icon: BookOpen },
+  { href: '/designs', label: 'Designs', icon: Palette },
   { href: '/circle', label: 'Circle', icon: Users },
   { href: '/account', label: 'Account', icon: User },
 ];

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Film, MousePointerClick, X, Send } from 'lucide-react';
+import { Film, MousePointerClick, X, Send, Play } from 'lucide-react';
+import Link from 'next/link';
 import { PhotoGrid } from '@/components/photo/PhotoGrid';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
 import { ContentModePills } from '@/components/photo/ContentModePills';
@@ -46,6 +47,9 @@ export default function VideosPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
+  const [developedReels, setDevelopedReels] = useState<
+    Array<{ id: string; name: string; clip_count: number; poster_storage_key: string | null; assembled_duration_ms: number | null; created_at: string }>
+  >([]);
 
   // Set content mode to 'clips' on mount to fetch videos
   useEffect(() => {
@@ -61,33 +65,38 @@ export default function VideosPage() {
     return clips;
   }, [photos, clipFilter]);
 
-  // Load active reel on mount
+  // Load active reel + developed reels on mount
   useEffect(() => {
-    async function loadActiveReel() {
+    async function loadReels() {
       try {
         const res = await fetch('/api/reels');
-        if (res.ok) {
-          const { data } = await res.json();
-          const buildingReel = data?.find(
-            (r: { status: string }) => r.status === 'building' || r.status === 'ready'
-          );
-          if (buildingReel) {
-            setReelState(buildingReel);
-            const reelRes = await fetch(`/api/reels/${buildingReel.id}`);
-            if (reelRes.ok) {
-              const reelData = await reelRes.json();
-              if (reelData.data?.clips) {
-                const store = useReelStore.getState();
-                store.setReelClips(reelData.data.clips);
-              }
+        if (!res.ok) return;
+        const { data } = await res.json();
+        if (!data) return;
+
+        const buildingReel = data.find(
+          (r: { status: string }) => r.status === 'building' || r.status === 'ready'
+        );
+        if (buildingReel) {
+          setReelState(buildingReel);
+          const reelRes = await fetch(`/api/reels/${buildingReel.id}`);
+          if (reelRes.ok) {
+            const reelData = await reelRes.json();
+            if (reelData.data?.clips) {
+              const store = useReelStore.getState();
+              store.setReelClips(reelData.data.clips);
             }
           }
         }
+
+        setDevelopedReels(
+          data.filter((r: { status: string }) => r.status === 'developed')
+        );
       } catch {
         // No active reel is fine
       }
     }
-    loadActiveReel();
+    loadReels();
   }, [setReelState]);
 
   // Handle clip selection for reel
@@ -130,7 +139,7 @@ export default function VideosPage() {
           }
         }
 
-        addClip(photoId, photo.duration_ms ?? 0);
+        addClip(photoId, photo.duration_ms ?? 0, 0, null, photo.thumbnail_url);
         track({
           event: 'clip_added',
           properties: { reelId: reelId || '', clipCount: reelCount + 1 },
@@ -144,7 +153,17 @@ export default function VideosPage() {
               body: JSON.stringify({ photoId }),
             });
             if (res.ok) {
-              const { reelStatus } = await res.json();
+              const { data: clipData, reelStatus } = await res.json();
+              // Replace the pending clip with the real one from the API
+              if (clipData) {
+                const store = useReelStore.getState();
+                const updatedClips = store.reelClips.map((c) =>
+                  c.photo_id === photoId && c.id.startsWith('pending-')
+                    ? { ...clipData, photos: { id: photoId, thumbnail_url: photo.thumbnail_url, media_type: 'video', duration_ms: photo.duration_ms } }
+                    : c
+                );
+                store.setReelClips(updatedClips);
+              }
               if (reelStatus === 'ready' && currentReel) {
                 setReelState({ ...currentReel, status: 'ready' });
                 track({ event: 'reel_filled', properties: { reelId: currentReel.id } });
@@ -323,6 +342,58 @@ export default function VideosPage() {
               isChecked={selectMode ? isClipAdded : undefined}
             />
           )}
+        {/* Your Reels — developed reels horizontal scroll */}
+        {developedReels.length > 0 && (
+          <div className="mt-[var(--space-element)]">
+            <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
+              Your Reels
+            </h2>
+            <div
+              className="flex flex-row gap-[var(--space-element)] overflow-x-auto pb-[var(--space-tight)] scrollbar-hide"
+              style={{ scrollSnapType: 'x mandatory' }}
+            >
+              {developedReels.map((reel) => (
+                <Link
+                  key={reel.id}
+                  href={`/library/reels/${reel.id}`}
+                  className="text-left group shrink-0 w-36"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                    {reel.poster_storage_key ? (
+                      <img
+                        src={reel.poster_storage_key}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Film size={24} className="text-[var(--color-ink-tertiary)]" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
+                        <Play size={18} className="text-white ml-0.5" fill="white" />
+                      </div>
+                    </div>
+                    {reel.assembled_duration_ms && (
+                      <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
+                        {Math.floor(reel.assembled_duration_ms / 60000)}:{String(Math.floor((reel.assembled_duration_ms % 60000) / 1000)).padStart(2, '0')}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                    {reel.name || 'Untitled Reel'}
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {reel.clip_count} clips
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
 
       {/* Fixed bottom action bar — slides up when clips are selected */}
