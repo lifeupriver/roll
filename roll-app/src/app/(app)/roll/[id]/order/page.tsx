@@ -140,6 +140,10 @@ export default function OrderPrintsPage() {
   };
 
   const handleContinueToShipping = () => {
+    if (orderType === 'magazine') {
+      router.push(`/projects/magazines/create?rollId=${rollId}`);
+      return;
+    }
     setStep(2);
   };
 
