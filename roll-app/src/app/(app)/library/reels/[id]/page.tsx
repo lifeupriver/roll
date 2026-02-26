@@ -417,7 +417,7 @@ export default function ReelDetailPage() {
 
       {/* Post-development configuration modal */}
       {showConfig && (
-        <Modal onClose={handleSkipConfig}>
+        <Modal isOpen={showConfig} onClose={handleSkipConfig}>
           <div className="flex flex-col gap-[var(--space-section)] max-h-[85vh] overflow-y-auto">
             <h2 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-title)] text-[var(--color-ink)]">
               Configure Your Reel
