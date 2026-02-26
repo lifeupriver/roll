@@ -26,7 +26,7 @@ export async function POST(
     // Find published post
     const { data: post } = await supabase
       .from('blog_posts')
-      .select('id, view_count')
+      .select('id')
       .eq('user_id', profile.id)
       .eq('slug', postSlug)
       .eq('status', 'published')
@@ -36,17 +36,15 @@ export async function POST(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    // Increment view count
-    const { error } = await supabase
-      .from('blog_posts')
-      .update({ view_count: (post.view_count || 0) + 1 })
-      .eq('id', post.id);
+    // Atomically increment view count via Postgres RPC to avoid race conditions
+    const { data: updated, error } = await supabase
+      .rpc('increment_view_count', { post_id: post.id });
 
     if (error) {
       return NextResponse.json({ error: 'Failed to record view' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, view_count: updated });
   } catch (err) {
     captureError(err, { context: 'blog-post-view' });
     return NextResponse.json(
