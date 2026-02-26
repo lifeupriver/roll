@@ -76,7 +76,7 @@ const navItems = [
   { href: '/feed', label: 'Photos', icon: Grid3X3 },
   { href: '/videos', label: 'Videos', icon: Film },
   { href: '/library', label: 'Gallery', icon: Image },
-  { href: '/projects/magazines', label: 'Magazines', icon: BookOpen },
+  { href: '/projects/magazines', label: 'Designs', icon: BookOpen },
   { href: '/circle', label: 'Circle', icon: Users },
   { href: '/account', label: 'Account', icon: User },
 ];
