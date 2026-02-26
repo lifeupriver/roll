@@ -15,6 +15,8 @@ interface ReelState {
   currentDurationMs: number;
   filmProfile: FilmProfileId | null;
   audioMood: AudioMood;
+  ambientAudio: boolean;
+  transcribeAudio: boolean;
   reels: Reel[];
   trimPoints: Map<string, TrimPoints>;
 
@@ -32,6 +34,8 @@ interface ReelState {
   setTrim: (photoId: string, startMs: number, endMs: number | null) => void;
   setFilmProfile: (profile: FilmProfileId | null) => void;
   setAudioMood: (mood: AudioMood) => void;
+  setAmbientAudio: (enabled: boolean) => void;
+  setTranscribeAudio: (enabled: boolean) => void;
   reorderClips: (fromIndex: number, toIndex: number) => void;
   resetReel: () => void;
   updateReelStatus: (reelId: string, updates: Partial<Reel>) => void;
@@ -45,6 +49,8 @@ export const useReelStore = create<ReelState>((set, get) => ({
   currentDurationMs: 0,
   filmProfile: null,
   audioMood: 'original',
+  ambientAudio: true,
+  transcribeAudio: false,
   reels: [],
   trimPoints: new Map(),
 
@@ -120,6 +126,10 @@ export const useReelStore = create<ReelState>((set, get) => ({
 
   setAudioMood: (audioMood) => set({ audioMood }),
 
+  setAmbientAudio: (ambientAudio) => set({ ambientAudio }),
+
+  setTranscribeAudio: (transcribeAudio) => set({ transcribeAudio }),
+
   reorderClips: (fromIndex, toIndex) =>
     set((state) => {
       const clips = [...state.reelClips];
@@ -139,6 +149,8 @@ export const useReelStore = create<ReelState>((set, get) => ({
       currentDurationMs: 0,
       filmProfile: null,
       audioMood: 'original',
+      ambientAudio: true,
+      transcribeAudio: false,
       trimPoints: new Map(),
     }),
 

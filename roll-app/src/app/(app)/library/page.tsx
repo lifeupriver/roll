@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Film, Play, Wand2, Printer, ChevronRight } from 'lucide-react';
+import { Image, Film, Play, Wand2, Printer } from 'lucide-react';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Badge } from '@/components/ui/Badge';
 import { Empty } from '@/components/ui/Empty';
@@ -401,7 +401,7 @@ export default function GalleryPage() {
             />
           )}
 
-          {/* Current Reel — card with clip thumbnails + progress */}
+          {/* Current Reel — vertical thumbnail like rolls */}
           {!reelsLoading &&
             !error &&
             (() => {
@@ -414,30 +414,48 @@ export default function GalleryPage() {
                 100,
                 Math.round((currentReel.clip_count / maxClips) * 100)
               );
-              const canDevelop = currentReel.clip_count >= 3;
+              const coverClip = currentReelClips[0];
               return (
                 <div>
                   <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
-                    Current Reel
+                    Current
                   </h2>
-                  <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-component)] shadow-[var(--shadow-raised)]">
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/library/reels/${currentReel.id}`)}
-                      className="w-full text-left group cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between mb-[var(--space-element)]">
-                        <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
-                          {currentReel.name || 'Untitled Reel'}
-                        </p>
-                        <ChevronRight
-                          size={16}
-                          className="text-[var(--color-ink-tertiary)] shrink-0"
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/library/reels/${currentReel.id}`)}
+                    className="flex items-center gap-[var(--space-component)] w-full text-left group cursor-pointer"
+                  >
+                    <div className="relative w-32 h-[170px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
+                      {coverClip?.thumbnail_url ? (
+                        <img
+                          src={coverClip.thumbnail_url}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
                         />
-                      </div>
-
-                      {/* Progress bar */}
-                      <div className="flex items-center gap-[var(--space-element)] mb-[var(--space-element)]">
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play size={24} className="text-[var(--color-ink-tertiary)]" />
+                        </div>
+                      )}
+                      {/* Play overlay */}
+                      {coverClip?.thumbnail_url && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                            <Play size={14} className="text-white ml-0.5" fill="white" fillOpacity={0.8} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 flex flex-col gap-[var(--space-tight)]">
+                      <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                        {currentReel.name || 'Current Reel'}
+                      </p>
+                      <p className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+                        {currentReel.clip_count} of {maxClips} clips &middot;{' '}
+                        {formatDate(currentReel.created_at)}
+                      </p>
+                      <div className="flex items-center gap-[var(--space-element)]">
                         <div className="flex-1 h-2 bg-[var(--color-surface-sunken)] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-300"
@@ -451,47 +469,11 @@ export default function GalleryPage() {
                           />
                         </div>
                         <span className="text-[length:var(--text-caption)] font-[family-name:var(--font-mono)] text-[var(--color-ink-secondary)] tabular-nums shrink-0">
-                          {currentReel.clip_count}/{maxClips} clips
+                          {clipFillPercent}%
                         </span>
                       </div>
-                    </button>
-
-                    {/* Clip thumbnails — horizontal scroll */}
-                    {currentReelClips.length > 0 && (
-                      <div className="flex gap-[var(--space-tight)] overflow-x-auto pb-[var(--space-tight)] -mx-1 px-1 scrollbar-hide">
-                        {currentReelClips.map((clip) => (
-                          <div
-                            key={clip.id}
-                            className="relative shrink-0 w-14 h-14 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]"
-                          >
-                            {clip.thumbnail_url ? (
-                              <img
-                                src={clip.thumbnail_url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Film size={12} className="text-[var(--color-ink-tertiary)]" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Develop Reel CTA */}
-                    {canDevelop && (
-                      <Link
-                        href={`/library/reels/${currentReel.id}`}
-                        className="mt-[var(--space-element)] w-full flex items-center justify-center gap-[var(--space-tight)] px-[var(--space-component)] py-[var(--space-element)] rounded-[var(--radius-sharp)] bg-[#C45D3E] text-white text-[length:var(--text-label)] font-semibold min-h-[44px] transition-colors hover:bg-[#B04E32] active:scale-[0.98]"
-                      >
-                        <Wand2 size={16} />
-                        Develop Reel
-                      </Link>
-                    )}
-                  </div>
+                    </div>
+                  </button>
                 </div>
               );
             })()}
