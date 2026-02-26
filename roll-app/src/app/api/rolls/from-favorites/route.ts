@@ -69,15 +69,23 @@ export async function POST() {
       return NextResponse.json({ error: photosError.message }, { status: 500 });
     }
 
-    // 4. Update favorites to reference the new roll
+    // 4. Atomically claim favorites — only update rows still unclaimed (roll_id IS NULL)
     const favoriteIds = favorites.map((f) => f.id);
-    const { error: updateError } = await supabase
+    const { data: claimed, error: updateError } = await supabase
       .from('favorites')
       .update({ roll_id: roll.id })
-      .in('id', favoriteIds);
+      .in('id', favoriteIds)
+      .is('roll_id', null)
+      .select('id');
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    if (updateError || !claimed || claimed.length !== favorites.length) {
+      // Another request claimed some favorites — clean up the roll and roll_photos
+      await supabase.from('roll_photos').delete().eq('roll_id', roll.id);
+      await supabase.from('rolls').delete().eq('id', roll.id);
+      return NextResponse.json(
+        { error: updateError?.message ?? 'Some favorites were already claimed. Please try again.' },
+        { status: 409 }
+      );
     }
 
     return NextResponse.json({ data: { rollId: roll.id } as { rollId: string } }, { status: 201 });
