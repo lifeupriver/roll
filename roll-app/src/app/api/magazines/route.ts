@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
-import { autoDesignMagazine, selectCoverPhoto } from '@/lib/magazine/auto-design';
+import { autoDesignMagazine, autoDesignFromRolls, selectCoverPhoto } from '@/lib/magazine/auto-design';
 import { getDefaultDateRange } from '@/lib/magazine/templates';
 import { calculateMagazinePrice } from '@/lib/prodigi/magazine';
 import { buildAssetUrl } from '@/lib/prodigi';
-import type { MagazineTemplate, MagazineFormat } from '@/types/magazine';
+import type { MagazineTemplate, MagazineFormat, MagazineFont } from '@/types/magazine';
 
 // GET /api/magazines — list user's magazines
 export async function GET() {
@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
       title,
       template = 'monthly' as MagazineTemplate,
       format = '6x9' as MagazineFormat,
+      font = 'default' as MagazineFont,
+      rollIds,
       dateRangeStart,
       dateRangeEnd,
     } = body;
@@ -64,12 +66,95 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
-    // Calculate date range
+    // ── Roll-based flow (new) ──
+    if (rollIds && Array.isArray(rollIds) && rollIds.length > 0) {
+      if (rollIds.length > 4) {
+        return NextResponse.json({ error: 'Maximum 4 rolls per magazine' }, { status: 400 });
+      }
+
+      // Fetch rolls with photos
+      const sections = [];
+      for (const rollId of rollIds) {
+        const { data: roll } = await supabase
+          .from('rolls')
+          .select('id, title, theme_name, story')
+          .eq('id', rollId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (!roll) continue;
+
+        const { data: photos } = await supabase
+          .from('roll_photos')
+          .select(`
+            photo_id, position, caption,
+            photos(id, thumbnail_url, storage_key, width, height, date_taken, aesthetic_score, face_count)
+          `)
+          .eq('roll_id', rollId)
+          .order('position', { ascending: true });
+
+        const designPhotos = (photos || []).map((rp: Record<string, unknown>) => {
+          const photo = rp.photos as Record<string, unknown> | null;
+          return {
+            id: rp.photo_id as string,
+            photo_id: rp.photo_id as string,
+            thumbnail_url: (photo?.thumbnail_url as string) || '',
+            developed_url: photo?.storage_key ? buildAssetUrl(photo.storage_key as string) : '',
+            width: (photo?.width as number) || 0,
+            height: (photo?.height as number) || 0,
+            taken_at: (photo?.date_taken as string) || undefined,
+            aesthetic_score: (photo?.aesthetic_score as number) || undefined,
+            face_count: (photo?.face_count as number) || undefined,
+            caption: (rp.caption as string) || undefined,
+          };
+        });
+
+        sections.push({
+          rollId: roll.id as string,
+          title: (roll.theme_name as string) || (roll.title as string) || 'Untitled',
+          story: roll.story as string | null,
+          photos: designPhotos,
+        });
+      }
+
+      if (sections.length === 0) {
+        return NextResponse.json({ error: 'No valid rolls found' }, { status: 400 });
+      }
+
+      const allPhotos = sections.flatMap((s) => s.photos);
+      const pages = autoDesignFromRolls(sections, template, { font });
+      const coverId = selectCoverPhoto(allPhotos);
+      const priceCents = calculateMagazinePrice(format, pages.length);
+
+      const { data: magazine, error: createError } = await supabase
+        .from('magazines')
+        .insert({
+          user_id: user.id,
+          title,
+          template,
+          format,
+          font,
+          roll_ids: rollIds,
+          cover_photo_id: coverId,
+          pages: JSON.stringify(pages),
+          page_count: pages.length,
+          price_cents: priceCents,
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        return NextResponse.json({ error: createError.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ data: magazine }, { status: 201 });
+    }
+
+    // ── Favorites-based flow (legacy) ──
     const defaultRange = getDefaultDateRange(template);
     const start = dateRangeStart ? new Date(dateRangeStart) : defaultRange.start;
     const end = dateRangeEnd ? new Date(dateRangeEnd) : defaultRange.end;
 
-    // Fetch user's favorites within date range (filter by photo date_taken, not when favorited)
     const { data: favorites, error: favError } = await supabase
       .from('favorites')
       .select(
@@ -84,7 +169,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: favError.message }, { status: 500 });
     }
 
-    // Also fetch captions from roll_photos for these photos
     const photoIds = (favorites ?? []).map((f: Record<string, unknown>) => f.photo_id);
     const { data: rollPhotos } = await supabase
       .from('roll_photos')
@@ -96,7 +180,6 @@ export async function POST(request: NextRequest) {
       if (rp.caption) captionMap.set(rp.photo_id, rp.caption);
     });
 
-    // Prepare photos for auto-design
     const designPhotos = (favorites ?? []).map((f: Record<string, unknown>) => {
       const photo = f.photos as Record<string, unknown> | null;
       return {
@@ -113,12 +196,10 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Auto-design the magazine
     const pages = autoDesignMagazine(designPhotos, template, { start, end });
     const coverId = selectCoverPhoto(designPhotos);
     const priceCents = calculateMagazinePrice(format, pages.length);
 
-    // Create magazine record
     const { data: magazine, error: createError } = await supabase
       .from('magazines')
       .insert({
@@ -126,6 +207,7 @@ export async function POST(request: NextRequest) {
         title,
         template,
         format,
+        font,
         date_range_start: start.toISOString().slice(0, 10),
         date_range_end: end.toISOString().slice(0, 10),
         cover_photo_id: coverId,
