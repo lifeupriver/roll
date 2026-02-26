@@ -35,7 +35,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     const body = await request.json();
-    const { shippingAddress } = body;
+    const { shippingAddress, quantity = 1 } = body;
+    const copies = Math.max(1, Math.min(10, Math.floor(Number(quantity) || 1)));
 
     if (
       !shippingAddress?.name ||
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         stateOrCounty: shippingAddress.state,
       },
       shippingMethod: body.shippingMethod || 'Budget',
+      copies,
     });
 
     // Submit to Prodigi
@@ -129,13 +131,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const prodigiOrderId = prodigiData.order?.id;
 
     // Update magazine status
-    const priceCents = calculateMagazinePrice(magazine.format as MagazineFormat, pages.length);
+    const unitPriceCents = calculateMagazinePrice(magazine.format as MagazineFormat, pages.length);
+    const totalPriceCents = unitPriceCents * copies;
     await supabase
       .from('magazines')
       .update({
         status: 'ordered',
         prodigi_order_id: prodigiOrderId,
-        price_cents: priceCents,
+        price_cents: totalPriceCents,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id);
@@ -143,7 +146,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({
       data: {
         orderId: prodigiOrderId,
-        priceCents,
+        priceCents: totalPriceCents,
         status: 'ordered',
       },
     });

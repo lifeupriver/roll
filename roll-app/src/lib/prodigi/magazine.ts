@@ -48,8 +48,9 @@ export function buildMagazineOrder(params: {
   coverUrl: string;
   recipient: ProdigiMagazineOrder['recipient'];
   shippingMethod?: 'Budget' | 'Express' | 'Overnight';
+  copies?: number;
 }): ProdigiMagazineOrder {
-  const { magazineId, format, pageUrls, coverUrl, recipient, shippingMethod = 'Budget' } = params;
+  const { magazineId, format, pageUrls, coverUrl, recipient, shippingMethod = 'Budget', copies = 1 } = params;
 
   const assets: ProdigiAsset[] = [
     { printArea: 'cover', url: coverUrl },
@@ -67,7 +68,7 @@ export function buildMagazineOrder(params: {
       {
         merchantReference: `magazine-item-${magazineId}`,
         sku: FORMAT_SKU_MAP[format],
-        copies: 1,
+        copies,
         sizing: 'fillPrintArea',
         assets,
       },
