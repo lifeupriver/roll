@@ -189,3 +189,67 @@ export function circleInviteEmail(
     html: emailWrapper(content),
   };
 }
+
+export function subscriptionConfirmEmail(
+  authorName: string,
+  authorSlug: string,
+  token: string
+): string {
+  const baseUrl = 'https://roll.photos';
+  const confirmUrl = `${baseUrl}/api/blog/${authorSlug}/subscribe?token=${token}`;
+
+  const content = `
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: bold; color: #1A1612; margin: 0 0 16px;">
+      Confirm your subscription
+    </h1>
+    <p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 0 0 8px;">
+      You requested to subscribe to <strong>${escapeHtml(authorName)}</strong>&rsquo;s blog on Roll.
+      Click the button below to confirm:
+    </p>
+    ${ctaButton('Confirm Subscription', confirmUrl)}
+    <p style="font-size: 13px; line-height: 1.5; color: #9A9590; margin: 0;">
+      If you didn&rsquo;t request this, you can safely ignore this email.
+    </p>`;
+
+  return emailWrapper(content);
+}
+
+export function newPostNotificationEmail(
+  authorName: string,
+  authorSlug: string,
+  postTitle: string,
+  postSlug: string,
+  excerpt: string | null,
+  coverPhotoUrl: string | null,
+  subscriberEmail: string,
+  unsubscribeToken: string
+): string {
+  const baseUrl = 'https://roll.photos';
+  const postUrl = `${baseUrl}/blog/${authorSlug}/${postSlug}`;
+  const unsubscribeUrl = `${baseUrl}/api/blog/${authorSlug}/subscribe?unsubscribe=${unsubscribeToken}`;
+
+  const coverHtml = coverPhotoUrl
+    ? `<img src="${coverPhotoUrl}" alt="" width="100%" style="display: block; width: 100%; border-radius: 8px; margin: 24px 0;" />`
+    : '';
+
+  const excerptHtml = excerpt
+    ? `<p style="font-size: 16px; line-height: 1.6; color: #1A1612; margin: 16px 0 0;">${escapeHtml(excerpt)}</p>`
+    : '';
+
+  const content = `
+    <p style="font-size: 14px; color: #9A9590; margin: 0 0 4px;">
+      ${escapeHtml(authorName)} published a new post
+    </p>
+    <h1 style="font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: bold; color: #1A1612; margin: 0 0 16px;">
+      ${escapeHtml(postTitle)}
+    </h1>
+    ${coverHtml}
+    ${excerptHtml}
+    ${ctaButton('Read Post', postUrl)}
+    <p style="font-size: 12px; line-height: 1.5; color: #9A9590; margin: 0;">
+      You&rsquo;re receiving this because ${escapeHtml(subscriberEmail)} is subscribed to ${escapeHtml(authorName)}&rsquo;s blog.
+      <a href="${unsubscribeUrl}" style="color: #9A9590;">Unsubscribe</a>
+    </p>`;
+
+  return emailWrapper(content);
+}

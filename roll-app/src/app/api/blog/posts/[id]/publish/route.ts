@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { getServiceClient } from '@/lib/admin/service';
 import { captureError } from '@/lib/sentry';
+import { sendEmail } from '@/lib/email/resend';
+import { newPostNotificationEmail } from '@/lib/email/templates';
 import type { BlogPost } from '@/types/blog';
 
 export async function POST(
@@ -56,12 +59,68 @@ export async function POST(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // TODO (Sprint 4): Send notification emails to subscribers
+    // Send notification emails to confirmed subscribers (fire-and-forget)
+    sendSubscriberNotifications(user.id, published as BlogPost).catch((err) =>
+      captureError(err, { context: 'blog-post-publish-notify' })
+    );
 
     return NextResponse.json({ data: published as BlogPost });
   } catch (err) {
     captureError(err, { context: 'blog-post-publish' });
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+async function sendSubscriberNotifications(authorId: string, post: BlogPost) {
+  const supabase = getServiceClient();
+
+  // Get author profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name, blog_slug')
+    .eq('id', authorId)
+    .single();
+
+  if (!profile?.blog_slug) return;
+
+  // Get cover photo URL
+  let coverPhotoUrl: string | null = null;
+  if (post.cover_photo_id) {
+    const { data: photo } = await supabase
+      .from('photos')
+      .select('developed_url, thumbnail_url')
+      .eq('id', post.cover_photo_id)
+      .single();
+    coverPhotoUrl = (photo?.developed_url as string) || (photo?.thumbnail_url as string) || null;
+  }
+
+  // Get confirmed subscribers
+  const { data: subscribers } = await supabase
+    .from('email_subscribers')
+    .select('email, confirm_token')
+    .eq('author_id', authorId)
+    .eq('confirmed', true);
+
+  if (!subscribers || subscribers.length === 0) return;
+
+  // Send emails (batch, max 100)
+  for (const subscriber of subscribers) {
+    const html = newPostNotificationEmail(
+      profile.display_name as string,
+      profile.blog_slug as string,
+      post.title,
+      post.slug,
+      post.excerpt,
+      coverPhotoUrl,
+      subscriber.email as string,
+      subscriber.confirm_token as string
+    );
+
+    await sendEmail(
+      subscriber.email as string,
+      `New post: ${post.title}`,
+      html
+    );
   }
 }
