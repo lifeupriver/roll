@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Globe, Tag } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, Globe, Tag, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
@@ -31,6 +32,7 @@ export function PublishModal({
   rollStory,
   rollPhotos,
 }: PublishModalProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(false);
@@ -95,8 +97,8 @@ export function PublishModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const handleSaveDraft = async () => {
-    if (!post) return;
+  const handleSaveDraft = async (): Promise<boolean> => {
+    if (!post) return false;
     setSaving(true);
     try {
       const res = await fetch(`/api/blog/posts/${post.id}`, {
@@ -115,12 +117,15 @@ export function PublishModal({
       if (res.ok) {
         toast('Draft saved', 'success');
         onClose();
+        return true;
       } else {
         const err = await res.json();
         toast(err.error || 'Failed to save', 'error');
+        return false;
       }
     } catch {
       toast('Something went wrong', 'error');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -131,7 +136,7 @@ export function PublishModal({
     setPublishing(true);
     try {
       // Save fields first
-      await fetch(`/api/blog/posts/${post.id}`, {
+      const saveRes = await fetch(`/api/blog/posts/${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,6 +149,11 @@ export function PublishModal({
           allow_book_orders: allowBook,
         }),
       });
+      if (!saveRes.ok) {
+        const err = await saveRes.json().catch(() => ({}));
+        toast(err.error || 'Failed to save', 'error');
+        return;
+      }
 
       // Then publish
       const res = await fetch(`/api/blog/posts/${post.id}/publish`, {
@@ -331,6 +341,38 @@ export function PublishModal({
                   </span>
                 </label>
               ))}
+            </div>
+
+            {/* Design as essay */}
+            <div className="bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] p-[var(--space-element)] border border-[var(--color-border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-[var(--space-element)]">
+                  <Wand2 size={16} className="text-[var(--color-action)]" />
+                  <div>
+                    <p className="text-[length:var(--text-body)] font-medium text-[var(--color-ink)]">
+                      Design as Photo Essay
+                    </p>
+                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                      Auto-design a beautiful essay with editorial rhythm and typography
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={async () => {
+                    if (post) {
+                      const saved = await handleSaveDraft();
+                      if (!saved) return;
+                    } else {
+                      onClose();
+                    }
+                    router.push('/projects/posts/create');
+                  }}
+                >
+                  Design
+                </Button>
+              </div>
             </div>
 
             {/* Actions */}

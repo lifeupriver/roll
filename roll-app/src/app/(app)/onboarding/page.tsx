@@ -101,7 +101,7 @@ export default function OnboardingPage() {
             Browse your photos, select your favorites, and build your first roll of 36 — like
             loading a real roll of film.
           </p>
-          <Button variant="primary" size="lg" onClick={() => router.push('/feed')}>
+          <Button variant="primary" size="lg" onClick={() => router.push('/photos')}>
             Start browsing
           </Button>
         </div>

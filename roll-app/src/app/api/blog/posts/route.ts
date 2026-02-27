@@ -74,6 +74,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Roll not found' }, { status: 404 });
     }
 
+    // Check for existing draft/published post for this roll — return it instead of creating a duplicate
+    const { data: existingPost, error: dupeCheckError } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('roll_id', rollId)
+      .eq('user_id', user.id)
+      .in('status', ['draft', 'published'])
+      .maybeSingle();
+
+    if (dupeCheckError) {
+      captureError(dupeCheckError, { context: 'blog-posts-dupe-check' });
+      return NextResponse.json({ error: 'Failed to check for existing post' }, { status: 500 });
+    }
+
+    if (existingPost) {
+      return NextResponse.json({ data: existingPost as BlogPost });
+    }
+
     // Get the highest-scoring photo as cover
     const { data: topPhoto } = await supabase
       .from('roll_photos')

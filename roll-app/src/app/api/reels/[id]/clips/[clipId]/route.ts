@@ -40,7 +40,7 @@ export async function PATCH(
 
     const parsed = await parseBody(request, updateReelClipSchema);
     if (parsed.error) return parsed.error;
-    const { trimStartMs, trimEndMs, position, transitionType } = parsed.data;
+    const { trimStartMs, trimEndMs, position, transitionType, audioEnabled } = parsed.data;
 
     // Get current clip
     const { data: clip, error: clipError } = await supabase
@@ -74,6 +74,7 @@ export async function PATCH(
 
     if (position !== undefined) updateData.position = position;
     if (transitionType !== undefined) updateData.transition_type = transitionType;
+    if (audioEnabled !== undefined) updateData.audio_enabled = audioEnabled;
 
     const { data: updated, error: updateError } = await supabase
       .from('reel_clips')

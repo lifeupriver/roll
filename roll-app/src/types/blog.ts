@@ -1,3 +1,9 @@
+// ─── Essay Templates ─────────────────────────────────────────────────────────
+
+export type EssayTemplate = 'documentary' | 'travel' | 'portrait' | 'editorial' | 'minimal' | 'narrative';
+
+export type EssayFont = 'default' | 'garamond' | 'futura' | 'playfair' | 'lora' | 'jakarta';
+
 export interface BlogPost {
   id: string;
   user_id: string;
@@ -19,6 +25,12 @@ export interface BlogPost {
   allow_print_orders: boolean;
   allow_magazine_orders: boolean;
   allow_book_orders: boolean;
+  /** Essay design template. */
+  essay_template?: EssayTemplate | null;
+  /** Typography choice for the essay. */
+  essay_font?: EssayFont | null;
+  /** Serialized design blocks (JSON) for the essay layout. */
+  essay_blocks?: string | null;
   view_count: number;
   created_at: string;
   updated_at: string;

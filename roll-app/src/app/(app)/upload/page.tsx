@@ -14,7 +14,7 @@ export default function UploadPage() {
 
   function handleComplete(count: number) {
     if (count > 0) {
-      router.push('/feed');
+      router.push('/photos');
     }
   }
 
@@ -29,7 +29,7 @@ export default function UploadPage() {
           `${successCount} photo${successCount !== 1 ? 's' : ''} uploaded from camera`,
           'success'
         );
-        router.push('/feed');
+        router.push('/photos');
       }
     } catch {
       toast('Failed to upload camera photos', 'error');

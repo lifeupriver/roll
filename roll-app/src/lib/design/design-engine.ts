@@ -833,6 +833,320 @@ function createBlogPhotoBlock(
   };
 }
 
+// ─── Essay Template Rhythms ──────────────────────────────────────────────────
+// Each template defines a repeating block-type pattern that determines
+// the visual cadence of the essay.
+
+type EssayTemplateId = 'documentary' | 'travel' | 'portrait' | 'editorial' | 'minimal' | 'narrative';
+
+const ESSAY_RHYTHMS: Record<EssayTemplateId, BlogBlockType[]> = {
+  documentary: ['hero', 'text', 'photo-pair', 'pullquote', 'photo-single', 'photo-triptych', 'text'],
+  travel: ['hero', 'panoramic', 'photo-pair', 'text', 'photo-triptych', 'photo-single', 'pullquote'],
+  portrait: ['hero', 'photo-single', 'pullquote', 'photo-single', 'photo-pair', 'text', 'photo-single'],
+  editorial: ['hero', 'photo-grid', 'text', 'photo-triptych', 'hero', 'photo-pair', 'pullquote'],
+  minimal: ['hero', 'photo-single', 'photo-single', 'text', 'photo-single', 'photo-single', 'pullquote'],
+  narrative: ['hero', 'text', 'photo-single', 'text', 'photo-pair', 'pullquote', 'photo-single', 'text'],
+};
+
+// Story pacing phases — controls density across the essay
+const ESSAY_PACING = {
+  opening: { density: 'sparse', textWeight: 0.3 },   // 0-20%: sparse, let hero breathe
+  rising: { density: 'moderate', textWeight: 0.2 },   // 20-50%: build momentum
+  climax: { density: 'rich', textWeight: 0.1 },       // 50-80%: dense, impactful
+  resolution: { density: 'sparse', textWeight: 0.3 }, // 80-100%: wind down gently
+} as const;
+
+function getEssayPhase(progress: number): keyof typeof ESSAY_PACING {
+  if (progress < 0.2) return 'opening';
+  if (progress < 0.5) return 'rising';
+  if (progress < 0.8) return 'climax';
+  return 'resolution';
+}
+
+/**
+ * Enhanced blog layout engine with essay template support.
+ * Applies template-specific editorial rhythms, story pacing,
+ * and intelligent photo analysis for beautiful auto-designed essays.
+ */
+export function smartDesignBlogWithTemplate(
+  items: BlogMediaItem[],
+  template: EssayTemplateId = 'documentary',
+  story?: string | null
+): BlogBlock[] {
+  if (items.length === 0 && !story) return [];
+
+  const blocks: BlogBlock[] = [];
+  const photos = items.filter(i => i.type === 'photo');
+  const videos = items.filter(i => i.type === 'video');
+  const rhythm = ESSAY_RHYTHMS[template] || ESSAY_RHYTHMS.documentary;
+
+  // Enrich photos for analysis
+  const enrichedPhotos = photos.map(p => ({
+    ...p,
+    photo_id: p.id,
+    weight: calculateVisualWeight(p),
+  }));
+
+  // Sort by visual weight for hero selection
+  const sortedByWeight = [...enrichedPhotos].sort((a, b) => b.weight.score - a.weight.score);
+
+  // Split story into paragraphs for interleaving
+  const storyParagraphs = story
+    ? story.split(/\n\n+/).filter(p => p.trim().length > 0)
+    : [];
+
+  // Extract pull quotes from captions
+  const pullQuotes = enrichedPhotos
+    .filter(p => p.caption && isPullQuoteWorthy(p.caption!))
+    .map(p => p.caption!);
+
+  // ── Build blocks following the rhythm pattern ──
+  let photoIdx = 0;
+  let videoIdx = 0;
+  let storyIdx = 0;
+  let pullQuoteIdx = 0;
+  let rhythmIdx = 0;
+  let heroUsed = false;
+
+  const totalContent = photos.length + videos.length + storyParagraphs.length;
+  let contentConsumed = 0;
+
+  const maxIterations = (enrichedPhotos.length + videos.length + storyParagraphs.length + rhythm.length) * 3;
+  let iterations = 0;
+  while ((photoIdx < enrichedPhotos.length || videoIdx < videos.length) && iterations < maxIterations) {
+    iterations++;
+    const progress = totalContent > 0 ? contentConsumed / totalContent : 0;
+    const phase = getEssayPhase(progress);
+    const pacing = ESSAY_PACING[phase];
+    let currentBeat = rhythm[rhythmIdx % rhythm.length];
+    rhythmIdx++;
+
+    // When photos are exhausted but videos remain, treat photo beats as video
+    if (photoIdx >= enrichedPhotos.length && videoIdx < videos.length &&
+        currentBeat !== 'text' && currentBeat !== 'pullquote' && currentBeat !== 'video' && currentBeat !== 'video-pair') {
+      currentBeat = 'video';
+    }
+
+    switch (currentBeat) {
+      case 'hero': {
+        if (!heroUsed && sortedByWeight.length > 0) {
+          // Use the best photo as hero
+          const heroPhoto = sortedByWeight[0];
+          blocks.push({
+            type: 'hero',
+            photoIds: [heroPhoto.photo_id],
+            videoIds: [],
+            aspectRatio: heroPhoto.width / heroPhoto.height,
+            preserveAspectRatio: true,
+          });
+          // Mark it as used
+          const heroIdx = enrichedPhotos.findIndex(p => p.photo_id === heroPhoto.photo_id);
+          if (heroIdx !== -1 && heroIdx >= photoIdx) {
+            // Swap it out of the remaining pool
+            enrichedPhotos.splice(heroIdx, 1);
+            enrichedPhotos.unshift(heroPhoto); // put at front
+            photoIdx = Math.max(photoIdx, 1); // skip past it
+          } else if (heroIdx === -1 || heroIdx < photoIdx) {
+            // Already consumed, pick next best
+            if (photoIdx < enrichedPhotos.length) {
+              blocks[blocks.length - 1].photoIds = [enrichedPhotos[photoIdx].photo_id];
+              photoIdx++;
+            }
+          }
+          heroUsed = true;
+          contentConsumed++;
+        } else if (photoIdx < enrichedPhotos.length) {
+          // Subsequent hero: use next highest-weight available photo
+          const photo = enrichedPhotos[photoIdx];
+          blocks.push({
+            type: photo.weight.aspectClass === 'panoramic' ? 'panoramic' : 'hero',
+            photoIds: [photo.photo_id],
+            videoIds: [],
+            aspectRatio: photo.width / photo.height,
+            preserveAspectRatio: true,
+          });
+          photoIdx++;
+          contentConsumed++;
+        }
+        break;
+      }
+
+      case 'text': {
+        if (storyIdx < storyParagraphs.length) {
+          blocks.push({
+            type: 'text',
+            photoIds: [],
+            videoIds: [],
+            text: storyParagraphs[storyIdx],
+            preserveAspectRatio: true,
+          });
+          storyIdx++;
+          contentConsumed++;
+        }
+        // If no text available, skip this beat (don't stall)
+        break;
+      }
+
+      case 'pullquote': {
+        if (pullQuoteIdx < pullQuotes.length) {
+          blocks.push({
+            type: 'pullquote',
+            photoIds: [],
+            videoIds: [],
+            text: pullQuotes[pullQuoteIdx],
+            preserveAspectRatio: true,
+          });
+          pullQuoteIdx++;
+          contentConsumed++;
+        }
+        break;
+      }
+
+      case 'photo-single':
+      case 'panoramic': {
+        if (photoIdx < enrichedPhotos.length) {
+          const photo = enrichedPhotos[photoIdx];
+          const type: BlogBlockType =
+            photo.weight.aspectClass === 'panoramic' ? 'panoramic' : 'photo-single';
+          blocks.push({
+            type,
+            photoIds: [photo.photo_id],
+            videoIds: [],
+            aspectRatio: photo.width / photo.height,
+            preserveAspectRatio: true,
+          });
+          photoIdx++;
+          contentConsumed++;
+        }
+        break;
+      }
+
+      case 'photo-pair': {
+        if (photoIdx < enrichedPhotos.length) {
+          const batch: string[] = [enrichedPhotos[photoIdx].photo_id];
+          photoIdx++;
+          if (photoIdx < enrichedPhotos.length) {
+            batch.push(enrichedPhotos[photoIdx].photo_id);
+            photoIdx++;
+          }
+          blocks.push({
+            type: batch.length === 2 ? 'photo-pair' : 'photo-single',
+            photoIds: batch,
+            videoIds: [],
+            preserveAspectRatio: true,
+          });
+          contentConsumed += batch.length;
+        }
+        break;
+      }
+
+      case 'photo-triptych': {
+        if (photoIdx < enrichedPhotos.length) {
+          const batch: string[] = [];
+          const count = Math.min(3, enrichedPhotos.length - photoIdx);
+          for (let i = 0; i < count; i++) {
+            batch.push(enrichedPhotos[photoIdx + i].photo_id);
+          }
+          photoIdx += count;
+          const type: BlogBlockType =
+            batch.length === 3 ? 'photo-triptych' :
+            batch.length === 2 ? 'photo-pair' : 'photo-single';
+          blocks.push({
+            type,
+            photoIds: batch,
+            videoIds: [],
+            preserveAspectRatio: true,
+          });
+          contentConsumed += batch.length;
+        }
+        break;
+      }
+
+      case 'photo-grid': {
+        if (photoIdx < enrichedPhotos.length) {
+          const count = Math.min(4, enrichedPhotos.length - photoIdx);
+          const batch: string[] = [];
+          for (let i = 0; i < count; i++) {
+            batch.push(enrichedPhotos[photoIdx + i].photo_id);
+          }
+          photoIdx += count;
+          const type: BlogBlockType =
+            batch.length >= 4 ? 'photo-grid' :
+            batch.length === 3 ? 'photo-triptych' :
+            batch.length === 2 ? 'photo-pair' : 'photo-single';
+          blocks.push({
+            type,
+            photoIds: batch,
+            videoIds: [],
+            preserveAspectRatio: true,
+          });
+          contentConsumed += batch.length;
+        }
+        break;
+      }
+
+      case 'video':
+      case 'video-pair': {
+        if (videoIdx < videos.length) {
+          blocks.push({
+            type: 'video',
+            photoIds: [],
+            videoIds: [videos[videoIdx].id],
+            aspectRatio: videos[videoIdx].width && videos[videoIdx].height
+              ? videos[videoIdx].width / videos[videoIdx].height
+              : 16 / 9,
+            preserveAspectRatio: true,
+          });
+          videoIdx++;
+          contentConsumed++;
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+
+    // Interleave remaining story paragraphs in sparse phases
+    if (pacing.textWeight > 0.2 && storyIdx < storyParagraphs.length && Math.random() < pacing.textWeight) {
+      blocks.push({
+        type: 'text',
+        photoIds: [],
+        videoIds: [],
+        text: storyParagraphs[storyIdx],
+        preserveAspectRatio: true,
+      });
+      storyIdx++;
+      contentConsumed++;
+    }
+  }
+
+  // ── Append any remaining story text ──
+  while (storyIdx < storyParagraphs.length) {
+    blocks.push({
+      type: 'text',
+      photoIds: [],
+      videoIds: [],
+      text: storyParagraphs[storyIdx],
+      preserveAspectRatio: true,
+    });
+    storyIdx++;
+  }
+
+  // ── Append any remaining videos ──
+  while (videoIdx < videos.length) {
+    blocks.push({
+      type: 'video',
+      photoIds: [],
+      videoIds: [videos[videoIdx].id],
+      preserveAspectRatio: true,
+    });
+    videoIdx++;
+  }
+
+  return blocks;
+}
+
 // ─── Cover Photo Selection ────────────────────────────────────────────────────
 
 /**

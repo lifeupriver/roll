@@ -9,6 +9,8 @@ import { useToast } from '@/stores/toastStore';
 import { Wand2, Cloud, Zap, Sun, Moon } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { track } from '@/lib/analytics';
+import { loadAutomationSettings } from '@/lib/automation/settings';
+import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
 import type { Roll } from '@/types/roll';
 import type { Photo } from '@/types/photo';
 
@@ -49,7 +51,14 @@ function DevelopPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [developing, setDeveloping] = useState(false);
-  const [processMode, setProcessMode] = useState<'color' | 'bw'>('color');
+  const [processMode, setProcessMode] = useState<'color' | 'bw'>(() => {
+    try {
+      const mode = loadAutomationSettings().defaultProcessMode;
+      return mode === 'color' || mode === 'bw' ? mode : 'color';
+    } catch {
+      return 'color';
+    }
+  });
 
   useEffect(() => {
     if (!rollId) {
@@ -82,7 +91,11 @@ function DevelopPageContent() {
 
     setDeveloping(true);
     try {
-      const filmProfileId = processMode === 'bw' ? 'classic' : 'warmth';
+      const defaults = loadAutomationSettings();
+      // Use default film profile if it matches the selected mode, otherwise fall back
+      const profilesForMode = Object.values(FILM_PROFILE_CONFIGS).filter(p => p.type === processMode);
+      const defaultProfile = profilesForMode.find(p => p.id === defaults.defaultFilmProfile);
+      const filmProfileId = defaultProfile ? defaultProfile.id : (processMode === 'bw' ? 'classic' : 'warmth');
       const response = await fetch('/api/process/develop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

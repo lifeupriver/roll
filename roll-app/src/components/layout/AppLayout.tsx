@@ -3,77 +3,39 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3X3, Film, Users, User, Menu, X, Palette } from 'lucide-react';
+import { Grid3X3, Film, Users, User, Menu, X, Palette, Moon, Sun } from 'lucide-react';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { useTheme } from '@/hooks/useTheme';
 import { useUser } from '@/hooks/useUser';
 
-function DarkroomBulbIcon({ active }: { active: boolean }) {
+function DarkroomToggle({ theme, onToggle }: { theme: string; onToggle: () => void }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"
-        fill={active ? 'var(--color-action)' : 'none'}
-        stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={active ? 1 : 0.7}
-      />
-      <path
-        d="M9 21h6"
-        stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity={active ? 1 : 0.7}
-      />
-      <path
-        d="M9 19h6"
-        stroke={active ? 'var(--color-action)' : 'var(--color-ink-tertiary)'}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity={active ? 1 : 0.7}
-      />
-      {active && (
-        <>
-          <line
-            x1="12"
-            y1="0"
-            x2="12"
-            y2="1"
-            stroke="var(--color-action)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.5"
-          />
-          <line
-            x1="4"
-            y1="4"
-            x2="4.7"
-            y2="4.7"
-            stroke="var(--color-action)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.5"
-          />
-          <line
-            x1="20"
-            y1="4"
-            x2="19.3"
-            y2="4.7"
-            stroke="var(--color-action)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.5"
-          />
-        </>
-      )}
-    </svg>
+    <button
+      onClick={onToggle}
+      role="switch"
+      aria-checked={theme === 'darkroom'}
+      aria-label="Darkroom mode"
+      className={`relative w-12 h-7 rounded-[var(--radius-pill)] transition-colors duration-200 ${
+        theme === 'darkroom' ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'
+      }`}
+    >
+      <span
+        className={`absolute top-[2px] left-[2px] w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform duration-200 flex items-center justify-center ${
+          theme === 'darkroom' ? 'translate-x-[20px]' : 'translate-x-0'
+        }`}
+      >
+        {theme === 'darkroom' ? (
+          <Moon size={12} className="text-[var(--color-darkroom)]" />
+        ) : (
+          <Sun size={12} className="text-[var(--color-safelight)]" />
+        )}
+      </span>
+    </button>
   );
 }
 
 const navItems = [
-  { href: '/feed', label: 'Photos', icon: Grid3X3 },
+  { href: '/photos', label: 'Photos', icon: Grid3X3 },
   { href: '/videos', label: 'Videos', icon: Film },
   { href: '/designs', label: 'Designs', icon: Palette },
   { href: '/circle', label: 'Circle', icon: Users },
@@ -91,7 +53,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
-  const { theme, toggleWithReveal } = useTheme();
+  const { theme, toggle } = useTheme();
   const { user } = useUser();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -141,24 +103,12 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="p-[var(--space-section)] pt-[var(--space-hero)] pb-0">
             <div className="flex items-center justify-between px-[var(--space-element)]">
               <Link
-                href="/feed"
+                href="/photos"
                 className="font-[family-name:var(--font-display)] font-bold text-[2.5rem] tracking-[0.15em] text-[var(--color-ink)]"
               >
                 ROLL
               </Link>
-              <button
-                type="button"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  toggleWithReveal(rect.left + rect.width / 2, rect.top + rect.height / 2);
-                }}
-                aria-label={
-                  theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'
-                }
-                className="p-1.5 rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-raised)] transition-colors"
-              >
-                <DarkroomBulbIcon active={theme === 'darkroom'} />
-              </button>
+              <DarkroomToggle theme={theme} onToggle={toggle} />
             </div>
           </div>
 
@@ -204,22 +154,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             <Menu size={22} strokeWidth={1.5} />
           </button>
           <Link
-            href="/feed"
+            href="/photos"
             className="font-[family-name:var(--font-display)] font-bold text-[2rem] tracking-[0.15em] text-[var(--color-ink)]"
           >
             ROLL
           </Link>
-          <button
-            type="button"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect();
-              toggleWithReveal(rect.left + rect.width / 2, rect.top + rect.height / 2);
-            }}
-            aria-label={theme === 'darkroom' ? 'Switch to light mode' : 'Switch to darkroom mode'}
-            className="p-2 -mr-2 touch-target"
-          >
-            <DarkroomBulbIcon active={theme === 'darkroom'} />
-          </button>
+          <DarkroomToggle theme={theme} onToggle={toggle} />
         </div>
       </header>
 
