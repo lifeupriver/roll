@@ -97,8 +97,8 @@ export function PublishModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  const handleSaveDraft = async () => {
-    if (!post) return;
+  const handleSaveDraft = async (): Promise<boolean> => {
+    if (!post) return false;
     setSaving(true);
     try {
       const res = await fetch(`/api/blog/posts/${post.id}`, {
@@ -117,12 +117,15 @@ export function PublishModal({
       if (res.ok) {
         toast('Draft saved', 'success');
         onClose();
+        return true;
       } else {
         const err = await res.json();
         toast(err.error || 'Failed to save', 'error');
+        return false;
       }
     } catch {
       toast('Something went wrong', 'error');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -359,9 +362,11 @@ export function PublishModal({
                   size="sm"
                   onClick={async () => {
                     if (post) {
-                      try { await handleSaveDraft(); } catch { /* save failed, toast already shown */ }
+                      const saved = await handleSaveDraft();
+                      if (!saved) return;
+                    } else {
+                      onClose();
                     }
-                    onClose();
                     router.push('/projects/posts/create');
                   }}
                 >
