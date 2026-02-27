@@ -312,7 +312,7 @@ export default function EssayEditorPage() {
               <h1 className="font-[family-name:var(--font-display)] font-medium text-[length:var(--text-heading)] text-[var(--color-ink)] truncate">
                 {title || 'Untitled Essay'}
               </h1>
-              <Badge variant={post.status === 'published' ? 'developed' : 'default'}>
+              <Badge variant={post.status === 'published' ? 'developed' : 'info'}>
                 {post.status}
               </Badge>
             </div>
