@@ -19,7 +19,6 @@ import type { Photo } from '@/types/photo';
 
 interface TimelineClip extends ReelClip {
   photos?: Photo;
-  audio_enabled?: boolean;
 }
 
 interface NLETimelineProps {
