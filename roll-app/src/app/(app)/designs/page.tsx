@@ -353,7 +353,7 @@ export default function DesignsPage() {
                       <p className="text-[length:var(--text-body)] text-[var(--color-ink)] font-medium truncate">
                         {post.title}
                       </p>
-                      <Badge variant={post.status === 'published' ? 'developed' : 'default'}>
+                      <Badge variant={post.status === 'published' ? 'developed' : 'info'}>
                         {post.status}
                       </Badge>
                       {post.essay_template && (
