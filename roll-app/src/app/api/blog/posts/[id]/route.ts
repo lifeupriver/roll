@@ -10,6 +10,8 @@ const updateBlogPostSchema = z
     title: z.string().trim().min(1).max(200).optional(),
     slug: z.string().trim().min(1).max(100).optional(),
     excerpt: z.string().max(500).nullable().optional(),
+    story: z.string().max(10000).nullable().optional(),
+    status: z.enum(['draft', 'published', 'archived']).optional(),
     seo_title: z.string().max(200).nullable().optional(),
     seo_description: z.string().max(300).nullable().optional(),
     tags: z.array(z.string().max(50)).max(10).optional(),
@@ -17,15 +19,22 @@ const updateBlogPostSchema = z
     allow_print_orders: z.boolean().optional(),
     allow_magazine_orders: z.boolean().optional(),
     allow_book_orders: z.boolean().optional(),
+    essay_template: z
+      .enum(['documentary', 'travel', 'portrait', 'editorial', 'minimal', 'narrative'])
+      .nullable()
+      .optional(),
+    essay_font: z
+      .enum(['default', 'garamond', 'futura', 'playfair', 'lora', 'jakarta'])
+      .nullable()
+      .optional(),
+    essay_blocks: z.string().max(100000).nullable().optional(),
+    roll_ids: z.array(z.string().uuid()).max(6).optional(),
   })
   .refine((data: Record<string, unknown>) => Object.keys(data).length > 0, {
     message: 'At least one field is required',
   });
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
@@ -56,10 +65,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
@@ -74,7 +80,7 @@ export async function PATCH(
     // Verify ownership
     const { data: existing, error: fetchError } = await supabase
       .from('blog_posts')
-      .select('id')
+      .select('id, status, published_at')
       .eq('id', id)
       .eq('user_id', user.id)
       .single();
@@ -89,6 +95,13 @@ export async function PATCH(
     const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
     for (const [key, value] of Object.entries(parsed.data)) {
       if (value !== undefined) updateData[key] = value;
+    }
+
+    // Normalize published_at when status changes
+    if (updateData.status === 'published' && !existing.published_at) {
+      updateData.published_at = new Date().toISOString();
+    } else if (updateData.status && updateData.status !== 'published') {
+      updateData.published_at = null;
     }
 
     const { data: post, error } = await supabase

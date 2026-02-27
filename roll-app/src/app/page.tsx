@@ -101,7 +101,7 @@ export default function LandingPage() {
               Get Started Free
             </a>
             <Link
-              href="/feed"
+              href="/photos"
               className="inline-flex items-center justify-center h-14 px-6 text-[var(--color-action)] font-[family-name:var(--font-body)] font-medium text-[length:var(--text-body)] tracking-[0.02em] transition-all duration-150 ease-out hover:underline"
             >
               See a Demo

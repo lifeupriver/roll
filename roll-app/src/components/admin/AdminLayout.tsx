@@ -27,7 +27,7 @@ export function AdminLayout({ children, adminEmail }: AdminLayoutProps) {
           <div className="flex items-center gap-4">
             {/* Back to app link */}
             <Link
-              href="/feed"
+              href="/photos"
               className="text-xs text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)] transition-colors"
             >
               Back to app

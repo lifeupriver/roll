@@ -8,6 +8,28 @@ export type AudioMood = 'original' | 'quiet_film' | 'silent_film' | 'ambient';
 
 export type TransitionType = 'crossfade' | 'cut' | 'dip_to_black';
 
+export type ReelOrientation = 'horizontal' | 'vertical';
+
+export const REEL_ORIENTATIONS: Array<{
+  id: ReelOrientation;
+  label: string;
+  aspect: string;
+  description: string;
+}> = [
+  {
+    id: 'horizontal',
+    label: 'Landscape',
+    aspect: '16:9',
+    description: 'Widescreen film — best for TV and desktop',
+  },
+  {
+    id: 'vertical',
+    label: 'Portrait',
+    aspect: '9:16',
+    description: 'Vertical reel — best for mobile and stories',
+  },
+];
+
 export const REEL_SIZE_CONFIG: Record<
   ReelSize,
   { label: string; maxDurationMs: number; tier: 'free' | 'plus' }
@@ -64,6 +86,7 @@ export interface Reel {
   current_duration_ms: number;
   clip_count: number;
   default_clip_length_s: number | null;
+  orientation: ReelOrientation;
   ambient_audio: boolean;
   transcribe_audio: boolean;
   processing_started_at: string | null;
@@ -89,6 +112,7 @@ export interface ReelClip {
   processed_storage_key: string | null;
   correction_applied: boolean;
   transition_type: TransitionType;
+  audio_enabled: boolean;
   created_at: string;
 }
 

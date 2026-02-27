@@ -21,7 +21,7 @@ export function useAuth() {
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
       if (authError) throw authError;
       track({ event: 'user_logged_in' });
-      router.push('/feed');
+      router.push('/photos');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -63,7 +63,7 @@ export function useAuth() {
       });
       if (authError) throw authError;
       track({ event: 'user_signed_up' });
-      router.push('/feed');
+      router.push('/photos');
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');

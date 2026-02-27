@@ -2,9 +2,21 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Play, Heart, Share2, Wand2, Film, Volume2, VolumeX, FileText } from 'lucide-react';
+import {
+  Play,
+  Heart,
+  Share2,
+  Wand2,
+  Film,
+  Volume2,
+  VolumeX,
+  FileText,
+  Monitor,
+  Smartphone,
+} from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { ReelStoryboard } from '@/components/reel/ReelStoryboard';
+import { NLETimeline } from '@/components/reel/NLETimeline';
 import { TrimControls } from '@/components/reel/TrimControls';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Modal } from '@/components/ui/Modal';
@@ -13,7 +25,13 @@ import { Spinner } from '@/components/ui/Spinner';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
-import type { Reel, ReelClip } from '@/types/reel';
+import {
+  REEL_ORIENTATIONS,
+  type Reel,
+  type ReelClip,
+  type ReelOrientation,
+  type TransitionType,
+} from '@/types/reel';
 import type { Photo } from '@/types/photo';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
@@ -61,6 +79,12 @@ export default function ReelDetailPage() {
   // Default clip duration for building
   const [defaultClipLengthS, setDefaultClipLengthS] = useState(3);
 
+  // Orientation
+  const [orientation, setOrientation] = useState<ReelOrientation>('horizontal');
+
+  // Editor mode: 'storyboard' (list) or 'timeline' (NLE)
+  const [editorMode, setEditorMode] = useState<'storyboard' | 'timeline'>('timeline');
+
   // Post-development configuration
   const [showConfig, setShowConfig] = useState(false);
   const [configName, setConfigName] = useState('');
@@ -84,6 +108,7 @@ export default function ReelDetailPage() {
         setAmbientAudio(reel.ambient_audio ?? true);
         setTranscribeAudio(reel.transcribe_audio ?? false);
         if (reel.default_clip_length_s) setDefaultClipLengthS(reel.default_clip_length_s);
+        if (reel.orientation) setOrientation(reel.orientation);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       } finally {
@@ -265,6 +290,98 @@ export default function ReelDetailPage() {
       }
     },
     [currentReel, reelId]
+  );
+
+  const handleOrientationChange = useCallback(
+    async (newOrientation: ReelOrientation) => {
+      setOrientation(newOrientation);
+      if (!currentReel) return;
+      try {
+        await fetch(`/api/reels/${reelId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orientation: newOrientation }),
+        });
+      } catch {
+        // Non-critical
+      }
+    },
+    [currentReel, reelId]
+  );
+
+  const handleClipAudioToggle = useCallback(
+    async (clipId: string, enabled: boolean) => {
+      // Update local state
+      const { setReelClips: setClips } = useReelStore.getState();
+      setClips(
+        useReelStore
+          .getState()
+          .reelClips.map((c) =>
+            c.id === clipId ? { ...c, audio_enabled: enabled } : c
+          ) as ReelClip[]
+      );
+      // Persist
+      try {
+        await fetch(`/api/reels/${reelId}/clips/${clipId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audioEnabled: enabled }),
+        });
+      } catch {
+        // Revert on error using fresh state
+        useReelStore
+          .getState()
+          .setReelClips(
+            useReelStore
+              .getState()
+              .reelClips.map((c) =>
+                c.id === clipId ? { ...c, audio_enabled: !enabled } : c
+              ) as ReelClip[]
+          );
+      }
+    },
+    [reelId]
+  );
+
+  const handleTransitionChange = useCallback(
+    async (clipId: string, transition: TransitionType) => {
+      // Capture previous value before update
+      const prevTransition = useReelStore
+        .getState()
+        .reelClips.find((c) => c.id === clipId)?.transition_type;
+      // Update local state
+      useReelStore
+        .getState()
+        .setReelClips(
+          useReelStore
+            .getState()
+            .reelClips.map((c) =>
+              c.id === clipId ? { ...c, transition_type: transition } : c
+            ) as ReelClip[]
+        );
+      // Persist
+      try {
+        await fetch(`/api/reels/${reelId}/clips/${clipId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transitionType: transition }),
+        });
+      } catch {
+        // Revert on error using fresh state
+        if (prevTransition) {
+          useReelStore
+            .getState()
+            .setReelClips(
+              useReelStore
+                .getState()
+                .reelClips.map((c) =>
+                  c.id === clipId ? { ...c, transition_type: prevTransition } : c
+                ) as ReelClip[]
+            );
+        }
+      }
+    },
+    [reelId]
   );
 
   const handleDevelop = useCallback(async () => {
@@ -475,7 +592,7 @@ export default function ReelDetailPage() {
           <button
             type="button"
             onClick={() => router.push(`/library/reels/${reelId}/screen`)}
-            className="relative w-full aspect-[9/16] max-h-[480px] bg-gradient-to-br from-[var(--color-surface-sunken)] via-[var(--color-ink)]/80 to-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden group cursor-pointer"
+            className={`relative w-full ${currentReel.orientation === 'vertical' ? 'aspect-[9/16] max-h-[480px]' : 'aspect-video max-h-[400px]'} bg-gradient-to-br from-[var(--color-surface-sunken)] via-[var(--color-ink)]/80 to-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden group cursor-pointer`}
           >
             {/* Poster image if available */}
             {currentReel.poster_storage_key && (
@@ -511,19 +628,112 @@ export default function ReelDetailPage() {
         </section>
       )}
 
-      {/* Storyboard — shown for building/ready and developed reels */}
+      {/* Editor — NLE Timeline + Storyboard toggle */}
       {(isReady || isDeveloped) && (
         <section>
+          <div className="flex items-center justify-between mb-[var(--space-element)]">
+            <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)]">
+              {editorMode === 'timeline' ? 'Timeline' : 'Storyboard'}
+            </h2>
+            <div className="flex items-center gap-[var(--space-tight)]">
+              <button
+                type="button"
+                onClick={() => setEditorMode('timeline')}
+                className={`px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                  editorMode === 'timeline'
+                    ? 'bg-[var(--color-action)] text-white'
+                    : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-tertiary)]'
+                }`}
+              >
+                Timeline
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditorMode('storyboard')}
+                className={`px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                  editorMode === 'storyboard'
+                    ? 'bg-[var(--color-action)] text-white'
+                    : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-tertiary)]'
+                }`}
+              >
+                List
+              </button>
+            </div>
+          </div>
+
+          {editorMode === 'timeline' ? (
+            <NLETimeline
+              clips={reelClips as (ReelClip & { photos?: Photo; audio_enabled?: boolean })[]}
+              totalDurationMs={currentReel.current_duration_ms}
+              onReorder={handleReorder}
+              onRemove={handleRemoveClip}
+              onEditTrim={handleEditTrim}
+              onAudioToggle={handleClipAudioToggle}
+              onTransitionChange={handleTransitionChange}
+              readOnly={isDeveloped}
+            />
+          ) : (
+            <ReelStoryboard
+              clips={reelClips as (ReelClip & { photos?: Photo })[]}
+              onReorder={handleReorder}
+              onRemove={handleRemoveClip}
+              onEditTrim={handleEditTrim}
+              readOnly={isDeveloped}
+            />
+          )}
+        </section>
+      )}
+
+      {/* Orientation Picker */}
+      {isReady && (
+        <section>
           <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
-            Storyboard
+            Output Format
           </h2>
-          <ReelStoryboard
-            clips={reelClips as (ReelClip & { photos?: Photo })[]}
-            onReorder={handleReorder}
-            onRemove={handleRemoveClip}
-            onEditTrim={handleEditTrim}
-            readOnly={isDeveloped}
-          />
+          <div className="grid grid-cols-2 gap-[var(--space-element)]">
+            {REEL_ORIENTATIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleOrientationChange(opt.id)}
+                className={`relative flex flex-col items-center gap-[var(--space-tight)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 transition-all ${
+                  orientation === opt.id
+                    ? 'border-[var(--color-action)] bg-[var(--color-action-subtle)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface-raised)] hover:border-[var(--color-ink-tertiary)]'
+                }`}
+              >
+                {opt.id === 'horizontal' ? (
+                  <Monitor
+                    size={28}
+                    className={
+                      orientation === opt.id
+                        ? 'text-[var(--color-action)]'
+                        : 'text-[var(--color-ink-secondary)]'
+                    }
+                  />
+                ) : (
+                  <Smartphone
+                    size={28}
+                    className={
+                      orientation === opt.id
+                        ? 'text-[var(--color-action)]'
+                        : 'text-[var(--color-ink-secondary)]'
+                    }
+                  />
+                )}
+                <div className="text-center">
+                  <p
+                    className={`text-[length:var(--text-label)] font-medium ${orientation === opt.id ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+                  >
+                    {opt.label}
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {opt.aspect} · {opt.description}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
         </section>
       )}
 

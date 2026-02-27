@@ -401,7 +401,7 @@ export default function CreateMagazinePage() {
               <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
                 No rolls available yet. Build and develop a roll first.
               </p>
-              <Button variant="secondary" size="sm" onClick={() => router.push('/feed')}>
+              <Button variant="secondary" size="sm" onClick={() => router.push('/photos')}>
                 Go to Photos
               </Button>
             </div>

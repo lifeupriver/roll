@@ -205,7 +205,7 @@ export default function GalleryPage() {
               title="No rolls yet"
               description="Build your first roll by selecting photos from your feed."
               action={
-                <Link href="/feed">
+                <Link href="/photos">
                   <Button variant="primary" size="md">
                     Go to Photos
                   </Button>

@@ -84,7 +84,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const parsed = await parseBody(request, updateReelSchema);
     if (parsed.error) return parsed.error;
-    const { name, status, film_profile, audio_mood, default_clip_length_s } = parsed.data;
+    const {
+      name,
+      status,
+      film_profile,
+      audio_mood,
+      default_clip_length_s,
+      orientation,
+      ambient_audio,
+      transcribe_audio,
+    } = parsed.data;
 
     if (status) {
       const currentStatus = existingReel.status as ReelStatus;
@@ -104,6 +113,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (audio_mood !== undefined) updateData.audio_mood = audio_mood;
     if (default_clip_length_s !== undefined)
       updateData.default_clip_length_s = default_clip_length_s;
+    if (orientation !== undefined) updateData.orientation = orientation;
+    if (ambient_audio !== undefined) updateData.ambient_audio = ambient_audio;
+    if (transcribe_audio !== undefined) updateData.transcribe_audio = transcribe_audio;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });

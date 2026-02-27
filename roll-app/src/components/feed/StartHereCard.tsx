@@ -126,7 +126,7 @@ export function StartHereCard() {
 
       <button
         type="button"
-        onClick={() => router.push('/feed')}
+        onClick={() => router.push('/photos')}
         className="flex items-center gap-[var(--space-tight)] mt-[var(--space-element)] text-[length:var(--text-label)] font-medium text-[var(--color-action)] hover:underline"
       >
         Start selecting

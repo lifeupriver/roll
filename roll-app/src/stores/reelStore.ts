@@ -84,9 +84,15 @@ export const useReelStore = create<ReelState>((set, get) => ({
         processed_storage_key: null,
         correction_applied: false,
         transition_type: 'crossfade' as const,
+        audio_enabled: true,
         created_at: new Date().toISOString(),
         photos: thumbnailUrl
-          ? { id: photoId, thumbnail_url: thumbnailUrl, media_type: 'video' as const, duration_ms: durationMs }
+          ? {
+              id: photoId,
+              thumbnail_url: thumbnailUrl,
+              media_type: 'video' as const,
+              duration_ms: durationMs,
+            }
           : undefined,
       };
       return {
