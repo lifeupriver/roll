@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, ChevronLeft, Film, Check, Wand2, X, ShoppingCart, Type } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
@@ -148,6 +148,14 @@ function generateMagazineFromRolls(rolls: DemoRoll[], title: string): DemoPage[]
 }
 
 export default function CreateMagazinePage() {
+  return (
+    <Suspense>
+      <CreateMagazineContent />
+    </Suspense>
+  );
+}
+
+function CreateMagazineContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedRollId = searchParams.get('rollId');
