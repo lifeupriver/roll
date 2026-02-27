@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Users,
   Plus,
-  Image,
+  Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
   Send,
@@ -398,7 +398,7 @@ export default function CirclePage() {
 
           {!feedLoading && feedPosts.length === 0 && (
             <Empty
-              icon={Image}
+              icon={ImageIcon}
               title="Your circle feed is empty"
               description="Share photos or invite friends to see their posts here."
             />
@@ -819,7 +819,7 @@ export default function CirclePage() {
               {/* Posting permissions */}
               <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
                 <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
-                  <Image size={14} /> Who Can Post
+                  <ImageIcon size={14} /> Who Can Post
                 </h3>
                 <div className="flex flex-col gap-[var(--space-tight)]">
                   {(['everyone', 'admins'] as const).map((opt) => (

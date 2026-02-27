@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Film, Play, Wand2, Printer } from 'lucide-react';
+import { Image as ImageIcon, Film, Play, Wand2, Printer } from 'lucide-react';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Badge } from '@/components/ui/Badge';
 import { Empty } from '@/components/ui/Empty';
@@ -201,7 +201,7 @@ export default function GalleryPage() {
 
           {!isLoading && !error && rolls.length === 0 && (
             <Empty
-              icon={Image}
+              icon={ImageIcon}
               title="No rolls yet"
               description="Build your first roll by selecting photos from your feed."
               action={
