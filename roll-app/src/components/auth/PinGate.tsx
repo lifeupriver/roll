@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 const CORRECT_PIN = '1999';
+const PIN_LENGTH = 4;
 
 interface PinGateProps {
   children: React.ReactNode;
@@ -10,9 +11,9 @@ interface PinGateProps {
 
 export function PinGate({ children }: PinGateProps) {
   const [unlocked, setUnlocked] = useState(false);
-  const [digits, setDigits] = useState(['', '', '', '']);
+  const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
-  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Check if already unlocked this session
   useEffect(() => {
@@ -21,63 +22,27 @@ export function PinGate({ children }: PinGateProps) {
     }
   }, []);
 
-  const handleChange = useCallback((index: number, value: string) => {
-    // Only allow digits
-    const digit = value.replace(/\D/g, '').slice(-1);
+  // Auto-focus the hidden input on mount
+  useEffect(() => {
+    if (!unlocked) {
+      inputRef.current?.focus();
+    }
+  }, [unlocked]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
     setError(false);
+    setPin(value);
 
-    setDigits((prev) => {
-      const next = [...prev];
-      next[index] = digit;
-
-      // Auto-advance to next input
-      if (digit && index < 3) {
-        inputsRef.current[index + 1]?.focus();
-      }
-
-      // Check PIN when all 4 digits are entered
-      const pin = next.join('');
-      if (pin.length === 4) {
-        if (pin === CORRECT_PIN) {
-          sessionStorage.setItem('roll-demo-unlocked', 'true');
-          setUnlocked(true);
-        } else {
-          setError(true);
-          // Clear after a short delay
-          setTimeout(() => {
-            setDigits(['', '', '', '']);
-            inputsRef.current[0]?.focus();
-          }, 600);
-        }
-      }
-
-      return next;
-    });
-  }, []);
-
-  const handleKeyDown = useCallback(
-    (index: number, e: React.KeyboardEvent) => {
-      if (e.key === 'Backspace' && !digits[index] && index > 0) {
-        inputsRef.current[index - 1]?.focus();
-      }
-    },
-    [digits]
-  );
-
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
-    if (pasted.length === 4) {
-      const newDigits = pasted.split('');
-      setDigits(newDigits);
-      if (pasted === CORRECT_PIN) {
+    if (value.length === PIN_LENGTH) {
+      if (value === CORRECT_PIN) {
         sessionStorage.setItem('roll-demo-unlocked', 'true');
         setUnlocked(true);
       } else {
         setError(true);
         setTimeout(() => {
-          setDigits(['', '', '', '']);
-          inputsRef.current[0]?.focus();
+          setPin('');
+          inputRef.current?.focus();
         }, 600);
       }
     }
@@ -85,8 +50,13 @@ export function PinGate({ children }: PinGateProps) {
 
   if (unlocked) return <>{children}</>;
 
+  const digits = pin.split('');
+
   return (
-    <div className="min-h-screen bg-[var(--color-surface)] flex flex-col items-center justify-center px-[var(--space-component)]">
+    <div
+      className="min-h-screen bg-[var(--color-surface)] flex flex-col items-center justify-center px-[var(--space-component)]"
+      onClick={() => inputRef.current?.focus()}
+    >
       <div className="flex flex-col items-center gap-[var(--space-section)] max-w-[360px] w-full text-center">
         {/* Logo */}
         <h1 className="font-[family-name:var(--font-display)] font-bold text-[length:var(--text-hero)] tracking-[0.2em] text-[var(--color-ink)]">
@@ -102,33 +72,43 @@ export function PinGate({ children }: PinGateProps) {
           </p>
         </div>
 
-        {/* PIN inputs */}
-        <div className="flex items-center gap-[var(--space-element)]" onPaste={handlePaste}>
-          {digits.map((digit, i) => (
-            <input
+        {/* Hidden input that captures all typing */}
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={PIN_LENGTH}
+          value={pin}
+          onChange={handleChange}
+          autoFocus
+          className="sr-only"
+          aria-label="PIN input"
+        />
+
+        {/* Visual digit boxes */}
+        <div
+          className="flex items-center gap-[var(--space-element)]"
+          onClick={() => inputRef.current?.focus()}
+        >
+          {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+            <div
               key={i}
-              ref={(el) => {
-                inputsRef.current[i] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
-              autoFocus={i === 0}
               className={[
-                'w-14 h-16 text-center font-[family-name:var(--font-mono)] text-[length:var(--text-title)] font-medium',
+                'w-14 h-16 flex items-center justify-center font-[family-name:var(--font-mono)] text-[length:var(--text-title)] font-medium',
                 'bg-[var(--color-surface-sunken)] border-2 rounded-[var(--radius-card)]',
-                'focus:outline-none transition-all duration-150',
+                'transition-all duration-150',
                 error
                   ? 'border-[var(--color-error)] animate-[shake_300ms_ease-in-out] text-[var(--color-error)]'
-                  : digit
+                  : digits[i]
                     ? 'border-[var(--color-action)] text-[var(--color-ink)]'
-                    : 'border-[var(--color-border)] text-[var(--color-ink)]',
-                'focus:border-[var(--color-action)] focus:shadow-[0_0_0_3px_var(--color-action-subtle)]',
+                    : i === digits.length
+                      ? 'border-[var(--color-action)] shadow-[0_0_0_3px_var(--color-action-subtle)]'
+                      : 'border-[var(--color-border)] text-[var(--color-ink)]',
               ].join(' ')}
-            />
+            >
+              {digits[i] || ''}
+            </div>
           ))}
         </div>
 
