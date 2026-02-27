@@ -53,9 +53,9 @@
   --color-border-focus: var(--color-safelight);
 
   /* === TYPOGRAPHY === */
-  --font-display: 'Cormorant Garamond', 'Garamond', 'Georgia', serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'Space Mono', 'SF Mono', monospace;
+  --font-display: var(--font-cormorant), 'Cormorant Garamond', 'Garamond', 'Georgia', serif;
+  --font-body: var(--font-jakarta), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-spacemono), 'Space Mono', 'SF Mono', monospace;
 
   --text-caption: 0.75rem;
   --text-label: 0.875rem;

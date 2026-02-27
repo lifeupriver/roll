@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MagazineSpread } from './MagazineSpread';
 import type { MagazinePage } from '@/types/magazine';
@@ -75,7 +76,7 @@ export function MagazinePreview({ pages, photoUrlMap, onPageClick }: MagazinePre
               }`}
             >
               {firstPhotoUrl ? (
-                <img src={firstPhotoUrl} alt="" className="w-full h-full object-cover" />
+                <Image src={firstPhotoUrl} alt="" width={48} height={32} className="w-full h-full object-cover" unoptimized />
               ) : (
                 <div className="w-full h-full bg-[var(--color-surface-sunken)]" />
               )}

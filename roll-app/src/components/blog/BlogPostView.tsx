@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import { BlogAuthorHeader } from './BlogAuthorHeader';
 import { BlogPhotoLayout } from './BlogPhotoLayout';
 import { BlogPrintCTA } from './BlogPrintCTA';
@@ -168,9 +169,11 @@ export function BlogPostView({
         {/* Cover photo — full-width, natural aspect ratio, no cropping */}
         {coverPhoto && (
           <figure className="mb-[var(--space-section)]">
-            <img
+            <Image
               src={coverPhoto.developed_url || coverPhoto.thumbnail_url}
               alt={post.title}
+              width={coverPhoto.width || 500}
+              height={coverPhoto.height || 500}
               className="w-full rounded-[var(--radius-card)]"
               style={{
                 aspectRatio:
@@ -178,6 +181,7 @@ export function BlogPostView({
                     ? `${coverPhoto.width}/${coverPhoto.height}`
                     : undefined,
               }}
+              unoptimized
             />
           </figure>
         )}
@@ -235,10 +239,13 @@ export function BlogPostView({
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-[var(--space-element)]">
                   {comment.author_avatar ? (
-                    <img
+                    <Image
                       src={comment.author_avatar}
                       alt={comment.author_name}
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full object-cover shrink-0"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-[var(--color-surface-sunken)] shrink-0" />

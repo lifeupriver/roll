@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { User } from 'lucide-react';
 
 interface BlogAuthorHeaderProps {
@@ -26,10 +27,13 @@ export function BlogAuthorHeader({
         className="flex items-center gap-[var(--space-element)] min-h-[44px]"
       >
         {avatarUrl ? (
-          <img
+          <Image
             src={avatarUrl}
             alt={displayName}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-[var(--color-surface-sunken)] flex items-center justify-center">

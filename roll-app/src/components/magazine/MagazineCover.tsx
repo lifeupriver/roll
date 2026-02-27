@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { BookOpen } from 'lucide-react';
 import type { Magazine } from '@/types/magazine';
 
@@ -24,7 +25,7 @@ export function MagazineCover({ magazine, coverUrl, size = 'md', onClick }: Maga
       className={`relative ${sizeClasses[size]} bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] group transition-transform hover:scale-[1.02]`}
     >
       {coverUrl ? (
-        <img src={coverUrl} alt={magazine.title} className="w-full h-full object-cover" />
+        <Image src={coverUrl} alt={magazine.title} fill className="object-cover" unoptimized />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
           <BookOpen size={32} className="text-[var(--color-ink-tertiary)]" />

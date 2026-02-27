@@ -23,6 +23,7 @@ import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
 import type { Reel, ReelClip } from '@/types/reel';
+import type { Photo } from '@/types/photo';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
 
@@ -115,7 +116,7 @@ export default function ReelDetailPage() {
       }
     }
     checkFavorite();
-  }, [reelId, currentReel?.status]);
+  }, [reelId, currentReel?.status, currentReel]);
 
   // Reel name editing
   const handleStartEditing = useCallback(() => {
@@ -521,7 +522,7 @@ export default function ReelDetailPage() {
             Storyboard
           </h2>
           <ReelStoryboard
-            clips={reelClips as (ReelClip & { photos?: any })[]}
+            clips={reelClips as (ReelClip & { photos?: Photo })[]}
             onReorder={handleReorder}
             onRemove={handleRemoveClip}
             onEditTrim={handleEditTrim}

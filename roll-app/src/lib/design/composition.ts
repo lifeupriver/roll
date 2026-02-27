@@ -3,7 +3,7 @@
 // These rules ensure every page feels intentional and every spread is balanced.
 
 import type { AspectRatioClass, Orientation, PhotoMetrics } from './photo-analysis';
-import { calculateVisualWeight, getOrientation, classifyAspectRatio } from './photo-analysis';
+import { calculateVisualWeight } from './photo-analysis';
 
 // ─── Page Density ─────────────────────────────────────────────────────────────
 // Controls how "full" a page feels. Low density = more whitespace = more luxurious.

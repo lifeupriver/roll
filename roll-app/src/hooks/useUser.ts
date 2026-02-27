@@ -53,10 +53,9 @@ export function useUser(): UseUserReturn {
 
     getUser();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+    } = supabase.auth.onAuthStateChange((_event: string, session: { user: { id: string } } | null) => {
       if (!session) {
         setUser(null);
       }

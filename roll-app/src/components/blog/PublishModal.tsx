@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { X, Globe, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -253,11 +254,14 @@ export function PublishModal({
                     }`}
                   >
                     {rp.photos?.thumbnail_url && (
-                      <img
+                      <Image
                         src={rp.photos.thumbnail_url}
                         alt=""
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        unoptimized
                       />
                     )}
                   </button>

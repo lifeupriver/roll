@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { MessageCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
@@ -105,10 +106,13 @@ export function BlogComments({ authorSlug, postSlug, postOwnerId, currentUserId 
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-[var(--space-element)]">
                   {comment.author_avatar ? (
-                    <img
+                    <Image
                       src={comment.author_avatar}
                       alt={comment.author_name}
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full object-cover shrink-0"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-[var(--color-surface-sunken)] shrink-0" />

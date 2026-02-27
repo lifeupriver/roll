@@ -15,7 +15,7 @@ import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
 import { track } from '@/lib/analytics';
-import type { Reel } from '@/types/reel';
+
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -63,7 +63,7 @@ export default function VideosPage() {
   // Set content mode to 'clips' on mount to fetch videos
   useEffect(() => {
     setContentMode('clips');
-  }, []);
+  }, [setContentMode]);
 
   // Filter videos only + apply people filter
   const videoClips = useMemo(() => {

@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 export default function GlobalError({
@@ -37,13 +38,13 @@ export default function GlobalError({
           <RefreshCw size={14} />
           Try again
         </button>
-        <a
+        <Link
           href="/"
           className="flex items-center gap-[var(--space-tight)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] px-[var(--space-component)] py-[var(--space-element)] text-[var(--color-ink)] font-[family-name:var(--font-body)] text-[length:var(--text-label)] transition-opacity hover:opacity-80"
         >
           <Home size={14} />
           Go home
-        </a>
+        </Link>
       </div>
     </div>
   );

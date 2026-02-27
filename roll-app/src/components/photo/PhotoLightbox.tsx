@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import {
   ChevronLeft,
@@ -283,7 +284,7 @@ export function PhotoLightbox({
         // Clipboard unavailable
       }
     }
-  }, [currentPhoto]);
+  }, [currentPhoto, formattedDate]);
 
   // Format location
   const locationInfo = (() => {
@@ -464,7 +465,7 @@ export function PhotoLightbox({
                 </div>
               </div>
             ) : (
-              <img
+              <Image
                 ref={heroImgRef}
                 key={currentPhoto.id}
                 src={currentPhoto.thumbnail_url}
@@ -478,6 +479,9 @@ export function PhotoLightbox({
                   transitionDirection ? 'scale-[0.97] opacity-80' : 'scale-100 opacity-100',
                 ].join(' ')}
                 style={sharedElementStyle || { maxHeight: '80vh' }}
+                width={1200}
+                height={900}
+                unoptimized
               />
             )}
           </div>

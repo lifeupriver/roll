@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import { GalleryHeader } from './GalleryHeader';
 import type { PublicGallery } from '@/types/gallery';
@@ -39,15 +40,18 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
               onClick={() => setLightboxIndex(i)}
               className="block w-full mb-2 break-inside-avoid overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
             >
-              <img
+              <Image
                 src={photo.thumbnail_url}
                 alt={photo.caption || ''}
+                width={photo.width || 400}
+                height={photo.height || 300}
                 loading="lazy"
                 className="w-full"
                 style={{
                   aspectRatio:
                     photo.width && photo.height ? `${photo.width}/${photo.height}` : undefined,
                 }}
+                unoptimized
               />
             </button>
           ))}

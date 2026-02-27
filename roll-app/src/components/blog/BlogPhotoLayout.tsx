@@ -1,7 +1,7 @@
 'use client';
 
+import Image from 'next/image';
 import type { BlogBlock } from '@/lib/design/design-engine';
-import { Play } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ interface BlogPhotoLayoutProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function BlogPhotoLayout({ blocks, photoMap, videoMap, photos, story }: BlogPhotoLayoutProps) {
+export function BlogPhotoLayout({ blocks, photoMap, videoMap, photos, story: _story }: BlogPhotoLayoutProps) {
   // Fallback: if no blocks, use legacy photo-only layout
   if ((!blocks || blocks.length === 0) && photos && photos.length > 0) {
     return <LegacyPhotoLayout photos={photos} />;
@@ -105,9 +105,11 @@ function HeroBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<string
 
   return (
     <figure>
-      <img
+      <Image
         src={photo.developed_url || photo.thumbnail_url}
         alt={photo.caption || ''}
+        width={photo.width || 500}
+        height={photo.height || 500}
         className="w-full rounded-[var(--radius-card)]"
         style={{
           aspectRatio: photo.width && photo.height
@@ -115,6 +117,7 @@ function HeroBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<string
             : undefined,
         }}
         loading="eager"
+        unoptimized
       />
       {photo.caption && (
         <figcaption className="mt-[var(--space-element)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center font-[family-name:var(--font-display)] italic">
@@ -134,9 +137,11 @@ function SinglePhotoBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map
 
   return (
     <figure>
-      <img
+      <Image
         src={photo.developed_url || photo.thumbnail_url}
         alt={photo.caption || ''}
+        width={photo.width || 500}
+        height={photo.height || 500}
         className="w-full rounded-[var(--radius-sharp)]"
         style={{
           aspectRatio: photo.width && photo.height
@@ -144,6 +149,7 @@ function SinglePhotoBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map
             : undefined,
         }}
         loading="lazy"
+        unoptimized
       />
       {photo.caption && (
         <figcaption className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] italic">
@@ -163,9 +169,11 @@ function PanoramicBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<s
 
   return (
     <figure className="my-[var(--space-component)]">
-      <img
+      <Image
         src={photo.developed_url || photo.thumbnail_url}
         alt={photo.caption || ''}
+        width={photo.width || 500}
+        height={photo.height || 500}
         className="w-full rounded-[var(--radius-sharp)]"
         style={{
           aspectRatio: photo.width && photo.height
@@ -173,6 +181,7 @@ function PanoramicBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<s
             : undefined,
         }}
         loading="lazy"
+        unoptimized
       />
       {photo.caption && (
         <figcaption className="mt-[var(--space-element)] text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] text-center font-[family-name:var(--font-display)] italic">
@@ -195,9 +204,11 @@ function PhotoPairBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<s
     <div className="grid grid-cols-2 gap-[var(--space-element)] items-center">
       {photos.map((photo) => (
         <figure key={photo.id}>
-          <img
+          <Image
             src={photo.developed_url || photo.thumbnail_url}
             alt={photo.caption || ''}
+            width={photo.width || 500}
+            height={photo.height || 500}
             className="w-full rounded-[var(--radius-sharp)]"
             style={{
               aspectRatio: photo.width && photo.height
@@ -205,6 +216,7 @@ function PhotoPairBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<s
                 : undefined,
             }}
             loading="lazy"
+            unoptimized
           />
           {photo.caption && (
             <figcaption className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] italic">
@@ -228,9 +240,11 @@ function PhotoTriptychBlock({ block, photoMap }: { block: BlogBlock; photoMap: M
     <div className="grid grid-cols-3 gap-[var(--space-element)] items-center">
       {photos.map((photo) => (
         <figure key={photo.id}>
-          <img
+          <Image
             src={photo.developed_url || photo.thumbnail_url}
             alt={photo.caption || ''}
+            width={photo.width || 500}
+            height={photo.height || 500}
             className="w-full rounded-[var(--radius-sharp)]"
             style={{
               aspectRatio: photo.width && photo.height
@@ -238,6 +252,7 @@ function PhotoTriptychBlock({ block, photoMap }: { block: BlogBlock; photoMap: M
                 : undefined,
             }}
             loading="lazy"
+            unoptimized
           />
         </figure>
       ))}
@@ -256,9 +271,11 @@ function PhotoGridBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<s
     <div className="grid grid-cols-2 gap-[var(--space-element)]">
       {photos.map((photo) => (
         <figure key={photo.id}>
-          <img
+          <Image
             src={photo.developed_url || photo.thumbnail_url}
             alt={photo.caption || ''}
+            width={photo.width || 500}
+            height={photo.height || 500}
             className="w-full rounded-[var(--radius-sharp)]"
             style={{
               aspectRatio: photo.width && photo.height
@@ -266,6 +283,7 @@ function PhotoGridBlock({ block, photoMap }: { block: BlogBlock; photoMap: Map<s
                 : undefined,
             }}
             loading="lazy"
+            unoptimized
           />
         </figure>
       ))}
@@ -385,9 +403,11 @@ function LegacyPhotoLayout({ photos }: { photos: BlogPhoto[] }) {
         >
           {group.map((photo) => (
             <figure key={photo.id}>
-              <img
+              <Image
                 src={photo.developed_url || photo.thumbnail_url}
                 alt={photo.caption || ''}
+                width={photo.width || 500}
+                height={photo.height || 500}
                 className="w-full rounded-[var(--radius-sharp)]"
                 style={{
                   aspectRatio:
@@ -396,6 +416,7 @@ function LegacyPhotoLayout({ photos }: { photos: BlogPhoto[] }) {
                       : undefined,
                 }}
                 loading="lazy"
+                unoptimized
               />
               {photo.caption && (
                 <figcaption className="mt-[var(--space-tight)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] italic">

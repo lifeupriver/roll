@@ -192,7 +192,7 @@ function MagazineViewer({ pages, onClose }: { pages: DemoPage[]; onClose: () => 
 
 export default function MagazinesPage() {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast: _toast } = useToast();
   const [magazines, setMagazines] = useState<Magazine[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewerOpen, setViewerOpen] = useState(false);

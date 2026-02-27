@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { GripVertical, Trash2, ChevronUp, ChevronDown, Type } from 'lucide-react';
 import type { MagazinePage } from '@/types/magazine';
 
@@ -57,7 +58,7 @@ export function MagazinePageEditor({
                     <Type size={12} className="text-[var(--color-ink-tertiary)]" />
                   </div>
                 ) : firstPhotoUrl ? (
-                  <img src={firstPhotoUrl} alt="" className="w-full h-full object-cover" />
+                  <Image src={firstPhotoUrl} alt="" width={40} height={56} className="w-full h-full object-cover" unoptimized />
                 ) : null}
               </div>
 

@@ -8,9 +8,6 @@ import type { PhotoMetrics, VisualWeightResult, PhotoSetAnalysis } from './photo
 import {
   calculateVisualWeight,
   analyzePhotoSet,
-  classifyAspectRatio,
-  getOrientation,
-  groupByCompatibility,
   areAspectRatiosCompatible,
 } from './photo-analysis';
 import {
@@ -21,13 +18,10 @@ import {
   createLayoutHistory,
   recordLayout,
   isLayoutStale,
-  isOrientationHarmonious,
-  evaluateSpreadBalance,
-  scoreSceneAdjacency,
 } from './composition';
-import type { PageDensity, RhythmBeat } from './composition';
-import { getCaptionStyle, isPullQuoteWorthy, getFontPairing } from './typography';
-import { selectSmartLayout, type SmartLayoutId } from '@/lib/layout/page-templates';
+import type { PageDensity } from './composition';
+import { isPullQuoteWorthy } from './typography';
+import { selectSmartLayout } from '@/lib/layout/page-templates';
 
 // ─── Design Options ───────────────────────────────────────────────────────────
 
@@ -194,7 +188,7 @@ function designPhotoSequence(
 
   while (i < chronological.length) {
     const photo = chronological[i];
-    const remaining = chronological.length - i;
+    const _remaining = chronological.length - i;
     const storyPhase = getStoryPhase(pageInSection, totalEstimatedPages);
     const phaseMaxDensity = getPhaseMaxDensity(storyPhase);
     const rhythmBeat = getRhythmBeat(pageInSection, totalEstimatedPages);
@@ -473,7 +467,7 @@ export function smartAssembleBook(
   title: string,
   coverPhotoId: string | null,
   magazines: MagazineForSmartAssembly[],
-  options: DesignOptions = {}
+  _options: DesignOptions = {}
 ): { pages: BookPage[]; totalPages: number } {
   const pages: BookPage[] = [];
 

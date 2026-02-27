@@ -165,7 +165,7 @@ export default function RollDetailPage() {
       }
     }
     loadFavorites();
-  }, [roll?.status, roll?.id]);
+  }, [roll, roll?.status, roll?.id]);
 
   // ------------------------------------------------------------------
   // Poll processing status

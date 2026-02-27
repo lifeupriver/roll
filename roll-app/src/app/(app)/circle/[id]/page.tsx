@@ -15,6 +15,7 @@ import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
+import Image from 'next/image';
 import type { Circle, CircleMember, CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
 export default function CircleDetailPage() {

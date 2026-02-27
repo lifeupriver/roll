@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Check, Book } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { FontSelector } from '@/components/magazine/FontSelector';
@@ -146,7 +147,7 @@ export function BookCreator() {
                 >
                   <div className="w-10 h-14 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0 flex items-center justify-center">
                     {mag.cover_url ? (
-                      <img src={mag.cover_url} alt="" className="w-full h-full object-cover" />
+                      <Image src={mag.cover_url} alt="" width={40} height={56} className="w-full h-full object-cover" unoptimized />
                     ) : (
                       <Book size={16} className="text-[var(--color-ink-tertiary)]" />
                     )}

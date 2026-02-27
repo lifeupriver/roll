@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 export type DemoLayout = 'full_bleed' | 'two_up_vertical' | 'two_up_horizontal' | 'four_up_grid' | 'three_up_top_heavy' | 'caption_heavy';
 
 export interface DemoPage {
@@ -34,7 +36,7 @@ export function SpreadPageView({ page, pageIndex, font }: { page: DemoPage | nul
   if (page.layout === 'cover') {
     return (
       <div className="relative flex-1 aspect-[3/4] overflow-hidden">
-        <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+        <Image src={page.photos[0]} alt="" fill className="object-cover" unoptimized />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute bottom-0 inset-x-0 p-4 md:p-6">
           <h3 className="text-white font-medium text-[clamp(1rem,2.5vw,1.5rem)] leading-tight drop-shadow-md" style={{ fontFamily: font }}>
@@ -62,8 +64,8 @@ export function SpreadPageView({ page, pageIndex, font }: { page: DemoPage | nul
   if (page.layout === 'caption_heavy') {
     return (
       <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] overflow-hidden flex flex-col">
-        <div className="flex-[2] overflow-hidden">
-          <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+        <div className="flex-[2] overflow-hidden relative">
+          <Image src={page.photos[0]} alt="" fill className="object-cover" unoptimized />
         </div>
         <div className="flex-1 p-3 bg-[var(--color-surface)] flex items-center">
           <p className="text-[clamp(0.6rem,1.2vw,0.75rem)] text-[var(--color-ink-secondary)] leading-relaxed italic" style={{ fontFamily: font }}>{page.caption}</p>
@@ -79,8 +81,8 @@ export function SpreadPageView({ page, pageIndex, font }: { page: DemoPage | nul
     <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] overflow-hidden">
       <div className="w-full h-full grid gap-0.5" style={gridStyles}>
         {page.photos.map((url, i) => (
-          <div key={i} className="overflow-hidden">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+          <div key={i} className="overflow-hidden relative">
+            <Image src={url} alt="" fill className="object-cover" unoptimized />
           </div>
         ))}
       </div>

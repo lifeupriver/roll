@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { Check, EyeOff, Maximize2, Copy, Play } from 'lucide-react';
 import { ClipDurationBadge } from '@/components/reel/ClipDurationBadge';
 
@@ -102,11 +103,14 @@ export function PhotoCard({
       onTouchEnd={handleTouchEnd}
     >
       {/* Thumbnail image — shown directly, no lazy/opacity dance for data URIs */}
-      <img
-        src={imgError ? undefined : photo.thumbnail_url}
+      <Image
+        src={imgError ? '' : photo.thumbnail_url}
         alt={`Photo from ${photo.date_taken || photo.created_at}`}
         onError={() => setImgError(true)}
         className="w-full aspect-[3/4] object-cover pointer-events-none bg-[var(--color-surface-sunken)]"
+        width={300}
+        height={400}
+        unoptimized
       />
 
       {/* Selection overlay (feed mode, select mode only) */}
