@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         .in('roll_id', roll_ids)
         .order('position', { ascending: true });
 
-      resolvedPhotoIds = [...new Set((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
+      resolvedPhotoIds = [...new Set<string>((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
     }
 
     if (resolvedPhotoIds.length === 0 && magazine_ids && Array.isArray(magazine_ids) && magazine_ids.length > 0) {
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
           .in('roll_id', allRollIds)
           .order('position', { ascending: true });
 
-        resolvedPhotoIds = [...new Set((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
+        resolvedPhotoIds = [...new Set<string>((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
       }
     }
 
