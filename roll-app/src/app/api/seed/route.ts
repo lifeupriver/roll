@@ -119,7 +119,8 @@ const COMMENTS = [
 ];
 
 export async function POST() {
-  if (process.env.NODE_ENV === 'production') {
+  // Allow seeding in dev and Vercel preview deployments, but block on production domain
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
     return NextResponse.json(
       { error: 'Seed endpoint is not available in production' },
       { status: 403 }
@@ -766,7 +767,8 @@ export async function POST() {
 // DELETE /api/seed — clean up all mock data for the current user
 // ---------------------------------------------------------------------------
 export async function DELETE() {
-  if (process.env.NODE_ENV === 'production') {
+  // Allow seeding in dev and Vercel preview deployments, but block on production domain
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
     return NextResponse.json(
       { error: 'Seed endpoint is not available in production' },
       { status: 403 }
