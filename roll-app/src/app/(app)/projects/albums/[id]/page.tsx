@@ -496,7 +496,7 @@ function BookDetailContent() {
                   className="relative aspect-[3/4] rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] group"
                 >
                   <Image
-                    src={page.thumbnailUrl}
+                    src={page.thumbnailUrl || ''}
                     alt=""
                     width={300}
                     height={400}
@@ -745,7 +745,7 @@ function BookDetailContent() {
                   }`}
                 >
                   <Image
-                    src={page.thumbnailUrl}
+                    src={page.thumbnailUrl || ''}
                     alt=""
                     width={40}
                     height={56}
@@ -794,7 +794,7 @@ function BookDetailContent() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <Image
-                  src={page.thumbnailUrl}
+                  src={page.thumbnailUrl || ''}
                   alt=""
                   width={600}
                   height={800}
