@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import {
   ChevronUp,
   ChevronDown,
@@ -107,7 +107,7 @@ export function PostBlockEditor({
             {/* Thumbnail or icon */}
             <div className="w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] flex items-center justify-center shrink-0">
               {thumbnail ? (
-                <Image
+                <NextImage
                   src={thumbnail}
                   alt=""
                   width={48}
