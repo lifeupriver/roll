@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { captureError } from '@/lib/sentry';
 
+interface SuggestPhoto {
+  id: string;
+  aesthetic_score: number | null;
+  face_count: number;
+  scene_classification: string[] | null;
+  date_taken: string | null;
+  created_at: string;
+}
+
 /**
  * GET /api/rolls/suggest?limit=36
  *
@@ -53,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter out already-used photos
-    const candidates = photos.filter((p) => !usedIds.has(p.id));
+    const candidates = (photos as SuggestPhoto[]).filter((p) => !usedIds.has(p.id));
 
     // Score each photo
     const now = Date.now();
@@ -108,11 +117,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Re-sort selected by adjusted score
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    selected.sort((a: any, b: any) => b.score - a.score);
+    selected.sort((a, b) => b.score - a.score);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const photoIds = selected.map((s: any) => s.id);
+    const photoIds = selected.map((s) => s.id);
     const scores: Record<string, number> = {};
     for (const s of selected) {
       scores[s.id] = Math.round(s.score * 100) / 100;

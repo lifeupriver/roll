@@ -41,14 +41,21 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: photosError.message }, { status: 500 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mapPhotos: MapPhoto[] = (photos ?? []).map((p: any) => ({
-      id: p.id,
-      thumbnailUrl: p.thumbnail_url,
-      latitude: p.latitude!,
-      longitude: p.longitude!,
-      dateTaken: p.date_taken,
-    }));
+    const mapPhotos: MapPhoto[] = (photos ?? []).map(
+      (p: {
+        id: string;
+        thumbnail_url: string;
+        latitude: number;
+        longitude: number;
+        date_taken: string | null;
+      }) => ({
+        id: p.id,
+        thumbnailUrl: p.thumbnail_url,
+        latitude: p.latitude!,
+        longitude: p.longitude!,
+        dateTaken: p.date_taken,
+      })
+    );
 
     return NextResponse.json({ data: mapPhotos });
   } catch (err) {

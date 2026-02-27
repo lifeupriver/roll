@@ -6,13 +6,15 @@ import { z } from 'zod';
 import type { RollPhoto } from '@/types/roll';
 
 const batchUpdateCaptionsSchema = z.object({
-  captions: z.array(
-    z.object({
-      photoId: z.string().uuid(),
-      caption: z.string().max(500),
-      captionSource: z.enum(['manual', 'voice', 'auto_draft', 'auto_accepted']),
-    })
-  ).min(1),
+  captions: z
+    .array(
+      z.object({
+        photoId: z.string().uuid(),
+        caption: z.string().max(500),
+        captionSource: z.enum(['manual', 'voice', 'auto_draft', 'auto_accepted']),
+      })
+    )
+    .min(1),
 });
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -112,10 +114,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: rollId } = await params;
     const supabase = await createServerSupabaseClient();
@@ -247,8 +246,7 @@ export async function DELETE(
       if (remainingPhotos && remainingPhotos.length > 0) {
         // Batch update all positions in parallel instead of sequential
         await Promise.all(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          remainingPhotos.map((photo: any) =>
+          remainingPhotos.map((photo: { id: string; position: number }) =>
             supabase
               .from('roll_photos')
               .update({ position: photo.position - 1 })
