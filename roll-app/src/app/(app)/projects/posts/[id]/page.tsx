@@ -102,9 +102,10 @@ export default function EssayEditorPage() {
           }
         }
 
-        // Fetch photos from the post's roll(s)
+        // Fetch photos from the post's roll(s) and reels
         const rollIds = [blogPost.roll_id, ...(blogPost.roll_ids || [])].filter(Boolean);
-        await fetchRollMedia(rollIds);
+        const reelIds = blogPost.reel_ids || [];
+        await fetchRollMedia(rollIds, reelIds);
       } catch {
         toast('Failed to load post', 'error');
       } finally {
@@ -115,7 +116,7 @@ export default function EssayEditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
-  const fetchRollMedia = async (rollIds: string[]) => {
+  const fetchRollMedia = async (rollIds: string[], reelIds: string[]) => {
     try {
       const photoPromises = rollIds.map(async (rollId) => {
         const res = await fetch(`/api/rolls/${rollId}/photos`);
@@ -135,6 +136,31 @@ export default function EssayEditorPage() {
       });
       const allPhotos = (await Promise.all(photoPromises)).flat();
       setRollPhotos(allPhotos);
+
+      // Fetch reels for video blocks
+      if (reelIds.length > 0) {
+        const reelPromises = reelIds.map(async (reelId) => {
+          const res = await fetch(`/api/reels/${reelId}`);
+          if (!res.ok) return null;
+          const json = await res.json();
+          const reel = json.data?.reel;
+          if (!reel) return null;
+          const isVertical = reel.orientation === 'vertical';
+          return {
+            id: reel.id,
+            thumbnail_url: reel.poster_storage_key
+              ? `/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`
+              : '',
+            video_url: reel.assembled_storage_key || '',
+            width: isVertical ? 1080 : 1920,
+            height: isVertical ? 1920 : 1080,
+            caption: reel.name || null,
+            duration_ms: reel.assembled_duration_ms ?? reel.current_duration_ms ?? null,
+          } as RollReel;
+        });
+        const allReels = (await Promise.all(reelPromises)).filter(Boolean) as RollReel[];
+        setRollReels(allReels);
+      }
     } catch {
       // Silently handle
     }
