@@ -72,44 +72,46 @@ export function PinGate({ children }: PinGateProps) {
           </p>
         </div>
 
-        {/* Hidden input that captures all typing */}
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={PIN_LENGTH}
-          value={pin}
-          onChange={handleChange}
-          autoFocus
-          className="sr-only"
-          aria-label="PIN input"
-        />
+        {/* Digit boxes with invisible real input overlaid on top */}
+        <div className="relative">
+          {/* Real input — spans full width of digit boxes, transparent but focusable */}
+          <input
+            ref={inputRef}
+            type="tel"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="one-time-code"
+            maxLength={PIN_LENGTH}
+            value={pin}
+            onChange={handleChange}
+            autoFocus
+            className="absolute inset-0 w-full h-full z-10 bg-transparent border-none outline-none"
+            style={{ fontSize: '16px', color: 'transparent', caretColor: 'transparent' }}
+            aria-label="PIN input"
+          />
 
-        {/* Visual digit boxes */}
-        <div
-          className="flex items-center gap-[var(--space-element)]"
-          onClick={() => inputRef.current?.focus()}
-        >
-          {Array.from({ length: PIN_LENGTH }).map((_, i) => (
-            <div
-              key={i}
-              className={[
-                'w-14 h-16 flex items-center justify-center font-[family-name:var(--font-mono)] text-[length:var(--text-title)] font-medium',
-                'bg-[var(--color-surface-sunken)] border-2 rounded-[var(--radius-card)]',
-                'transition-all duration-150',
-                error
-                  ? 'border-[var(--color-error)] animate-[shake_300ms_ease-in-out] text-[var(--color-error)]'
-                  : digits[i]
-                    ? 'border-[var(--color-action)] text-[var(--color-ink)]'
-                    : i === digits.length
-                      ? 'border-[var(--color-action)] shadow-[0_0_0_3px_var(--color-action-subtle)]'
-                      : 'border-[var(--color-border)] text-[var(--color-ink)]',
-              ].join(' ')}
-            >
-              {digits[i] || ''}
-            </div>
-          ))}
+          {/* Visual digit boxes */}
+          <div className="flex items-center gap-[var(--space-element)]">
+            {Array.from({ length: PIN_LENGTH }).map((_, i) => (
+              <div
+                key={i}
+                className={[
+                  'w-14 h-16 flex items-center justify-center font-[family-name:var(--font-mono)] text-[length:var(--text-title)] font-medium',
+                  'bg-[var(--color-surface-sunken)] border-2 rounded-[var(--radius-card)]',
+                  'transition-all duration-150',
+                  error
+                    ? 'border-[var(--color-error)] animate-[shake_300ms_ease-in-out] text-[var(--color-error)]'
+                    : digits[i]
+                      ? 'border-[var(--color-action)] text-[var(--color-ink)]'
+                      : i === digits.length
+                        ? 'border-[var(--color-action)] shadow-[0_0_0_3px_var(--color-action-subtle)]'
+                        : 'border-[var(--color-border)] text-[var(--color-ink)]',
+                ].join(' ')}
+              >
+                {digits[i] || ''}
+              </div>
+            ))}
+          </div>
         </div>
 
         {error && (
