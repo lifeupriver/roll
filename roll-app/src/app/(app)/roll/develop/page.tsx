@@ -53,7 +53,8 @@ function DevelopPageContent() {
   const [developing, setDeveloping] = useState(false);
   const [processMode, setProcessMode] = useState<'color' | 'bw'>(() => {
     try {
-      return loadAutomationSettings().defaultProcessMode;
+      const mode = loadAutomationSettings().defaultProcessMode;
+      return mode === 'color' || mode === 'bw' ? mode : 'color';
     } catch {
       return 'color';
     }

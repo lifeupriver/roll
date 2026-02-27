@@ -1,3 +1,5 @@
+'use client';
+
 import type { FilmProfileId } from '@/types/roll';
 import type { ReelOrientation } from '@/types/reel';
 
@@ -37,6 +39,9 @@ export const DEFAULT_AUTOMATION: AutomationSettings = {
 const STORAGE_KEY = 'roll-automation-settings';
 
 export function loadAutomationSettings(): AutomationSettings {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return { ...DEFAULT_AUTOMATION };
+  }
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -51,6 +56,12 @@ export function loadAutomationSettings(): AutomationSettings {
 export function saveAutomationSettings(updates: Partial<AutomationSettings>): AutomationSettings {
   const current = loadAutomationSettings();
   const next = { ...current, ...updates };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // Storage full or unavailable
+    }
+  }
   return next;
 }

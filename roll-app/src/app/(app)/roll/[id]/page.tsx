@@ -1137,7 +1137,7 @@ export default function RollDetailPage() {
         <Empty
           icon={Film}
           title="No photos yet"
-          description="Head to your feed to select photos for this roll."
+          description="Head to your photos to select photos for this roll."
           action={
             <Link href="/photos">
               <Button variant="secondary">Browse Photos</Button>

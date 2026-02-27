@@ -614,6 +614,7 @@ export default function AccountPage() {
               onClick={() => updateAutomation({ autoDesignMagazine: !automation.autoDesignMagazine })}
               role="switch"
               aria-checked={automation.autoDesignMagazine}
+              aria-label="Auto-design magazine"
               className={`relative w-11 h-6 rounded-full transition-colors ${automation.autoDesignMagazine ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
             >
               <div
@@ -638,9 +639,21 @@ export default function AccountPage() {
               </div>
               <button
                 type="button"
-                onClick={() => updateAutomation({ autoPostToCircle: !automation.autoPostToCircle })}
+                onClick={() => {
+                  const enabling = !automation.autoPostToCircle;
+                  if (enabling && circles.length === 0) return;
+                  const updates: Partial<AutomationSettings> = { autoPostToCircle: enabling };
+                  if (enabling && !automation.autoPostCircleId && circles.length > 0) {
+                    updates.autoPostCircleId = circles[0].id;
+                  }
+                  if (!enabling) {
+                    updates.autoPostCircleId = null;
+                  }
+                  updateAutomation(updates);
+                }}
                 role="switch"
                 aria-checked={automation.autoPostToCircle}
+                aria-label="Auto-post to circle"
                 className={`relative w-11 h-6 rounded-full transition-colors ${automation.autoPostToCircle ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
               >
                 <div
@@ -689,6 +702,7 @@ export default function AccountPage() {
                 onClick={() => updateAutomation({ autoOrderPrints: !automation.autoOrderPrints })}
                 role="switch"
                 aria-checked={automation.autoOrderPrints}
+                aria-label="Auto-order prints"
                 className={`relative w-11 h-6 rounded-full transition-colors ${automation.autoOrderPrints ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
               >
                 <div
@@ -738,6 +752,7 @@ export default function AccountPage() {
                 onClick={() => updateAutomation({ autoCreateReel: !automation.autoCreateReel })}
                 role="switch"
                 aria-checked={automation.autoCreateReel}
+                aria-label="Auto-create reel"
                 className={`relative w-11 h-6 rounded-full transition-colors ${automation.autoCreateReel ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
               >
                 <div
@@ -786,6 +801,7 @@ export default function AccountPage() {
               onClick={() => updateAutomation({ autoNotifyFollowers: !automation.autoNotifyFollowers })}
               role="switch"
               aria-checked={automation.autoNotifyFollowers}
+              aria-label="Auto-notify followers"
               className={`relative w-11 h-6 rounded-full transition-colors ${automation.autoNotifyFollowers ? 'bg-[var(--color-action)]' : 'bg-[var(--color-surface-sunken)]'}`}
             >
               <div

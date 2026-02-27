@@ -153,7 +153,7 @@ export default function DesignsPage() {
   }, []);
 
   const handleBookCreated = useCallback(
-    (bookId: string) => {
+    (_bookId: string) => {
       setShowCreateBook(false);
       toast('Book created!', 'success');
       // Refresh the books list
@@ -342,11 +342,13 @@ export default function DesignsPage() {
           ) : (
             <div className="flex flex-col gap-[var(--space-element)]">
               {posts.map((post) => (
-                <button
+                <div
                   key={post.id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => router.push(`/projects/posts/${post.id}`)}
-                  className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-focus)] transition-colors text-left w-full"
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/projects/posts/${post.id}`); } }}
+                  className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-focus)] transition-colors text-left w-full cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-[var(--space-tight)] mb-[var(--space-micro)]">
@@ -375,15 +377,18 @@ export default function DesignsPage() {
                     </div>
                   </div>
                   {post.status === 'published' && (
-                    <span
-                      onClick={(e) => { e.stopPropagation(); window.open(`/blog/${post.slug}`, '_blank'); }}
+                    <a
+                      href={`/blog/${post.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => { e.stopPropagation(); }}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[var(--color-ink-tertiary)] hover:text-[var(--color-action)] transition-colors"
                       title="View public post"
                     >
                       <ExternalLink size={16} />
-                    </span>
+                    </a>
                   )}
-                </button>
+                </div>
               ))}
             </div>
           )}

@@ -123,7 +123,7 @@ export default function CirclePage() {
     if (!loading && circles.length > 0 && feedPosts.length === 0) {
       fetchFeed();
     }
-  }, [loading, circles.length, fetchFeed]);
+  }, [loading, circles.length, feedPosts.length, fetchFeed]);
 
   const handleCreateCircle = async () => {
     if (!circleName.trim()) {
@@ -256,7 +256,7 @@ export default function CirclePage() {
       const updated = feedPosts.find((p) => p.id === selectedPost.id);
       if (updated) setSelectedPost(updated);
     }
-  }, [feedPosts]);
+  }, [feedPosts, selectedPost]);
 
   const handleDetailComment = async () => {
     if (!detailCommentText.trim() || detailCommentSending || !selectedPost) return;

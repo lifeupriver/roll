@@ -9,11 +9,6 @@ import type { Roll, RollPhoto, FilmProfileId } from '@/types/roll';
 const MAX_PHOTOS = 36;
 const DEVELOP_POLL_INTERVAL_MS = 2000;
 
-interface AutomationResult {
-  automationsRun: string[];
-  errors: string[];
-}
-
 interface UseRollReturn {
   currentRoll: Roll | null;
   rolls: Roll[];

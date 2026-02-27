@@ -81,6 +81,7 @@ export function EssayFontSelector({ selected, onSelect }: EssayFontSelectorProps
           <button
             key={font.id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => onSelect(font.id)}
             className={`flex flex-col gap-[var(--space-tight)] p-[var(--space-element)] rounded-[var(--radius-card)] border-2 text-left transition-all ${
               isSelected

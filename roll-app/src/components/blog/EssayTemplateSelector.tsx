@@ -69,6 +69,7 @@ export function EssayTemplateSelector({ selected, onSelect }: EssayTemplateSelec
           <button
             key={tmpl.id}
             type="button"
+            aria-pressed={isSelected}
             onClick={() => onSelect(tmpl.id)}
             className={`flex flex-col gap-[var(--space-tight)] p-[var(--space-component)] rounded-[var(--radius-card)] border-2 text-left transition-all ${
               isSelected

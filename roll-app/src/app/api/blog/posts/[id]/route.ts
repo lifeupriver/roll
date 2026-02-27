@@ -80,7 +80,7 @@ export async function PATCH(
     // Verify ownership
     const { data: existing, error: fetchError } = await supabase
       .from('blog_posts')
-      .select('id')
+      .select('id, status, published_at')
       .eq('id', id)
       .eq('user_id', user.id)
       .single();
@@ -95,6 +95,13 @@ export async function PATCH(
     const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
     for (const [key, value] of Object.entries(parsed.data)) {
       if (value !== undefined) updateData[key] = value;
+    }
+
+    // Normalize published_at when status changes
+    if (updateData.status === 'published' && !existing.published_at) {
+      updateData.published_at = new Date().toISOString();
+    } else if (updateData.status && updateData.status !== 'published') {
+      updateData.published_at = null;
     }
 
     const { data: post, error } = await supabase

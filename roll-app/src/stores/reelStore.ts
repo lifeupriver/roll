@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Reel, ReelClip, AudioMood, ReelOrientation } from '@/types/reel';
+import type { Reel, ReelClip, AudioMood } from '@/types/reel';
 import type { FilmProfileId } from '@/types/roll';
 
 interface TrimPoints {

@@ -25,8 +25,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
-import type { Reel, ReelClip, ReelOrientation, TransitionType } from '@/types/reel';
-import { REEL_ORIENTATIONS } from '@/types/reel';
+import { REEL_ORIENTATIONS, type Reel, type ReelClip, type ReelOrientation, type TransitionType } from '@/types/reel';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
 
@@ -305,9 +304,9 @@ export default function ReelDetailPage() {
   const handleClipAudioToggle = useCallback(
     async (clipId: string, enabled: boolean) => {
       // Update local state
-      const { reelClips: clips, setReelClips: setClips } = useReelStore.getState();
+      const { setReelClips: setClips } = useReelStore.getState();
       setClips(
-        clips.map((c) =>
+        useReelStore.getState().reelClips.map((c) =>
           c.id === clipId ? { ...c, audio_enabled: enabled } : c
         ) as ReelClip[]
       );
@@ -319,9 +318,9 @@ export default function ReelDetailPage() {
           body: JSON.stringify({ audioEnabled: enabled }),
         });
       } catch {
-        // Revert on error
-        setClips(
-          clips.map((c) =>
+        // Revert on error using fresh state
+        useReelStore.getState().setReelClips(
+          useReelStore.getState().reelClips.map((c) =>
             c.id === clipId ? { ...c, audio_enabled: !enabled } : c
           ) as ReelClip[]
         );
@@ -332,10 +331,11 @@ export default function ReelDetailPage() {
 
   const handleTransitionChange = useCallback(
     async (clipId: string, transition: TransitionType) => {
+      // Capture previous value before update
+      const prevTransition = useReelStore.getState().reelClips.find((c) => c.id === clipId)?.transition_type;
       // Update local state
-      const { reelClips: clips, setReelClips: setClips } = useReelStore.getState();
-      setClips(
-        clips.map((c) =>
+      useReelStore.getState().setReelClips(
+        useReelStore.getState().reelClips.map((c) =>
           c.id === clipId ? { ...c, transition_type: transition } : c
         ) as ReelClip[]
       );
@@ -347,7 +347,14 @@ export default function ReelDetailPage() {
           body: JSON.stringify({ transitionType: transition }),
         });
       } catch {
-        // Non-critical
+        // Revert on error using fresh state
+        if (prevTransition) {
+          useReelStore.getState().setReelClips(
+            useReelStore.getState().reelClips.map((c) =>
+              c.id === clipId ? { ...c, transition_type: prevTransition } : c
+            ) as ReelClip[]
+          );
+        }
       }
     },
     [reelId]

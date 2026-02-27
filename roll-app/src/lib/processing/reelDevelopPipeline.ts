@@ -57,7 +57,8 @@ export function buildAssemblyCommand(
   outputPath: string,
   _audioMood: AudioMood,
   orientation: ReelOrientation = 'horizontal',
-  clipAudioEnabled?: boolean[]
+  clipAudioEnabled?: boolean[],
+  clipDurations?: number[]
 ): string[] {
   const inputs: string[] = [];
   const filterParts: string[] = [];
@@ -77,13 +78,14 @@ export function buildAssemblyCommand(
     if (audioEnabled) {
       filterParts.push(`[${i}:a]anull[sa${i}]`);
     } else {
-      // Generate silent audio for muted clips
-      filterParts.push(`anullsrc=r=48000:cl=stereo[sa${i}]`);
+      // Generate bounded silent audio for muted clips
+      const duration = clipDurations?.[i] ?? 5;
+      filterParts.push(`anullsrc=r=48000:cl=stereo:d=${duration}[sa${i}]`);
     }
   }
 
   if (clipPaths.length === 1) {
-    filterParts.push('[sv0]copy[vout]');
+    filterParts.push('[sv0]null[vout]');
     filterParts.push('[sa0]anull[aout]');
   } else {
     // Build xfade chain for video
@@ -126,6 +128,7 @@ export function buildAssemblyCommand(
     '192k',
     '-movflags',
     '+faststart',
+    '-shortest',
     outputPath,
   ];
 }

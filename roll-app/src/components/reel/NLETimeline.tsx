@@ -7,9 +7,6 @@ import {
   VolumeX,
   Scissors,
   X,
-  Play,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react';
 import { formatDuration } from './ClipDurationBadge';
 import type { ReelClip, TransitionType } from '@/types/reel';
@@ -36,7 +33,6 @@ interface NLETimelineProps {
 
 const MIN_CLIP_WIDTH_PX = 60;
 const TRACK_HEIGHT_PX = 80;
-const TRANSITION_BADGE_WIDTH = 28;
 
 const TRANSITION_LABELS: Record<TransitionType, string> = {
   crossfade: 'X',

@@ -911,12 +911,21 @@ export function smartDesignBlogWithTemplate(
   const totalContent = photos.length + videos.length + storyParagraphs.length;
   let contentConsumed = 0;
 
-  while (photoIdx < enrichedPhotos.length || videoIdx < videos.length) {
+  const maxIterations = (enrichedPhotos.length + videos.length + storyParagraphs.length + rhythm.length) * 3;
+  let iterations = 0;
+  while ((photoIdx < enrichedPhotos.length || videoIdx < videos.length) && iterations < maxIterations) {
+    iterations++;
     const progress = totalContent > 0 ? contentConsumed / totalContent : 0;
     const phase = getEssayPhase(progress);
     const pacing = ESSAY_PACING[phase];
-    const currentBeat = rhythm[rhythmIdx % rhythm.length];
+    let currentBeat = rhythm[rhythmIdx % rhythm.length];
     rhythmIdx++;
+
+    // When photos are exhausted but videos remain, treat photo beats as video
+    if (photoIdx >= enrichedPhotos.length && videoIdx < videos.length &&
+        currentBeat !== 'text' && currentBeat !== 'pullquote' && currentBeat !== 'video' && currentBeat !== 'video-pair') {
+      currentBeat = 'video';
+    }
 
     switch (currentBeat) {
       case 'hero': {

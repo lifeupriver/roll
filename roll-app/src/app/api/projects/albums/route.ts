@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Resolve photo IDs from different sources
     let resolvedPhotoIds: string[] = photoIds || [];
 
-    if ((!resolvedPhotoIds || resolvedPhotoIds.length === 0) && roll_ids && Array.isArray(roll_ids) && roll_ids.length > 0) {
+    if (resolvedPhotoIds.length === 0 && roll_ids && Array.isArray(roll_ids) && roll_ids.length > 0) {
       // Fetch photos from the specified rolls
       const { data: rollPhotos } = await supabase
         .from('roll_photos')
@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
         .in('roll_id', roll_ids)
         .order('position', { ascending: true });
 
-      resolvedPhotoIds = (rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id);
+      resolvedPhotoIds = [...new Set((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
     }
 
-    if ((!resolvedPhotoIds || resolvedPhotoIds.length === 0) && magazine_ids && Array.isArray(magazine_ids) && magazine_ids.length > 0) {
+    if (resolvedPhotoIds.length === 0 && magazine_ids && Array.isArray(magazine_ids) && magazine_ids.length > 0) {
       // Fetch photos from the specified magazines' source rolls
       const { data: mags } = await supabase
         .from('magazines')
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
           .in('roll_id', allRollIds)
           .order('position', { ascending: true });
 
-        resolvedPhotoIds = (rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id);
+        resolvedPhotoIds = [...new Set((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
       }
     }
 
@@ -125,8 +125,6 @@ export async function POST(request: NextRequest) {
         cover_url: coverUrl,
         photo_count: resolvedPhotoIds.length,
         photo_ids: resolvedPhotoIds,
-        magazine_ids: magazine_ids || [],
-        roll_ids: roll_ids || [],
         captions: {},
         created_at: now,
         updated_at: now,

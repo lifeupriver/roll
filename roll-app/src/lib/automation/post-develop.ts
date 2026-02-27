@@ -185,7 +185,28 @@ async function autoCreateReel(
   try {
     ctx.onStatus('Creating reel from videos...');
 
-    // Create reel
+    // Fetch the roll's photos to find videos BEFORE creating reel to avoid orphans
+    const photosRes = await fetch(`/api/rolls/${ctx.rollId}/photos`);
+    if (!photosRes.ok) {
+      result.errors.push('Reel: Failed to load roll media');
+      return;
+    }
+
+    const photosJson = await photosRes.json();
+    const rollItems = photosJson.data ?? [];
+
+    // Filter for video clips
+    const videoClips = rollItems.filter((rp: Record<string, unknown>) => {
+      const photo = rp.photos as Record<string, unknown> | undefined;
+      return photo?.media_type === 'video' || rp.media_type === 'video';
+    });
+
+    if (videoClips.length < 3) {
+      result.errors.push('Reel: Not enough video clips (need at least 3)');
+      return;
+    }
+
+    // Create reel only after confirming enough clips
     const createRes = await fetch('/api/reels', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -210,27 +231,6 @@ async function autoCreateReel(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orientation: settings.autoReelOrientation }),
       }).catch(() => {});
-    }
-
-    // Fetch the roll's photos to find videos
-    const photosRes = await fetch(`/api/rolls/${ctx.rollId}/photos`);
-    if (!photosRes.ok) {
-      result.errors.push('Reel: Failed to load roll media');
-      return;
-    }
-
-    const photosJson = await photosRes.json();
-    const rollItems = photosJson.data ?? [];
-
-    // Filter for video clips
-    const videoClips = rollItems.filter((rp: Record<string, unknown>) => {
-      const photo = rp.photos as Record<string, unknown> | undefined;
-      return photo?.media_type === 'video' || rp.media_type === 'video';
-    });
-
-    if (videoClips.length < 3) {
-      result.errors.push('Reel: Not enough video clips (need at least 3)');
-      return;
     }
 
     // Add clips to reel

@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
-  ChevronLeft,
   Eye,
   Edit3,
   Save,
@@ -191,7 +190,7 @@ export default function EssayEditorPage() {
     setPublishing(true);
     try {
       // Save first
-      await fetch(`/api/blog/posts/${post.id}`, {
+      const saveRes = await fetch(`/api/blog/posts/${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -203,6 +202,11 @@ export default function EssayEditorPage() {
           tags,
         }),
       });
+      if (!saveRes.ok) {
+        const err = await saveRes.json().catch(() => ({}));
+        toast(err.error || 'Failed to save before publishing', 'error');
+        return;
+      }
 
       // Then publish
       const res = await fetch(`/api/blog/posts/${post.id}/publish`, {

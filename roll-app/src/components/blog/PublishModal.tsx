@@ -133,7 +133,7 @@ export function PublishModal({
     setPublishing(true);
     try {
       // Save fields first
-      await fetch(`/api/blog/posts/${post.id}`, {
+      const saveRes = await fetch(`/api/blog/posts/${post.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,6 +146,11 @@ export function PublishModal({
           allow_book_orders: allowBook,
         }),
       });
+      if (!saveRes.ok) {
+        const err = await saveRes.json().catch(() => ({}));
+        toast(err.error || 'Failed to save', 'error');
+        return;
+      }
 
       // Then publish
       const res = await fetch(`/api/blog/posts/${post.id}/publish`, {
@@ -352,7 +357,10 @@ export function PublishModal({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (post) {
+                      try { await handleSaveDraft(); } catch { /* save failed, toast already shown */ }
+                    }
                     onClose();
                     router.push('/projects/posts/create');
                   }}

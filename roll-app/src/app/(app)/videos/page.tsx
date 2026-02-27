@@ -231,7 +231,7 @@ export default function VideosPage() {
                 <Link
                   key={reel.id}
                   href={`/library/reels/${reel.id}`}
-                  className="text-left group shrink-0 w-36"
+                  className="block text-left group shrink-0 w-36"
                   style={{ scrollSnapAlign: 'start' }}
                 >
                   <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
@@ -252,7 +252,7 @@ export default function VideosPage() {
                         <Play size={18} className="text-white ml-0.5" fill="white" />
                       </div>
                     </div>
-                    {duration && (
+                    {duration != null && (
                       <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
                         {formatDuration(duration)}
                       </span>
