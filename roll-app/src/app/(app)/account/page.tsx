@@ -86,7 +86,7 @@ export default function AccountPage() {
   const [circles, setCircles] = useState<{ id: string; name: string }[]>([]);
 
   const isFree = user?.tier === 'free';
-  const freeProfileIds = new Set(FILM_PROFILES.filter((p) => p.tier === 'free').map((p) => p.id));
+  const freeProfileIds = new Set<string>(FILM_PROFILES.filter((p) => p.tier === 'free').map((p) => p.id));
 
   const updateAutomation = (updates: Partial<AutomationSettings>) => {
     const sanitized = { ...updates };
