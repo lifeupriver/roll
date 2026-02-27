@@ -16,8 +16,18 @@ export const REEL_ORIENTATIONS: Array<{
   aspect: string;
   description: string;
 }> = [
-  { id: 'horizontal', label: 'Landscape', aspect: '16:9', description: 'Widescreen film — best for TV and desktop' },
-  { id: 'vertical', label: 'Portrait', aspect: '9:16', description: 'Vertical reel — best for mobile and stories' },
+  {
+    id: 'horizontal',
+    label: 'Landscape',
+    aspect: '16:9',
+    description: 'Widescreen film — best for TV and desktop',
+  },
+  {
+    id: 'vertical',
+    label: 'Portrait',
+    aspect: '9:16',
+    description: 'Vertical reel — best for mobile and stories',
+  },
 ];
 
 export const REEL_SIZE_CONFIG: Record<

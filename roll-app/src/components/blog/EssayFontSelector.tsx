@@ -89,10 +89,14 @@ export function EssayFontSelector({ selected, onSelect }: EssayFontSelectorProps
                 : 'border-[var(--color-border)] hover:border-[var(--color-border-focus)] bg-[var(--color-surface)]'
             }`}
           >
-            <p className={`text-[length:var(--text-lead)] text-[var(--color-ink)] leading-tight ${font.displayClass}`}>
+            <p
+              className={`text-[length:var(--text-lead)] text-[var(--color-ink)] leading-tight ${font.displayClass}`}
+            >
               {font.sampleTitle}
             </p>
-            <p className={`text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] ${font.bodyClass}`}>
+            <p
+              className={`text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] ${font.bodyClass}`}
+            >
               {font.sampleBody}
             </p>
             <div className="mt-auto pt-[var(--space-tight)] border-t border-[var(--color-border)]">

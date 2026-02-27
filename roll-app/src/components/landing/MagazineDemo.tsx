@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import {
   ChevronLeft,
   ChevronRight,
@@ -171,10 +172,11 @@ export function MagazineDemo() {
       >
         {/* Magazine cover preview */}
         <div className="w-full aspect-[3/4] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] relative group-hover:shadow-[var(--shadow-overlay)] transition-shadow">
-          <img
+          <Image
             src={DEMO_PHOTOS[0]}
             alt="Magazine cover preview"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
           <div className="absolute bottom-0 inset-x-0 p-4">
@@ -307,14 +309,14 @@ export function MagazineDemo() {
                     key={i}
                     type="button"
                     onClick={() => setSpreadIndex(i)}
-                    className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors ${
+                    className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors relative ${
                       i === spreadIndex
                         ? 'border-[var(--color-action)]'
                         : 'border-transparent hover:border-[var(--color-border)]'
                     }`}
                   >
                     {photoUrl ? (
-                      <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                      <Image src={photoUrl} alt="" fill className="object-cover" />
                     ) : (
                       <div className="w-full h-full bg-[var(--color-surface-sunken)] flex items-center justify-center">
                         <Type size={8} className="text-[var(--color-ink-tertiary)]" />
@@ -428,9 +430,9 @@ export function MagazineDemo() {
                           : 'hover:bg-[var(--color-surface-sunken)]'
                       }`}
                     >
-                      <div className="w-8 h-11 rounded-sm overflow-hidden flex-shrink-0 bg-[var(--color-surface-sunken)]">
+                      <div className="w-8 h-11 rounded-sm overflow-hidden flex-shrink-0 bg-[var(--color-surface-sunken)] relative">
                         {page.photos[0] ? (
-                          <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+                          <Image src={page.photos[0]} alt="" fill className="object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <Type size={8} className="text-[var(--color-ink-tertiary)]" />
@@ -489,7 +491,7 @@ function SpreadPageView({
   if (page.layout === 'cover') {
     return (
       <div className="relative flex-1 aspect-[3/4] overflow-hidden">
-        <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+        <Image src={page.photos[0]} alt="" fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute bottom-0 inset-x-0 p-4 md:p-6">
           <h3
@@ -534,8 +536,8 @@ function SpreadPageView({
   if (page.layout === 'caption_heavy') {
     return (
       <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] overflow-hidden flex flex-col">
-        <div className="flex-[2] overflow-hidden">
-          <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+        <div className="flex-[2] overflow-hidden relative">
+          <Image src={page.photos[0]} alt="" fill className="object-cover" />
         </div>
         <div className="flex-1 p-3 bg-[var(--color-surface)] flex items-center">
           <p
@@ -559,8 +561,8 @@ function SpreadPageView({
     <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-sunken)] overflow-hidden">
       <div className="w-full h-full grid gap-0.5" style={gridStyles}>
         {page.photos.map((url, i) => (
-          <div key={i} className="overflow-hidden">
-            <img src={url} alt="" className="w-full h-full object-cover" />
+          <div key={i} className="overflow-hidden relative">
+            <Image src={url} alt="" fill className="object-cover" />
           </div>
         ))}
       </div>

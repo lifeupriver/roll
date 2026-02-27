@@ -1,6 +1,12 @@
 // ─── Essay Templates ─────────────────────────────────────────────────────────
 
-export type EssayTemplate = 'documentary' | 'travel' | 'portrait' | 'editorial' | 'minimal' | 'narrative';
+export type EssayTemplate =
+  | 'documentary'
+  | 'travel'
+  | 'portrait'
+  | 'editorial'
+  | 'minimal'
+  | 'narrative';
 
 export type EssayFont = 'default' | 'garamond' | 'futura' | 'playfair' | 'lora' | 'jakarta';
 

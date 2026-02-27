@@ -10,6 +10,7 @@ import {
 } from '@/components/landing/FeatureVisuals';
 import { MagazineDemo } from '@/components/landing/MagazineDemo';
 import { BookDemo } from '@/components/landing/BookDemo';
+import Image from 'next/image';
 import Link from 'next/link';
 
 export const dynamic = 'force-static';
@@ -357,9 +358,11 @@ export default function LandingPage() {
             {/* Prints card */}
             <div className="text-center flex flex-col items-center gap-[var(--space-element)]">
               <div className="w-full aspect-[3/4] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] relative group">
-                <img
+                <Image
                   src="/photos/IMG_3518 Large.jpeg"
                   alt="Prints preview"
+                  width={400}
+                  height={533}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

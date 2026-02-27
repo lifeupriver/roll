@@ -19,8 +19,14 @@ const updateBlogPostSchema = z
     allow_print_orders: z.boolean().optional(),
     allow_magazine_orders: z.boolean().optional(),
     allow_book_orders: z.boolean().optional(),
-    essay_template: z.enum(['documentary', 'travel', 'portrait', 'editorial', 'minimal', 'narrative']).nullable().optional(),
-    essay_font: z.enum(['default', 'garamond', 'futura', 'playfair', 'lora', 'jakarta']).nullable().optional(),
+    essay_template: z
+      .enum(['documentary', 'travel', 'portrait', 'editorial', 'minimal', 'narrative'])
+      .nullable()
+      .optional(),
+    essay_font: z
+      .enum(['default', 'garamond', 'futura', 'playfair', 'lora', 'jakarta'])
+      .nullable()
+      .optional(),
     essay_blocks: z.string().max(100000).nullable().optional(),
     roll_ids: z.array(z.string().uuid()).max(6).optional(),
   })
@@ -28,10 +34,7 @@ const updateBlogPostSchema = z
     message: 'At least one field is required',
   });
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();
@@ -62,10 +65,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const supabase = await createServerSupabaseClient();

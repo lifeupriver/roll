@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
+import Image from 'next/image';
 
 interface SearchResult {
   id: string;
@@ -242,11 +243,14 @@ export default function SearchPage() {
                 key={photo.id}
                 className="relative rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] group"
               >
-                <img
+                <Image
                   src={photo.thumbnail_url}
                   alt={photo.filename}
+                  width={200}
+                  height={200}
                   loading="lazy"
                   className="w-full aspect-square object-cover"
+                  unoptimized
                 />
                 {/* Scene tags on hover */}
                 {photo.scene_classification.length > 0 && (

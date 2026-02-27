@@ -203,7 +203,7 @@ describe('POST /api/webhooks/prodigi', () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof createClient>);
 
     const payload = {
       type: 'order.shipped',

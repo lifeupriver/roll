@@ -6,8 +6,9 @@ import {
   smartDesignMagazine,
   smartDesignFromFavorites,
   selectBestCoverPhoto,
+  type MagazineSection,
+  type DesignOptions,
 } from '@/lib/design/design-engine';
-import type { MagazineSection, DesignOptions } from '@/lib/design/design-engine';
 
 // Re-export types for backward compatibility
 export type { MagazineSection };

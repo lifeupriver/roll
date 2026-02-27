@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { ChevronRight, MapPin, Calendar } from 'lucide-react';
 import type { Photo } from '@/types/photo';
 
@@ -26,11 +27,14 @@ export function MomentClusterCard({
     >
       {/* Cover thumbnail */}
       <div className="w-16 h-16 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0">
-        <img
+        <Image
           src={coverPhoto.thumbnail_url}
           alt=""
           className="w-full h-full object-cover"
           loading="lazy"
+          width={64}
+          height={64}
+          unoptimized
         />
       </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { BookOpen, Pencil } from 'lucide-react';
 import { CaptionEditor } from './CaptionEditor';
 
@@ -35,10 +36,12 @@ export function BookCover({
       >
         {/* Cover image */}
         {coverUrl ? (
-          <img
+          <Image
             src={coverUrl}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            unoptimized
           />
         ) : (
           <div className="absolute inset-0 bg-[var(--color-surface-sunken)] flex items-center justify-center">

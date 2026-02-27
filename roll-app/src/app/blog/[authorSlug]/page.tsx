@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getServiceClient } from '@/lib/admin/service';
 import { BlogAuthorHeader } from '@/components/blog/BlogAuthorHeader';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { User, Rss } from 'lucide-react';
 
@@ -33,10 +34,12 @@ async function fetchAuthorData(authorSlug: string, page: number) {
 
   const { data: posts } = await supabase
     .from('blog_posts')
-    .select(`
+    .select(
+      `
       id, title, slug, excerpt, published_at, cover_photo_id, tags, view_count,
       photos:cover_photo_id(thumbnail_url, developed_url, width, height)
-    `)
+    `
+    )
     .eq('user_id', profile.id)
     .eq('status', 'published')
     .order('published_at', { ascending: false })
@@ -50,7 +53,9 @@ async function fetchAuthorData(authorSlug: string, page: number) {
     .eq('status', 'published');
 
   let totalPhotos = 0;
-  const publishedRollIds = (blogPostsWithRolls || []).map((bp: Record<string, unknown>) => bp.roll_id as string);
+  const publishedRollIds = (blogPostsWithRolls || []).map(
+    (bp: Record<string, unknown>) => bp.roll_id as string
+  );
   if (publishedRollIds.length > 0) {
     const { count: photoCount } = await supabase
       .from('roll_photos')
@@ -102,7 +107,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const blogName = data.author.blog_name || `${data.author.display_name}'s Blog`;
-  const description = data.author.blog_description || `Photo stories by ${data.author.display_name}`;
+  const description =
+    data.author.blog_description || `Photo stories by ${data.author.display_name}`;
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://roll.photos';
   const canonicalUrl = `${baseUrl}/blog/${authorSlug}`;
 
@@ -175,10 +181,13 @@ export default async function AuthorBlogPage({ params, searchParams }: PageProps
         <div className="max-w-4xl mx-auto px-[var(--space-component)] py-[var(--space-section)]">
           <div className="flex items-start gap-[var(--space-component)]">
             {data.author.avatar_url ? (
-              <img
+              <Image
                 src={data.author.avatar_url}
                 alt={data.author.display_name}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-full object-cover shrink-0"
+                unoptimized
               />
             ) : (
               <div className="w-16 h-16 rounded-full bg-[var(--color-surface-sunken)] flex items-center justify-center shrink-0">
@@ -221,18 +230,33 @@ export default async function AuthorBlogPage({ params, searchParams }: PageProps
           <section className="mt-[var(--space-section)]">
             {data.posts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[var(--space-component)]">
-                {data.posts.map((post: { id: string; title: string; slug: string; excerpt: string | null; published_at: string; tags: string[]; cover_photo: { thumbnail_url: string; developed_url: string; width: number; height: number } | null }) => (
-                  <BlogPostCard
-                    key={post.id}
-                    title={post.title}
-                    slug={post.slug}
-                    excerpt={post.excerpt}
-                    publishedAt={post.published_at}
-                    tags={post.tags}
-                    coverPhoto={post.cover_photo}
-                    authorSlug={authorSlug}
-                  />
-                ))}
+                {data.posts.map(
+                  (post: {
+                    id: string;
+                    title: string;
+                    slug: string;
+                    excerpt: string | null;
+                    published_at: string;
+                    tags: string[];
+                    cover_photo: {
+                      thumbnail_url: string;
+                      developed_url: string;
+                      width: number;
+                      height: number;
+                    } | null;
+                  }) => (
+                    <BlogPostCard
+                      key={post.id}
+                      title={post.title}
+                      slug={post.slug}
+                      excerpt={post.excerpt}
+                      publishedAt={post.published_at}
+                      tags={post.tags}
+                      coverPhoto={post.cover_photo}
+                      authorSlug={authorSlug}
+                    />
+                  )
+                )}
               </div>
             ) : (
               <p className="text-center text-[length:var(--text-body)] text-[var(--color-ink-tertiary)] py-[var(--space-section)]">

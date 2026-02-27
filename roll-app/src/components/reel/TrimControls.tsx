@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { formatDuration } from './ClipDurationBadge';
 
 interface TrimControlsProps {
@@ -69,10 +70,13 @@ export function TrimControls({
 
       {/* Timeline preview */}
       <div className="relative mb-[var(--space-element)]">
-        <img
+        <Image
           src={thumbnailUrl}
           alt=""
           className="w-full h-16 object-cover rounded-[var(--radius-sharp)] opacity-30"
+          width={640}
+          height={64}
+          unoptimized
         />
         {/* Selected region overlay */}
         <div

@@ -86,7 +86,9 @@ export default function AccountPage() {
   const [circles, setCircles] = useState<{ id: string; name: string }[]>([]);
 
   const isFree = user?.tier === 'free';
-  const freeProfileIds = new Set<string>(FILM_PROFILES.filter((p) => p.tier === 'free').map((p) => p.id));
+  const freeProfileIds = new Set<string>(
+    FILM_PROFILES.filter((p) => p.tier === 'free').map((p) => p.id)
+  );
 
   const updateAutomation = (updates: Partial<AutomationSettings>) => {
     const sanitized = { ...updates };
@@ -537,38 +539,47 @@ export default function AccountPage() {
           </h2>
         </div>
         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mb-[var(--space-component)]">
-          Set your preferred color mode and film profile. These are pre-selected when you develop a roll.
+          Set your preferred color mode and film profile. These are pre-selected when you develop a
+          roll.
         </p>
 
         {/* Default process mode */}
         <div className="flex flex-col gap-[var(--space-element)]">
           <div className="flex items-center justify-between">
-            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Default mode</span>
+            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+              Default mode
+            </span>
             <div className="flex items-center gap-[var(--space-tight)]">
-              {(['color', 'bw'] as const).filter((m) => !isFree || m === 'color').map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => updateAutomation({
-                    defaultProcessMode: mode,
-                    defaultFilmProfile: mode === 'color' ? 'warmth' : 'classic',
-                  })}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
-                    automation.defaultProcessMode === mode
-                      ? 'bg-[var(--color-action)] text-white'
-                      : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
-                  }`}
-                >
-                  {mode === 'color' ? <Sun size={12} /> : <Moon size={12} />}
-                  {mode === 'color' ? 'Color' : 'B&W'}
-                </button>
-              ))}
+              {(['color', 'bw'] as const)
+                .filter((m) => !isFree || m === 'color')
+                .map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() =>
+                      updateAutomation({
+                        defaultProcessMode: mode,
+                        defaultFilmProfile: mode === 'color' ? 'warmth' : 'classic',
+                      })
+                    }
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
+                      automation.defaultProcessMode === mode
+                        ? 'bg-[var(--color-action)] text-white'
+                        : 'bg-[var(--color-surface-sunken)] text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink-secondary)]'
+                    }`}
+                  >
+                    {mode === 'color' ? <Sun size={12} /> : <Moon size={12} />}
+                    {mode === 'color' ? 'Color' : 'B&W'}
+                  </button>
+                ))}
             </div>
           </div>
 
           {/* Film profile selection */}
           <div className="flex items-center justify-between">
-            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Film profile</span>
+            <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">
+              Film profile
+            </span>
             <div className="flex items-center gap-[var(--space-tight)] flex-wrap justify-end">
               {Object.values(FILM_PROFILE_CONFIGS)
                 .filter((p) => p.type === automation.defaultProcessMode)
@@ -577,7 +588,11 @@ export default function AccountPage() {
                   <button
                     key={profile.id}
                     type="button"
-                    onClick={() => updateAutomation({ defaultFilmProfile: profile.id as AutomationSettings['defaultFilmProfile'] })}
+                    onClick={() =>
+                      updateAutomation({
+                        defaultFilmProfile: profile.id as AutomationSettings['defaultFilmProfile'],
+                      })
+                    }
                     className={`px-2.5 py-1 rounded-[var(--radius-pill)] text-[length:var(--text-caption)] font-medium transition-colors ${
                       automation.defaultFilmProfile === profile.id
                         ? 'bg-[var(--color-action)] text-white'
@@ -625,7 +640,9 @@ export default function AccountPage() {
             </div>
             <button
               type="button"
-              onClick={() => updateAutomation({ autoDesignMagazine: !automation.autoDesignMagazine })}
+              onClick={() =>
+                updateAutomation({ autoDesignMagazine: !automation.autoDesignMagazine })
+              }
               role="switch"
               aria-checked={automation.autoDesignMagazine}
               aria-label="Auto-design magazine"
@@ -689,7 +706,9 @@ export default function AccountPage() {
                   >
                     <option value="">Select a circle...</option>
                     {circles.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 )}
@@ -726,7 +745,9 @@ export default function AccountPage() {
             </div>
             {automation.autoOrderPrints && (
               <div className="ml-8 flex items-center gap-[var(--space-element)]">
-                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">Print size:</span>
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                  Print size:
+                </span>
                 <div className="flex items-center gap-[var(--space-tight)]">
                   {(['4x6', '5x7', '8x10'] as const).map((size) => (
                     <button
@@ -776,7 +797,9 @@ export default function AccountPage() {
             </div>
             {automation.autoCreateReel && (
               <div className="ml-8 flex items-center gap-[var(--space-element)]">
-                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">Output:</span>
+                <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                  Output:
+                </span>
                 <div className="flex items-center gap-[var(--space-tight)]">
                   {(['horizontal', 'vertical'] as const).map((o) => (
                     <button
@@ -812,7 +835,9 @@ export default function AccountPage() {
             </div>
             <button
               type="button"
-              onClick={() => updateAutomation({ autoNotifyFollowers: !automation.autoNotifyFollowers })}
+              onClick={() =>
+                updateAutomation({ autoNotifyFollowers: !automation.autoNotifyFollowers })
+              }
               role="switch"
               aria-checked={automation.autoNotifyFollowers}
               aria-label="Auto-notify followers"
@@ -826,17 +851,28 @@ export default function AccountPage() {
         </div>
 
         {/* Active automations summary */}
-        {(automation.autoDesignMagazine || automation.autoPostToCircle || automation.autoOrderPrints || automation.autoCreateReel || automation.autoNotifyFollowers) && (
+        {(automation.autoDesignMagazine ||
+          automation.autoPostToCircle ||
+          automation.autoOrderPrints ||
+          automation.autoCreateReel ||
+          automation.autoNotifyFollowers) && (
           <div className="mt-[var(--space-component)] pt-[var(--space-element)] border-t border-[var(--color-border)]">
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
               When a roll is developed:{' '}
               {[
                 automation.autoDesignMagazine && 'magazine will be designed',
-                automation.autoPostToCircle && automation.autoPostCircleId && 'photos will be shared to your circle',
-                automation.autoOrderPrints && `${automation.autoOrderPrintSize} prints will be ordered`,
-                automation.autoCreateReel && `a ${automation.autoReelOrientation === 'vertical' ? '9:16' : '16:9'} reel will be assembled`,
+                automation.autoPostToCircle &&
+                  automation.autoPostCircleId &&
+                  'photos will be shared to your circle',
+                automation.autoOrderPrints &&
+                  `${automation.autoOrderPrintSize} prints will be ordered`,
+                automation.autoCreateReel &&
+                  `a ${automation.autoReelOrientation === 'vertical' ? '9:16' : '16:9'} reel will be assembled`,
                 automation.autoNotifyFollowers && 'a blog post will be published',
-              ].filter(Boolean).join(', ')}.
+              ]
+                .filter(Boolean)
+                .join(', ')}
+              .
             </p>
           </div>
         )}

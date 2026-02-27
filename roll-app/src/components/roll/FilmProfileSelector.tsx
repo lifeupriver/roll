@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { Lock, Sparkles } from 'lucide-react';
 import type { FilmProfile } from '@/types/roll';
 
@@ -88,10 +89,13 @@ export function FilmProfileSelector({
             >
               {/* Preview image container */}
               <div className="relative w-[160px] h-[120px] overflow-hidden rounded-t-[var(--radius-card)]">
-                <img
+                <Image
                   src={samplePhotoUrl}
                   alt={`${profile.name} film preview`}
                   className={['w-full h-full object-cover', profile.cssFilterClass].join(' ')}
+                  width={160}
+                  height={120}
+                  unoptimized
                 />
 
                 {/* Locked overlay */}

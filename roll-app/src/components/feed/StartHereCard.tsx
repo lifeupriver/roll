@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Sparkles, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type { Photo } from '@/types/photo';
@@ -109,12 +110,15 @@ export function StartHereCard() {
       {suggestion.topPhotos.length > 0 && (
         <div className="flex gap-[var(--space-tight)] mt-[var(--space-element)] overflow-hidden rounded-[var(--radius-sharp)]">
           {suggestion.topPhotos.map((photo) => (
-            <img
+            <Image
               key={photo.id}
               src={photo.thumbnail_url}
               alt=""
               className="w-16 h-16 object-cover rounded-[var(--radius-sharp)] bg-[var(--color-surface-sunken)]"
               loading="lazy"
+              width={64}
+              height={64}
+              unoptimized
             />
           ))}
         </div>

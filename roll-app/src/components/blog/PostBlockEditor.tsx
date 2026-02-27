@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import NextImage from 'next/image';
 import {
   ChevronUp,
   ChevronDown,
@@ -106,7 +107,14 @@ export function PostBlockEditor({
             {/* Thumbnail or icon */}
             <div className="w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] flex items-center justify-center shrink-0">
               {thumbnail ? (
-                <img src={thumbnail} alt="" className="w-full h-full object-cover" />
+                <NextImage
+                  src={thumbnail}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
               ) : (
                 <Icon size={16} className="text-[var(--color-ink-tertiary)]" />
               )}
@@ -149,7 +157,8 @@ export function PostBlockEditor({
                         isTextType ? 'hover:text-[var(--color-action)] cursor-pointer' : ''
                       }`}
                     >
-                      {block.text.slice(0, 80)}{block.text.length > 80 ? '...' : ''}
+                      {block.text.slice(0, 80)}
+                      {block.text.length > 80 ? '...' : ''}
                     </button>
                   )}
                 </>

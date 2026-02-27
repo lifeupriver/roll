@@ -2,15 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ChevronRight,
-  ChevronLeft,
-  Check,
-  Film,
-  Wand2,
-  BookOpen,
-  Eye,
-} from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Film, Wand2, BookOpen, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BackButton } from '@/components/ui/BackButton';
 import { EssayTemplateSelector } from '@/components/blog/EssayTemplateSelector';
@@ -18,8 +10,8 @@ import { EssayFontSelector } from '@/components/blog/EssayFontSelector';
 import { PostBlockEditor } from '@/components/blog/PostBlockEditor';
 import { BlogPhotoLayout } from '@/components/blog/BlogPhotoLayout';
 import { useToast } from '@/stores/toastStore';
-import { smartDesignBlogWithTemplate } from '@/lib/design/design-engine';
-import type { BlogBlock } from '@/lib/design/design-engine';
+import Image from 'next/image';
+import { smartDesignBlogWithTemplate, type BlogBlock } from '@/lib/design/design-engine';
 import type { EssayTemplate, EssayFont } from '@/types/blog';
 
 type WizardStep = 'template' | 'rolls' | 'details' | 'designing' | 'preview';
@@ -72,8 +64,8 @@ export default function CreateEssayPage() {
   // Data
   const [rolls, setRolls] = useState<RollForSelection[]>([]);
   const [rollPhotos, setRollPhotos] = useState<RollPhoto[]>([]);
-  const [rollReels, setRollReels] = useState<RollReel[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [rollReels, _setRollReels] = useState<RollReel[]>([]);
+  const [_loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
   // Fetch available rolls
@@ -103,14 +95,19 @@ export default function CreateEssayPage() {
         const json = await res.json();
         return (json.data ?? []).map((rp: Record<string, unknown>) => ({
           id: rp.photo_id || rp.id,
-          thumbnail_url: (rp.photos as Record<string, unknown>)?.thumbnail_url || rp.thumbnail_url || '',
-          developed_url: (rp.photos as Record<string, unknown>)?.developed_url || rp.developed_url || '',
+          thumbnail_url:
+            (rp.photos as Record<string, unknown>)?.thumbnail_url || rp.thumbnail_url || '',
+          developed_url:
+            (rp.photos as Record<string, unknown>)?.developed_url || rp.developed_url || '',
           width: (rp.photos as Record<string, unknown>)?.width || rp.width || 1200,
           height: (rp.photos as Record<string, unknown>)?.height || rp.height || 800,
           caption: (rp.photos as Record<string, unknown>)?.caption || rp.caption || null,
-          aesthetic_score: (rp.photos as Record<string, unknown>)?.aesthetic_score || rp.aesthetic_score || null,
+          aesthetic_score:
+            (rp.photos as Record<string, unknown>)?.aesthetic_score || rp.aesthetic_score || null,
           face_count: (rp.photos as Record<string, unknown>)?.face_count || rp.face_count || null,
-          scene_classification: ((rp.photos as Record<string, unknown>)?.scene_classification || rp.scene_classification || []) as string[],
+          scene_classification: ((rp.photos as Record<string, unknown>)?.scene_classification ||
+            rp.scene_classification ||
+            []) as string[],
         }));
       });
 
@@ -128,11 +125,17 @@ export default function CreateEssayPage() {
     if (!essayTemplate || rollPhotos.length === 0) return;
 
     // Combine story from selected rolls
-    const selectedRolls = rolls.filter(r => selectedRollIds.includes(r.id));
-    const combinedStory = story || selectedRolls.map(r => r.story).filter(Boolean).join('\n\n') || '';
+    const selectedRolls = rolls.filter((r) => selectedRollIds.includes(r.id));
+    const combinedStory =
+      story ||
+      selectedRolls
+        .map((r) => r.story)
+        .filter(Boolean)
+        .join('\n\n') ||
+      '';
 
     const mediaItems = [
-      ...rollPhotos.map(p => ({
+      ...rollPhotos.map((p) => ({
         id: p.id,
         type: 'photo' as const,
         width: p.width,
@@ -143,7 +146,7 @@ export default function CreateEssayPage() {
         scene_classification: p.scene_classification,
         duration_ms: null,
       })),
-      ...rollReels.map(v => ({
+      ...rollReels.map((v) => ({
         id: v.id,
         type: 'video' as const,
         width: v.width,
@@ -156,9 +159,13 @@ export default function CreateEssayPage() {
       })),
     ];
 
-    const designed = smartDesignBlogWithTemplate(mediaItems, essayTemplate, combinedStory || undefined);
+    const designed = smartDesignBlogWithTemplate(
+      mediaItems,
+      essayTemplate,
+      combinedStory || undefined
+    );
     setBlocks(designed);
-  }, [essayTemplate, rollPhotos, rollReels, story, rolls, selectedRollIds]);
+  }, [essayTemplate, rollPhotos, story, rolls, selectedRollIds]);
 
   // Photo and video maps for rendering
   const photoMap = useMemo(() => {
@@ -171,14 +178,16 @@ export default function CreateEssayPage() {
     const map = new Map<string, RollReel>();
     for (const v of rollReels) map.set(v.id, v);
     return map;
-  }, [rollReels]);
+  }, []);
 
   // Toggle roll selection
   const toggleRoll = (rollId: string) => {
     setSelectedRollIds((prev) =>
       prev.includes(rollId)
         ? prev.filter((id) => id !== rollId)
-        : prev.length < 6 ? [...prev, rollId] : prev
+        : prev.length < 6
+          ? [...prev, rollId]
+          : prev
     );
   };
 
@@ -246,7 +255,7 @@ export default function CreateEssayPage() {
   };
 
   // Selected rolls info
-  const selectedRolls = rolls.filter(r => selectedRollIds.includes(r.id));
+  const selectedRolls = rolls.filter((r) => selectedRollIds.includes(r.id));
   const totalPhotos = selectedRolls.reduce((sum, r) => sum + (r.photo_count || 0), 0);
 
   // Step indicators
@@ -257,7 +266,9 @@ export default function CreateEssayPage() {
     { key: 'preview', label: 'Preview' },
   ];
 
-  const currentStepIndex = steps.findIndex(s => s.key === step || (step === 'designing' && s.key === 'preview'));
+  const currentStepIndex = steps.findIndex(
+    (s) => s.key === step || (step === 'designing' && s.key === 'preview')
+  );
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-[var(--space-hero)]">
@@ -300,21 +311,15 @@ export default function CreateEssayPage() {
               Choose an essay style
             </h2>
             <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              Each style has a unique editorial rhythm that determines how your photos, text, and quotes are arranged.
+              Each style has a unique editorial rhythm that determines how your photos, text, and
+              quotes are arranged.
             </p>
           </div>
 
-          <EssayTemplateSelector
-            selected={essayTemplate}
-            onSelect={setEssayTemplate}
-          />
+          <EssayTemplateSelector selected={essayTemplate} onSelect={setEssayTemplate} />
 
           <div className="flex justify-end">
-            <Button
-              variant="primary"
-              onClick={() => setStep('rolls')}
-              disabled={!essayTemplate}
-            >
+            <Button variant="primary" onClick={() => setStep('rolls')} disabled={!essayTemplate}>
               Next: Select Rolls <ChevronRight size={16} className="ml-1" />
             </Button>
           </div>
@@ -340,7 +345,10 @@ export default function CreateEssayPage() {
 
           {rolls.length === 0 ? (
             <div className="text-center py-[var(--space-section)]">
-              <Film size={32} className="mx-auto mb-[var(--space-element)] text-[var(--color-ink-tertiary)]" />
+              <Film
+                size={32}
+                className="mx-auto mb-[var(--space-element)] text-[var(--color-ink-tertiary)]"
+              />
               <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
                 No developed rolls available yet.
               </p>
@@ -373,7 +381,14 @@ export default function CreateEssayPage() {
                     {/* Cover */}
                     <div className="w-16 h-20 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0">
                       {roll.cover_url ? (
-                        <img src={roll.cover_url} alt="" className="w-full h-full object-cover" />
+                        <Image
+                          src={roll.cover_url}
+                          alt=""
+                          width={64}
+                          height={80}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Film size={20} className="text-[var(--color-ink-tertiary)]" />
@@ -405,7 +420,9 @@ export default function CreateEssayPage() {
                       }`}
                     >
                       {isSelected ? (
-                        <span className="text-[length:var(--text-caption)] font-bold">{selectionIndex + 1}</span>
+                        <span className="text-[length:var(--text-caption)] font-bold">
+                          {selectionIndex + 1}
+                        </span>
                       ) : (
                         <Check size={14} />
                       )}
@@ -488,13 +505,15 @@ export default function CreateEssayPage() {
             <div className="flex flex-wrap gap-[var(--space-element)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
               <span className="capitalize">{essayTemplate} style</span>
               <span>&middot;</span>
-              <span>{selectedRollIds.length} roll{selectedRollIds.length !== 1 ? 's' : ''}</span>
+              <span>
+                {selectedRollIds.length} roll{selectedRollIds.length !== 1 ? 's' : ''}
+              </span>
               <span>&middot;</span>
               <span>{totalPhotos} photos</span>
               {story && (
                 <>
                   <span>&middot;</span>
-                  <span>{story.split(/\n\n+/).filter(p => p.trim()).length} paragraphs</span>
+                  <span>{story.split(/\n\n+/).filter((p) => p.trim()).length} paragraphs</span>
                 </>
               )}
             </div>
@@ -504,11 +523,7 @@ export default function CreateEssayPage() {
             <Button variant="ghost" onClick={() => setStep('rolls')}>
               <ChevronLeft size={16} className="mr-1" /> Back
             </Button>
-            <Button
-              variant="primary"
-              onClick={goToDesigning}
-              disabled={!title.trim()}
-            >
+            <Button variant="primary" onClick={goToDesigning} disabled={!title.trim()}>
               <Wand2 size={16} className="mr-1" /> Design Essay
             </Button>
           </div>
@@ -545,8 +560,9 @@ export default function CreateEssayPage() {
                 Essay designed!
               </p>
               <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                {blocks.length} content blocks · {blocks.filter(b => b.photoIds.length > 0).length} photo sections ·{' '}
-                {blocks.filter(b => b.type === 'text').length} text sections
+                {blocks.length} content blocks ·{' '}
+                {blocks.filter((b) => b.photoIds.length > 0).length} photo sections ·{' '}
+                {blocks.filter((b) => b.type === 'text').length} text sections
               </p>
             </div>
           </div>
@@ -557,14 +573,31 @@ export default function CreateEssayPage() {
             <div className="order-2 lg:order-1">
               <PostBlockEditor
                 blocks={blocks}
-                photoMap={photoMap as unknown as Map<string, { thumbnail_url: string; caption: string | null }>}
-                videoMap={videoMap as unknown as Map<string, { thumbnail_url: string; caption: string | null }>}
+                photoMap={
+                  photoMap as unknown as Map<
+                    string,
+                    { thumbnail_url: string; caption: string | null }
+                  >
+                }
+                videoMap={
+                  videoMap as unknown as Map<
+                    string,
+                    { thumbnail_url: string; caption: string | null }
+                  >
+                }
                 onBlocksChange={setBlocks}
               />
 
               {/* Re-design button */}
               <div className="mt-[var(--space-component)] flex items-center gap-[var(--space-element)]">
-                <Button variant="ghost" size="sm" onClick={() => { runAutoDesign(); toast('Re-designed!', 'success'); }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    runAutoDesign();
+                    toast('Re-designed!', 'success');
+                  }}
+                >
                   <Wand2 size={14} className="mr-1" /> Re-design
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setStep('details')}>
@@ -590,8 +623,33 @@ export default function CreateEssayPage() {
 
                   <BlogPhotoLayout
                     blocks={blocks}
-                    photoMap={photoMap as unknown as Map<string, { id: string; thumbnail_url: string; developed_url: string; width: number; height: number; caption: string | null }>}
-                    videoMap={videoMap as unknown as Map<string, { id: string; thumbnail_url: string; video_url: string; width: number; height: number; caption: string | null; duration_ms: number | null }>}
+                    photoMap={
+                      photoMap as unknown as Map<
+                        string,
+                        {
+                          id: string;
+                          thumbnail_url: string;
+                          developed_url: string;
+                          width: number;
+                          height: number;
+                          caption: string | null;
+                        }
+                      >
+                    }
+                    videoMap={
+                      videoMap as unknown as Map<
+                        string,
+                        {
+                          id: string;
+                          thumbnail_url: string;
+                          video_url: string;
+                          width: number;
+                          height: number;
+                          caption: string | null;
+                          duration_ms: number | null;
+                        }
+                      >
+                    }
                   />
                 </div>
               </div>

@@ -8,8 +8,13 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { TemplateSelector } from '@/components/magazine/TemplateSelector';
-import { SpreadPageView, type DemoPage, type DemoLayout } from '@/components/magazine/SpreadPageView';
+import {
+  SpreadPageView,
+  type DemoPage,
+  type DemoLayout,
+} from '@/components/magazine/SpreadPageView';
 import { useToast } from '@/stores/toastStore';
+import Image from 'next/image';
 import type { MagazineTemplate, MagazineFormat } from '@/types/magazine';
 
 interface DemoRoll {
@@ -52,13 +57,20 @@ const CAPTIONS = [
 
 function photosNeeded(layout: DemoLayout): number {
   switch (layout) {
-    case 'full_bleed': return 1;
-    case 'caption_heavy': return 1;
-    case 'two_up_vertical': return 2;
-    case 'two_up_horizontal': return 2;
-    case 'three_up_top_heavy': return 3;
-    case 'four_up_grid': return 4;
-    default: return 1;
+    case 'full_bleed':
+      return 1;
+    case 'caption_heavy':
+      return 1;
+    case 'two_up_vertical':
+      return 2;
+    case 'two_up_horizontal':
+      return 2;
+    case 'three_up_top_heavy':
+      return 3;
+    case 'four_up_grid':
+      return 4;
+    default:
+      return 1;
   }
 }
 
@@ -141,14 +153,18 @@ export default function CreateMagazinePage() {
   const preselectedRollId = searchParams.get('rollId');
   const { toast } = useToast();
   const [step, setStep] = useState<CreateStep>(preselectedRollId ? 'rolls' : 'template');
-  const [template, setTemplate] = useState<MagazineTemplate | null>(preselectedRollId ? 'monthly' : null);
+  const [template, setTemplate] = useState<MagazineTemplate | null>(
+    preselectedRollId ? 'monthly' : null
+  );
   const [title, setTitle] = useState('');
   const [format, setFormat] = useState<MagazineFormat>('6x9');
   const [_creating, setCreating] = useState(false);
 
   // Roll selection state
   const [availableRolls, setAvailableRolls] = useState<DemoRoll[]>([]);
-  const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(new Set(preselectedRollId ? [preselectedRollId] : []));
+  const [selectedRollIds, setSelectedRollIds] = useState<Set<string>>(
+    new Set(preselectedRollId ? [preselectedRollId] : [])
+  );
   const [rollsLoading, setRollsLoading] = useState(false);
   const [autoAdvanced, setAutoAdvanced] = useState(false);
 
@@ -167,13 +183,15 @@ export default function CreateMagazinePage() {
           // Filter to eligible rolls first, then fetch details in parallel
           const eligible = (data ?? []).filter(
             (roll: { status: string; photo_count: number }) =>
-              (roll.status === 'developed' || roll.status === 'building' || roll.status === 'ready') &&
+              (roll.status === 'developed' ||
+                roll.status === 'building' ||
+                roll.status === 'ready') &&
               roll.photo_count > 0
           );
 
           const detailResults = await Promise.allSettled(
             eligible.map((roll: { id: string }) =>
-              fetch(`/api/rolls/${roll.id}`).then((r) => r.ok ? r.json() : null)
+              fetch(`/api/rolls/${roll.id}`).then((r) => (r.ok ? r.json() : null))
             )
           );
 
@@ -181,10 +199,12 @@ export default function CreateMagazinePage() {
           detailResults.forEach((result, i) => {
             if (result.status !== 'fulfilled' || !result.value) return;
             const roll = eligible[i];
-            const photos = (result.value.data?.photos ?? []).map(
-              (p: { processed_storage_key?: string; photos?: { thumbnail_url?: string } }) =>
-                p.processed_storage_key || p.photos?.thumbnail_url || ''
-            ).filter(Boolean);
+            const photos = (result.value.data?.photos ?? [])
+              .map(
+                (p: { processed_storage_key?: string; photos?: { thumbnail_url?: string } }) =>
+                  p.processed_storage_key || p.photos?.thumbnail_url || ''
+              )
+              .filter(Boolean);
             rolls.push({
               id: roll.id,
               name: roll.name || 'Untitled Roll',
@@ -366,7 +386,8 @@ export default function CreateMagazinePage() {
               Select Rolls
             </h2>
             <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
-              Choose one or more rolls to build your magazine from. We&apos;ll use their photos to auto-design the layout.
+              Choose one or more rolls to build your magazine from. We&apos;ll use their photos to
+              auto-design the layout.
             </p>
           </div>
 
@@ -402,7 +423,14 @@ export default function CreateMagazinePage() {
                     {/* Roll cover */}
                     <div className="relative w-16 h-[85px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-sharp)] overflow-hidden shrink-0">
                       {roll.coverUrl ? (
-                        <img src={roll.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                        <Image
+                          src={roll.coverUrl}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          loading="lazy"
+                          unoptimized
+                        />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Film size={18} className="text-[var(--color-ink-tertiary)]" />
@@ -437,7 +465,14 @@ export default function CreateMagazinePage() {
                           key={i}
                           className="w-8 h-8 rounded-full overflow-hidden border-2 border-[var(--color-surface)] shrink-0"
                         >
-                          <img src={photo} alt="" className="w-full h-full object-cover" />
+                          <Image
+                            src={photo}
+                            alt=""
+                            width={32}
+                            height={32}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
                         </div>
                       ))}
                       {roll.photos.length > 4 && (
@@ -457,7 +492,10 @@ export default function CreateMagazinePage() {
           {selectedRollIds.size > 0 && (
             <p className="text-[length:var(--text-caption)] text-[var(--color-action)] font-medium">
               {selectedRollIds.size} roll{selectedRollIds.size !== 1 ? 's' : ''} selected ·{' '}
-              {availableRolls.filter((r) => selectedRollIds.has(r.id)).reduce((sum, r) => sum + r.photos.length, 0)} photos total
+              {availableRolls
+                .filter((r) => selectedRollIds.has(r.id))
+                .reduce((sum, r) => sum + r.photos.length, 0)}{' '}
+              photos total
             </p>
           )}
 
@@ -517,15 +555,17 @@ export default function CreateMagazinePage() {
               Source rolls
             </p>
             <div className="flex flex-wrap gap-[var(--space-tight)]">
-              {availableRolls.filter((r) => selectedRollIds.has(r.id)).map((roll) => (
-                <span
-                  key={roll.id}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-[var(--radius-pill)] bg-[var(--color-action)]/10 text-[length:var(--text-caption)] text-[var(--color-action)] font-medium"
-                >
-                  <Film size={10} />
-                  {roll.name}
-                </span>
-              ))}
+              {availableRolls
+                .filter((r) => selectedRollIds.has(r.id))
+                .map((roll) => (
+                  <span
+                    key={roll.id}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-[var(--radius-pill)] bg-[var(--color-action)]/10 text-[length:var(--text-caption)] text-[var(--color-action)] font-medium"
+                  >
+                    <Film size={10} />
+                    {roll.name}
+                  </span>
+                ))}
             </div>
           </div>
 
@@ -565,7 +605,8 @@ export default function CreateMagazinePage() {
                 Magazine designed!
               </p>
               <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                {generatedPages.length} pages from {selectedRollIds.size} roll{selectedRollIds.size !== 1 ? 's' : ''} · {format}
+                {generatedPages.length} pages from {selectedRollIds.size} roll
+                {selectedRollIds.size !== 1 ? 's' : ''} · {format}
               </p>
             </div>
           </div>
@@ -588,7 +629,8 @@ export default function CreateMagazinePage() {
               <ChevronLeft size={18} />
             </button>
             <span className="font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-              {leftIndex + 1}–{Math.min(rightIndex + 1, generatedPages.length)} of {generatedPages.length}
+              {leftIndex + 1}–{Math.min(rightIndex + 1, generatedPages.length)} of{' '}
+              {generatedPages.length}
             </span>
             <button
               type="button"
@@ -611,11 +653,20 @@ export default function CreateMagazinePage() {
                   type="button"
                   onClick={() => setSpreadIndex(i)}
                   className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors ${
-                    i === spreadIndex ? 'border-[var(--color-action)]' : 'border-transparent hover:border-[var(--color-border)]'
+                    i === spreadIndex
+                      ? 'border-[var(--color-action)]'
+                      : 'border-transparent hover:border-[var(--color-border)]'
                   }`}
                 >
                   {photoUrl ? (
-                    <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                    <Image
+                      src={photoUrl}
+                      alt=""
+                      width={56}
+                      height={40}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
                   ) : (
                     <div className="w-full h-full bg-[var(--color-surface-sunken)] flex items-center justify-center">
                       <Type size={8} className="text-[var(--color-ink-tertiary)]" />
@@ -629,43 +680,58 @@ export default function CreateMagazinePage() {
           {/* Actions */}
           <div className="flex items-center justify-between pt-[var(--space-element)] border-t border-[var(--color-border)]">
             <div className="flex items-center gap-2">
-              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">Estimated price:</span>
-              <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-body)] text-[var(--color-ink)]">$14.99</span>
+              <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                Estimated price:
+              </span>
+              <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-body)] text-[var(--color-ink)]">
+                $14.99
+              </span>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => { setStep('rolls'); setGeneratedPages([]); }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setStep('rolls');
+                  setGeneratedPages([]);
+                }}
+              >
                 <X size={14} className="mr-1" /> Start Over
               </Button>
-              <Button variant="primary" size="sm" onClick={async () => {
-                setCreating(true);
-                try {
-                  const res = await fetch('/api/magazines', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      title: title.trim() || 'My Magazine',
-                      template: template || 'monthly',
-                      format,
-                      rollIds: Array.from(selectedRollIds),
-                    }),
-                  });
-                  if (res.ok) {
-                    const json = await res.json();
-                    if (json.data?.id) {
-                      router.push(`/projects/magazines/${json.data.id}/review`);
-                      return;
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={async () => {
+                  setCreating(true);
+                  try {
+                    const res = await fetch('/api/magazines', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        title: title.trim() || 'My Magazine',
+                        template: template || 'monthly',
+                        format,
+                        rollIds: Array.from(selectedRollIds),
+                      }),
+                    });
+                    if (res.ok) {
+                      const json = await res.json();
+                      if (json.data?.id) {
+                        router.push(`/projects/magazines/${json.data.id}/review`);
+                        return;
+                      }
                     }
+                    // Fallback: navigate to designs listing
+                    toast('Magazine saved!', 'success');
+                    router.push('/designs');
+                  } catch {
+                    toast('Magazine saved!', 'success');
+                    router.push('/designs');
+                  } finally {
+                    setCreating(false);
                   }
-                  // Fallback: navigate to designs listing
-                  toast('Magazine saved!', 'success');
-                  router.push('/designs');
-                } catch {
-                  toast('Magazine saved!', 'success');
-                  router.push('/designs');
-                } finally {
-                  setCreating(false);
-                }
-              }}>
+                }}
+              >
                 <ShoppingCart size={14} className="mr-1" /> Order Print
               </Button>
             </div>

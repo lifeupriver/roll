@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { X, Globe, Tag, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -174,7 +175,10 @@ export function PublishModal({
   };
 
   const addTag = () => {
-    const tag = tagInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const tag = tagInput
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '');
     if (tag && !tags.includes(tag) && tags.length < 10) {
       setTags([...tags, tag]);
       setTagInput('');
@@ -208,9 +212,7 @@ export function PublishModal({
           </div>
         ) : draftError ? (
           <div className="flex flex-col items-center gap-[var(--space-element)] py-[var(--space-section)] text-center">
-            <p className="text-[length:var(--text-body)] text-[var(--color-error)]">
-              {draftError}
-            </p>
+            <p className="text-[length:var(--text-body)] text-[var(--color-error)]">{draftError}</p>
             <Button variant="primary" size="sm" onClick={createDraft}>
               Try Again
             </Button>
@@ -263,11 +265,14 @@ export function PublishModal({
                     }`}
                   >
                     {rp.photos?.thumbnail_url && (
-                      <img
+                      <Image
                         src={rp.photos.thumbnail_url}
                         alt=""
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        unoptimized
                       />
                     )}
                   </button>
@@ -321,11 +326,21 @@ export function PublishModal({
                 <Globe size={12} />
                 Ordering Options
               </label>
-              {([
-                { label: 'Allow visitors to order prints', value: allowPrints, setter: setAllowPrints },
-                { label: 'Allow visitors to order magazine', value: allowMagazine, setter: setAllowMagazine },
-                { label: 'Allow visitors to order book', value: allowBook, setter: setAllowBook },
-              ] as const).map((toggle) => (
+              {(
+                [
+                  {
+                    label: 'Allow visitors to order prints',
+                    value: allowPrints,
+                    setter: setAllowPrints,
+                  },
+                  {
+                    label: 'Allow visitors to order magazine',
+                    value: allowMagazine,
+                    setter: setAllowMagazine,
+                  },
+                  { label: 'Allow visitors to order book', value: allowBook, setter: setAllowBook },
+                ] as const
+              ).map((toggle) => (
                 <label
                   key={toggle.label}
                   className="flex items-center gap-[var(--space-element)] min-h-[44px] cursor-pointer"

@@ -2,16 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import {
-  Eye,
-  Edit3,
-  Save,
-  Globe,
-  Wand2,
-  Trash2,
-  Settings,
-  X,
-} from 'lucide-react';
+import { Eye, Edit3, Save, Globe, Wand2, Trash2, Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { BackButton } from '@/components/ui/BackButton';
 import { Spinner } from '@/components/ui/Spinner';
@@ -20,8 +11,7 @@ import { PostBlockEditor } from '@/components/blog/PostBlockEditor';
 import { BlogPhotoLayout } from '@/components/blog/BlogPhotoLayout';
 import { EssayFontSelector } from '@/components/blog/EssayFontSelector';
 import { useToast } from '@/stores/toastStore';
-import { smartDesignBlogWithTemplate } from '@/lib/design/design-engine';
-import type { BlogBlock } from '@/lib/design/design-engine';
+import { smartDesignBlogWithTemplate, type BlogBlock } from '@/lib/design/design-engine';
 import type { BlogPost, EssayTemplate, EssayFont } from '@/types/blog';
 
 type EditorMode = 'preview' | 'edit' | 'settings';
@@ -113,7 +103,7 @@ export default function EssayEditorPage() {
       }
     }
     fetchPost();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   const fetchRollMedia = async (rollIds: string[], reelIds: string[]) => {
@@ -124,14 +114,19 @@ export default function EssayEditorPage() {
         const json = await res.json();
         return (json.data ?? []).map((rp: Record<string, unknown>) => ({
           id: rp.photo_id || rp.id,
-          thumbnail_url: (rp.photos as Record<string, unknown>)?.thumbnail_url || rp.thumbnail_url || '',
-          developed_url: (rp.photos as Record<string, unknown>)?.developed_url || rp.developed_url || '',
+          thumbnail_url:
+            (rp.photos as Record<string, unknown>)?.thumbnail_url || rp.thumbnail_url || '',
+          developed_url:
+            (rp.photos as Record<string, unknown>)?.developed_url || rp.developed_url || '',
           width: (rp.photos as Record<string, unknown>)?.width || rp.width || 1200,
           height: (rp.photos as Record<string, unknown>)?.height || rp.height || 800,
           caption: (rp.photos as Record<string, unknown>)?.caption || rp.caption || null,
-          aesthetic_score: (rp.photos as Record<string, unknown>)?.aesthetic_score || rp.aesthetic_score || null,
+          aesthetic_score:
+            (rp.photos as Record<string, unknown>)?.aesthetic_score || rp.aesthetic_score || null,
           face_count: (rp.photos as Record<string, unknown>)?.face_count || rp.face_count || null,
-          scene_classification: ((rp.photos as Record<string, unknown>)?.scene_classification || rp.scene_classification || []) as string[],
+          scene_classification: ((rp.photos as Record<string, unknown>)?.scene_classification ||
+            rp.scene_classification ||
+            []) as string[],
         }));
       });
       const allPhotos = (await Promise.all(photoPromises)).flat();
@@ -240,7 +235,7 @@ export default function EssayEditorPage() {
       });
       if (res.ok) {
         toast('Published! Your essay is now public.', 'success');
-        setPost((prev) => prev ? { ...prev, status: 'published' } : prev);
+        setPost((prev) => (prev ? { ...prev, status: 'published' } : prev));
       } else {
         const err = await res.json().catch(() => ({}));
         toast(err.error || 'Failed to publish', 'error');
@@ -258,7 +253,7 @@ export default function EssayEditorPage() {
     const template = (post.essay_template || 'documentary') as EssayTemplate;
 
     const mediaItems = [
-      ...rollPhotos.map(p => ({
+      ...rollPhotos.map((p) => ({
         id: p.id,
         type: 'photo' as const,
         width: p.width,
@@ -269,7 +264,7 @@ export default function EssayEditorPage() {
         scene_classification: p.scene_classification,
         duration_ms: null,
       })),
-      ...rollReels.map(v => ({
+      ...rollReels.map((v) => ({
         id: v.id,
         type: 'video' as const,
         width: v.width,
@@ -305,7 +300,10 @@ export default function EssayEditorPage() {
 
   // Tag management
   const addTag = () => {
-    const tag = tagInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const tag = tagInput
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '');
     if (tag && !tags.includes(tag) && tags.length < 10) {
       setTags([...tags, tag]);
       setTagInput('');
@@ -323,7 +321,9 @@ export default function EssayEditorPage() {
   if (!post) {
     return (
       <div className="flex flex-col items-center justify-center py-[var(--space-hero)] gap-[var(--space-element)]">
-        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">Post not found</p>
+        <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)]">
+          Post not found
+        </p>
         <Button variant="secondary" size="sm" onClick={() => router.push('/designs')}>
           Back to Designs
         </Button>
@@ -439,12 +439,40 @@ export default function EssayEditorPage() {
           {blocks.length > 0 ? (
             <BlogPhotoLayout
               blocks={blocks}
-              photoMap={photoMap as unknown as Map<string, { id: string; thumbnail_url: string; developed_url: string; width: number; height: number; caption: string | null }>}
-              videoMap={videoMap as unknown as Map<string, { id: string; thumbnail_url: string; video_url: string; width: number; height: number; caption: string | null; duration_ms: number | null }>}
+              photoMap={
+                photoMap as unknown as Map<
+                  string,
+                  {
+                    id: string;
+                    thumbnail_url: string;
+                    developed_url: string;
+                    width: number;
+                    height: number;
+                    caption: string | null;
+                  }
+                >
+              }
+              videoMap={
+                videoMap as unknown as Map<
+                  string,
+                  {
+                    id: string;
+                    thumbnail_url: string;
+                    video_url: string;
+                    width: number;
+                    height: number;
+                    caption: string | null;
+                    duration_ms: number | null;
+                  }
+                >
+              }
             />
           ) : (
             <div className="text-center py-[var(--space-hero)]">
-              <Wand2 size={32} className="mx-auto mb-[var(--space-element)] text-[var(--color-ink-tertiary)]" />
+              <Wand2
+                size={32}
+                className="mx-auto mb-[var(--space-element)] text-[var(--color-ink-tertiary)]"
+              />
               <p className="text-[length:var(--text-body)] text-[var(--color-ink-secondary)] mb-[var(--space-element)]">
                 No content blocks yet.
               </p>
@@ -463,13 +491,29 @@ export default function EssayEditorPage() {
           <div>
             <PostBlockEditor
               blocks={blocks}
-              photoMap={photoMap as unknown as Map<string, { thumbnail_url: string; caption: string | null }>}
-              videoMap={videoMap as unknown as Map<string, { thumbnail_url: string; caption: string | null }>}
+              photoMap={
+                photoMap as unknown as Map<
+                  string,
+                  { thumbnail_url: string; caption: string | null }
+                >
+              }
+              videoMap={
+                videoMap as unknown as Map<
+                  string,
+                  { thumbnail_url: string; caption: string | null }
+                >
+              }
               onBlocksChange={setBlocks}
             />
 
             <div className="mt-[var(--space-component)] flex items-center gap-[var(--space-element)]">
-              <Button variant="ghost" size="sm" onClick={() => { handleRedesign(); }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  handleRedesign();
+                }}
+              >
                 <Wand2 size={14} className="mr-1" /> Re-design
               </Button>
             </div>
@@ -491,8 +535,33 @@ export default function EssayEditorPage() {
 
                 <BlogPhotoLayout
                   blocks={blocks}
-                  photoMap={photoMap as unknown as Map<string, { id: string; thumbnail_url: string; developed_url: string; width: number; height: number; caption: string | null }>}
-                  videoMap={videoMap as unknown as Map<string, { id: string; thumbnail_url: string; video_url: string; width: number; height: number; caption: string | null; duration_ms: number | null }>}
+                  photoMap={
+                    photoMap as unknown as Map<
+                      string,
+                      {
+                        id: string;
+                        thumbnail_url: string;
+                        developed_url: string;
+                        width: number;
+                        height: number;
+                        caption: string | null;
+                      }
+                    >
+                  }
+                  videoMap={
+                    videoMap as unknown as Map<
+                      string,
+                      {
+                        id: string;
+                        thumbnail_url: string;
+                        video_url: string;
+                        width: number;
+                        height: number;
+                        caption: string | null;
+                        duration_ms: number | null;
+                      }
+                    >
+                  }
                 />
               </div>
             </div>
@@ -571,7 +640,7 @@ export default function EssayEditorPage() {
                   #{tag}
                   <button
                     type="button"
-                    onClick={() => setTags(tags.filter(t => t !== tag))}
+                    onClick={() => setTags(tags.filter((t) => t !== tag))}
                     className="text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)]"
                   >
                     <X size={10} />

@@ -14,7 +14,7 @@ import { usePhotos } from '@/hooks/usePhotos';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
 import { track } from '@/lib/analytics';
-import type { Reel } from '@/types/reel';
+import Image from 'next/image';
 
 function formatDuration(ms: number): string {
   const totalSeconds = Math.round(ms / 1000);
@@ -56,13 +56,22 @@ export default function VideosPage() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gridColumns, setGridColumns] = useState(3);
   const [developedReels, setDevelopedReels] = useState<
-    Array<{ id: string; name: string; status: string; clip_count: number; poster_storage_key: string | null; assembled_duration_ms: number | null; current_duration_ms?: number | null; created_at: string }>
+    Array<{
+      id: string;
+      name: string;
+      status: string;
+      clip_count: number;
+      poster_storage_key: string | null;
+      assembled_duration_ms: number | null;
+      current_duration_ms?: number | null;
+      created_at: string;
+    }>
   >([]);
 
   // Set content mode to 'clips' on mount to fetch videos
   useEffect(() => {
     setContentMode('clips');
-  }, []);
+  }, [setContentMode]);
 
   // Filter videos only + apply people filter
   const videoClips = useMemo(() => {
@@ -98,7 +107,9 @@ export default function VideosPage() {
         }
 
         setDevelopedReels(
-          data.filter((r: { status: string }) => r.status === 'developed' || r.status === 'processing')
+          data.filter(
+            (r: { status: string }) => r.status === 'developed' || r.status === 'processing'
+          )
         );
       } catch {
         // No active reel is fine
@@ -167,7 +178,15 @@ export default function VideosPage() {
                 const store = useReelStore.getState();
                 const updatedClips = store.reelClips.map((c) =>
                   c.photo_id === photoId && c.id.startsWith('pending-')
-                    ? { ...clipData, photos: { id: photoId, thumbnail_url: photo.thumbnail_url, media_type: 'video', duration_ms: photo.duration_ms } }
+                    ? {
+                        ...clipData,
+                        photos: {
+                          id: photoId,
+                          thumbnail_url: photo.thumbnail_url,
+                          media_type: 'video',
+                          duration_ms: photo.duration_ms,
+                        },
+                      }
                     : c
                 );
                 store.setReelClips(updatedClips);
@@ -236,11 +255,17 @@ export default function VideosPage() {
                 >
                   <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                     {reel.poster_storage_key ? (
-                      <img
-                        src={reel.poster_storage_key.startsWith('/photos/') ? reel.poster_storage_key : `/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
+                      <Image
+                        src={
+                          reel.poster_storage_key.startsWith('/photos/')
+                            ? reel.poster_storage_key
+                            : `/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`
+                        }
                         alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         loading="lazy"
+                        unoptimized
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -282,140 +307,198 @@ export default function VideosPage() {
       </div>
 
       <div className="flex flex-col gap-[var(--space-component)]">
-          {/* Reel builder banner */}
-          <div
-            className={`rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
-              selectMode
-                ? 'bg-[var(--color-action-subtle)] border border-[var(--color-action)]'
-                : reelCount > 0
-                  ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
-                  : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
-            }`}
-          >
-            {selectMode ? (
-              <div className="flex items-center justify-between">
+        {/* Reel builder banner */}
+        <div
+          className={`rounded-[var(--radius-card)] p-[var(--space-component)] transition-all duration-300 ${
+            selectMode
+              ? 'bg-[var(--color-action-subtle)] border border-[var(--color-action)]'
+              : reelCount > 0
+                ? 'bg-[var(--color-surface-raised)] border border-[var(--color-border)]'
+                : 'bg-[var(--color-surface-raised)] border border-dashed border-[var(--color-border)]'
+          }`}
+        >
+          {selectMode ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-action)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
+                    Selecting clips for reel
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+                    {reelCount > 0
+                      ? `${reelCount} clip${reelCount !== 1 ? 's' : ''} selected`
+                      : 'Tap clips to add them'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectMode(false)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium"
+              >
+                Done
+                <X size={14} />
+              </button>
+            </div>
+          ) : reelCount > 0 && currentReel ? (
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => router.push(`/library/reels/${currentReel.id}`)}
+                className="flex-1 cursor-pointer"
+              >
                 <div className="flex items-center gap-[var(--space-element)]">
-                  <Film size={16} className="text-[var(--color-action)]" />
+                  <Film size={16} className="text-[var(--color-ink-secondary)]" />
                   <div>
-                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-action)]">
-                      Selecting clips for reel
-                    </p>
-                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
-                      {reelCount > 0
-                        ? `${reelCount} clip${reelCount !== 1 ? 's' : ''} selected`
-                        : 'Tap clips to add them'}
-                    </p>
+                    <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                      {currentReel.name || 'Next Reel'}
+                    </span>
+                    <span className="ml-2 font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
+                      {reelCount} clip{reelCount !== 1 ? 's' : ''}
+                    </span>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectMode(false)}
-                  className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium"
-                >
-                  Done
-                  <X size={14} />
-                </button>
-              </div>
-            ) : reelCount > 0 && currentReel ? (
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => router.push(`/library/reels/${currentReel.id}`)}
-                  className="flex-1 cursor-pointer"
-                >
-                  <div className="flex items-center gap-[var(--space-element)]">
-                    <Film size={16} className="text-[var(--color-ink-secondary)]" />
-                    <div>
-                      <span className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                        {currentReel.name || 'Next Reel'}
-                      </span>
-                      <span className="ml-2 font-[family-name:var(--font-mono)] text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] tabular-nums">
-                        {reelCount} clip{reelCount !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectMode(true)}
-                  className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium"
-                >
-                  <MousePointerClick size={14} />
-                  Select
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-[var(--space-element)]">
-                  <Film size={16} className="text-[var(--color-ink-tertiary)]" />
-                  <div>
-                    <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
-                      Select your favorites for a reel
-                    </p>
-                    <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                      Browse your clips, then select your best ones to create a reel
-                    </p>
-                  </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-[var(--space-element)]">
+                <Film size={16} className="text-[var(--color-ink-tertiary)]" />
+                <div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)]">
+                    Select your favorites for a reel
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    Browse your clips, then select your best ones to create a reel
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectMode(true)}
-                  className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium"
-                >
-                  <MousePointerClick size={14} />
-                  Select
-                </button>
               </div>
-            )}
-          </div>
-
-          {/* Video clip grid */}
-          {loading && videoClips.length === 0 && (
-            <div className="flex items-center justify-center py-[var(--space-hero)]">
-              <Spinner size="md" />
+              <button
+                type="button"
+                onClick={() => setSelectMode(true)}
+                className="flex items-center gap-[var(--space-tight)] px-[var(--space-element)] py-[var(--space-tight)] rounded-[var(--radius-pill)] bg-[var(--color-action)] text-white text-[length:var(--text-label)] font-medium"
+              >
+                <MousePointerClick size={14} />
+                Select
+              </button>
             </div>
           )}
-
-          {!loading && videoClips.length === 0 && (
-            <Empty
-              icon={Film}
-              title="No video clips yet"
-              description="Videos you shoot will appear here. Select your favorites to build a reel."
-            />
-          )}
-
-          {videoClips.length > 0 && (
-            <>
-              <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
-                {videoClips.length} clip{videoClips.length !== 1 ? 's' : ''}
-              </p>
-              <PhotoGrid
-                photos={videoClips}
-                mode="feed"
-                selectMode={selectMode}
-                checkedIds={clipIds}
-                onCheck={handleClipCheck}
-                onPhotoTap={handlePhotoTap}
-                hasMore={hasMore}
-                onLoadMore={loadMore}
-                isLoading={loading}
-                columns={gridColumns}
-              />
-            </>
-          )}
-
-          {/* Lightbox */}
-          {lightboxIndex !== null && (
-            <PhotoLightbox
-              photos={videoClips}
-              initialIndex={lightboxIndex}
-              onClose={() => setLightboxIndex(null)}
-              mode="feed"
-              onCheck={selectMode ? handleClipCheck : undefined}
-              isChecked={selectMode ? isClipAdded : undefined}
-            />
-          )}
         </div>
+
+        {/* Video clip grid */}
+        {loading && videoClips.length === 0 && (
+          <div className="flex items-center justify-center py-[var(--space-hero)]">
+            <Spinner size="md" />
+          </div>
+        )}
+
+        {!loading && videoClips.length === 0 && (
+          <Empty
+            icon={Film}
+            title="No video clips yet"
+            description="Videos you shoot will appear here. Select your favorites to build a reel."
+          />
+        )}
+
+        {videoClips.length > 0 && (
+          <>
+            <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              {videoClips.length} clip{videoClips.length !== 1 ? 's' : ''}
+            </p>
+            <PhotoGrid
+              photos={videoClips}
+              mode="feed"
+              selectMode={selectMode}
+              checkedIds={clipIds}
+              onCheck={handleClipCheck}
+              onPhotoTap={handlePhotoTap}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+              isLoading={loading}
+              columns={gridColumns}
+            />
+          </>
+        )}
+
+        {/* Lightbox */}
+        {lightboxIndex !== null && (
+          <PhotoLightbox
+            photos={videoClips}
+            initialIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+            mode="feed"
+            onCheck={selectMode ? handleClipCheck : undefined}
+            isChecked={selectMode ? isClipAdded : undefined}
+          />
+        )}
+        {/* Your Reels — developed reels horizontal scroll */}
+        {developedReels.length > 0 && (
+          <div className="mt-[var(--space-element)]">
+            <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lead)] font-medium text-[var(--color-ink)] mb-[var(--space-element)]">
+              Your Reels
+            </h2>
+            <div
+              className="flex flex-row gap-[var(--space-element)] overflow-x-auto pb-[var(--space-tight)] scrollbar-hide"
+              style={{ scrollSnapType: 'x mandatory' }}
+            >
+              {developedReels.map((reel) => (
+                <Link
+                  key={reel.id}
+                  href={`/library/reels/${reel.id}`}
+                  className="text-left group shrink-0 w-36"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="relative aspect-[9/16] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
+                    {reel.poster_storage_key ? (
+                      <Image
+                        src={reel.poster_storage_key}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Film size={24} className="text-[var(--color-ink-tertiary)]" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-full bg-black/40 flex items-center justify-center">
+                        <Play size={18} className="text-white ml-0.5" fill="white" />
+                      </div>
+                    </div>
+                    {reel.assembled_duration_ms && (
+                      <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
+                        {Math.floor(reel.assembled_duration_ms / 60000)}:
+                        {String(Math.floor((reel.assembled_duration_ms % 60000) / 1000)).padStart(
+                          2,
+                          '0'
+                        )}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[length:var(--text-label)] font-medium text-[var(--color-ink)] truncate group-hover:text-[var(--color-action)] transition-colors">
+                    {reel.name || 'Untitled Reel'}
+                  </p>
+                  <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+                    {reel.clip_count} clips
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Fixed bottom action bar — slides up when clips are selected */}
       <div

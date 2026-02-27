@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import {
   ChevronLeft,
@@ -259,6 +260,27 @@ export function PhotoLightbox({
     setVideoProgress(fraction);
   }, []);
 
+  // Format location
+  const locationInfo = (() => {
+    if (currentPhoto.latitude !== null && currentPhoto.longitude !== null) {
+      const lat = currentPhoto.latitude;
+      const lng = currentPhoto.longitude;
+      const latDir = lat >= 0 ? 'N' : 'S';
+      const lngDir = lng >= 0 ? 'E' : 'W';
+      return `${Math.abs(lat).toFixed(4)}\u00B0${latDir}, ${Math.abs(lng).toFixed(4)}\u00B0${lngDir}`;
+    }
+    return null;
+  })();
+
+  // Format date
+  const formattedDate = currentPhoto.date_taken
+    ? new Date(currentPhoto.date_taken).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
   // Share
   const handleShare = useCallback(async () => {
     const shareData: ShareData = {
@@ -283,28 +305,7 @@ export function PhotoLightbox({
         // Clipboard unavailable
       }
     }
-  }, [currentPhoto]);
-
-  // Format location
-  const locationInfo = (() => {
-    if (currentPhoto.latitude !== null && currentPhoto.longitude !== null) {
-      const lat = currentPhoto.latitude;
-      const lng = currentPhoto.longitude;
-      const latDir = lat >= 0 ? 'N' : 'S';
-      const lngDir = lng >= 0 ? 'E' : 'W';
-      return `${Math.abs(lat).toFixed(4)}\u00B0${latDir}, ${Math.abs(lng).toFixed(4)}\u00B0${lngDir}`;
-    }
-    return null;
-  })();
-
-  // Format date
-  const formattedDate = currentPhoto.date_taken
-    ? new Date(currentPhoto.date_taken).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null;
+  }, [currentPhoto, formattedDate]);
 
   // Shared element transition: compute style for the hero image
   const hasSharedTransition = initialSourceRect.current && currentIndex === initialIndex;
@@ -464,7 +465,7 @@ export function PhotoLightbox({
                 </div>
               </div>
             ) : (
-              <img
+              <Image
                 ref={heroImgRef}
                 key={currentPhoto.id}
                 src={currentPhoto.thumbnail_url}
@@ -478,6 +479,9 @@ export function PhotoLightbox({
                   transitionDirection ? 'scale-[0.97] opacity-80' : 'scale-100 opacity-100',
                 ].join(' ')}
                 style={sharedElementStyle || { maxHeight: '80vh' }}
+                width={1200}
+                height={900}
+                unoptimized
               />
             )}
           </div>

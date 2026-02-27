@@ -7,6 +7,7 @@ import { BackButton } from '@/components/ui/BackButton';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { PhotoLightbox } from '@/components/photo/PhotoLightbox';
+import Image from 'next/image';
 
 interface MemberProfile {
   id: string;
@@ -81,10 +82,13 @@ export default function MemberProfilePage() {
       <div className="flex items-center gap-[var(--space-component)]">
         <div className="w-20 h-20 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0 overflow-hidden">
           {profile?.avatar_url ? (
-            <img
+            <Image
               src={profile.avatar_url}
               alt=""
+              width={80}
+              height={80}
               className="w-full h-full rounded-full object-cover"
+              unoptimized
             />
           ) : (
             <span className="text-[length:var(--text-title)] font-medium text-[var(--color-action)]">
@@ -119,11 +123,14 @@ export default function MemberProfilePage() {
                 onClick={() => setLightboxIndex(i)}
                 className="relative aspect-square bg-[var(--color-surface-sunken)] overflow-hidden"
               >
-                <img
+                <Image
                   src={photo.thumbnail_url}
                   alt=""
+                  width={200}
+                  height={200}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  unoptimized
                 />
               </button>
             ))}

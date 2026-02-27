@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Film, Play } from 'lucide-react';
 import { formatDuration } from './ClipDurationBadge';
 
@@ -96,7 +97,7 @@ export function ReelCard({ reel, posterUrl, onClick }: ReelCardProps) {
         {/* Poster thumbnail */}
         {posterUrl && (
           <div className="relative shrink-0 w-20 h-14 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
-            <img src={posterUrl} alt="" className="w-full h-full object-cover" />
+            <Image src={posterUrl} alt="" className="w-full h-full object-cover" width={80} height={56} unoptimized />
             <div className="absolute inset-0 flex items-center justify-center">
               <Play size={20} className="text-white/80" fill="white" fillOpacity={0.6} />
             </div>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Users,
   Plus,
-  Image,
+  Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
   Send,
@@ -31,6 +31,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { CirclePostCard } from '@/components/circle/CirclePostCard';
 import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
+import Image from 'next/image';
 import type { Circle, CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
 // ---------------------------------------------------------------------------
@@ -397,7 +398,7 @@ export default function CirclePage() {
 
           {!feedLoading && feedPosts.length === 0 && (
             <Empty
-              icon={Image}
+              icon={ImageIcon}
               title="Your circle feed is empty"
               description="Share photos or invite friends to see their posts here."
             />
@@ -461,10 +462,13 @@ export default function CirclePage() {
                 <BackButton onClick={() => setSelectedPost(null)} />
                 <div className="flex items-center gap-[var(--space-element)] flex-1 min-w-0">
                   {selectedPost.profiles?.avatar_url ? (
-                    <img
+                    <Image
                       src={selectedPost.profiles.avatar_url}
                       alt=""
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-[var(--color-action)]/30"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0 ring-2 ring-[var(--color-action)]/30">
@@ -489,10 +493,13 @@ export default function CirclePage() {
                 {/* Image */}
                 {currentPhoto && (
                   <div className="relative bg-[var(--color-surface-sunken)]">
-                    <img
+                    <Image
                       src={`/api/photos/serve?key=${encodeURIComponent(currentPhoto.storage_key)}`}
                       alt=""
+                      width={800}
+                      height={600}
                       className="w-full max-h-[60vh] object-contain"
+                      unoptimized
                     />
                     {photos.length > 1 && selectedPhotoIndex > 0 && (
                       <button
@@ -564,10 +571,13 @@ export default function CirclePage() {
                       <div key={c.id} className="flex gap-[var(--space-tight)] group">
                         <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden mt-0.5 ring-1 ring-[var(--color-action)]/20">
                           {c.profiles?.avatar_url ? (
-                            <img
+                            <Image
                               src={c.profiles.avatar_url}
                               alt=""
+                              width={28}
+                              height={28}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
@@ -809,7 +819,7 @@ export default function CirclePage() {
               {/* Posting permissions */}
               <div className="p-[var(--space-component)] border-b border-[var(--color-border)]">
                 <h3 className="flex items-center gap-[var(--space-tight)] text-[length:var(--text-label)] font-medium text-[var(--color-ink-secondary)] uppercase tracking-[0.04em] mb-[var(--space-element)]">
-                  <Image size={14} /> Who Can Post
+                  <ImageIcon size={14} /> Who Can Post
                 </h3>
                 <div className="flex flex-col gap-[var(--space-tight)]">
                   {(['everyone', 'admins'] as const).map((opt) => (

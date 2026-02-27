@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Film } from 'lucide-react';
 
 interface RollCardProps {
@@ -196,7 +197,7 @@ export function RollCard({ roll, thumbnails, onClick }: RollCardProps) {
             aria-hidden="true"
           >
             {thumbnails.map((url, _index) => (
-              <img
+              <Image
                 key={url}
                 src={url}
                 alt=""
@@ -207,6 +208,9 @@ export function RollCard({ roll, thumbnails, onClick }: RollCardProps) {
                   'rounded-[var(--radius-sharp)]',
                   'bg-[var(--color-surface-sunken)]',
                 ].join(' ')}
+                width={80}
+                height={80}
+                unoptimized
               />
             ))}
           </div>

@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { VoiceCaptionButton } from '@/components/shared/VoiceCaptionButton';
 import { generateDraftCaption } from '@/lib/captions/auto-caption';
 import type { Roll, RollPhoto } from '@/types/roll';
+import Image from 'next/image';
 import type { Photo } from '@/types/photo';
 
 type BuildStep = 'name' | 'story' | 'captions';
@@ -16,11 +17,7 @@ interface RollPhotoWithPhoto extends RollPhoto {
   photos: Photo;
 }
 
-export default function RollBuilderPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function RollBuilderPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [rollId, setRollId] = useState<string>('');
   const [roll, setRoll] = useState<Roll | null>(null);
@@ -96,7 +93,10 @@ export default function RollBuilderPage({
     const initialCaptions = new Map<string, { text: string; source: string }>();
     for (const rp of photos) {
       if (rp.caption) {
-        initialCaptions.set(rp.photo_id, { text: rp.caption, source: rp.caption_source ?? 'manual' });
+        initialCaptions.set(rp.photo_id, {
+          text: rp.caption,
+          source: rp.caption_source ?? 'manual',
+        });
       } else {
         const draft = generateDraftCaption({
           scene_classification: rp.photos?.scene_classification,
@@ -111,7 +111,9 @@ export default function RollBuilderPage({
     setCaptions(initialCaptions);
   }, [photos]);
 
-  const captionedCount = Array.from(captions.values()).filter((c: { text: string }) => c.text.trim().length > 0).length;
+  const captionedCount = Array.from(captions.values()).filter(
+    (c: { text: string }) => c.text.trim().length > 0
+  ).length;
   const currentPhoto = photos[currentPhotoIndex];
   const currentCaption = currentPhoto ? captions.get(currentPhoto.photo_id) : undefined;
 
@@ -233,11 +235,14 @@ export default function RollBuilderPage({
                 style={{ scrollSnapAlign: 'start' }}
               >
                 {rp.photos?.thumbnail_url && (
-                  <img
+                  <Image
                     src={rp.photos.thumbnail_url}
                     alt=""
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                     loading="lazy"
+                    unoptimized
                   />
                 )}
               </div>
@@ -277,9 +282,7 @@ export default function RollBuilderPage({
               maxLength={2000}
             />
             <div className="absolute bottom-3 right-3">
-              <VoiceCaptionButton
-                onTranscript={(text) => setStory(text.slice(0, 2000))}
-              />
+              <VoiceCaptionButton onTranscript={(text) => setStory(text.slice(0, 2000))} />
             </div>
           </div>
           <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
@@ -327,12 +330,17 @@ export default function RollBuilderPage({
           {/* Photo preview */}
           <div className="relative flex-1 min-h-0 max-h-[60vh] mb-[var(--space-element)] rounded-[var(--radius-card)] overflow-hidden bg-[var(--color-surface-sunken)]">
             {currentPhoto.photos?.thumbnail_url ? (
-              <img
-                src={currentPhoto.processed_storage_key
-                  ? `/api/photos/serve?key=${encodeURIComponent(currentPhoto.processed_storage_key)}`
-                  : currentPhoto.photos.thumbnail_url}
+              <Image
+                src={
+                  currentPhoto.processed_storage_key
+                    ? `/api/photos/serve?key=${encodeURIComponent(currentPhoto.processed_storage_key)}`
+                    : currentPhoto.photos.thumbnail_url
+                }
                 alt={currentCaption?.text || ''}
+                width={800}
+                height={600}
                 className="w-full h-full object-contain"
+                unoptimized
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[var(--color-ink-tertiary)]">
@@ -346,17 +354,13 @@ export default function RollBuilderPage({
             <textarea
               ref={captionInputRef}
               value={currentCaption?.text ?? ''}
-              onChange={(e) =>
-                updateCaption(currentPhoto.photo_id, e.target.value, 'manual')
-              }
+              onChange={(e) => updateCaption(currentPhoto.photo_id, e.target.value, 'manual')}
               placeholder="Add a caption…"
               className="flex-1 bg-[var(--color-surface-sunken)] text-[var(--color-ink)] text-[length:var(--text-body)] px-[var(--space-component)] py-[var(--space-element)] rounded-[var(--radius-card)] border border-[var(--color-border)] focus:outline-none focus:border-[var(--color-border-focus)] transition-colors resize-none h-20"
               maxLength={500}
             />
             <VoiceCaptionButton
-              onTranscript={(text) =>
-                updateCaption(currentPhoto.photo_id, text, 'voice')
-              }
+              onTranscript={(text) => updateCaption(currentPhoto.photo_id, text, 'voice')}
             />
           </div>
 
@@ -371,18 +375,19 @@ export default function RollBuilderPage({
                 type="button"
                 onClick={() => setCurrentPhotoIndex(i)}
                 className={`w-12 h-12 shrink-0 rounded-[var(--radius-sharp)] overflow-hidden border-2 transition-colors ${
-                  i === currentPhotoIndex
-                    ? 'border-[var(--color-action)]'
-                    : 'border-transparent'
+                  i === currentPhotoIndex ? 'border-[var(--color-action)]' : 'border-transparent'
                 }`}
                 style={{ scrollSnapAlign: 'start' }}
               >
                 {rp.photos?.thumbnail_url && (
-                  <img
+                  <Image
                     src={rp.photos.thumbnail_url}
                     alt=""
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                     loading="lazy"
+                    unoptimized
                   />
                 )}
               </button>
@@ -425,12 +430,7 @@ export default function RollBuilderPage({
               <SkipForward size={14} />
               Skip All
             </button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={handleSaveAndFinish}
-              isLoading={saving}
-            >
+            <Button variant="primary" size="md" onClick={handleSaveAndFinish} isLoading={saving}>
               Done
             </Button>
           </div>

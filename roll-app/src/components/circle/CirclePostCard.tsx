@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { Heart, Smile, Star, MessageCircle, Send, Trash2, Play, Film } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
@@ -165,10 +166,13 @@ export function CirclePostCard({
       {/* Author header */}
       <div className="flex items-center gap-[var(--space-element)] px-[var(--space-component)] pt-[var(--space-component)]">
         {post.profiles?.avatar_url ? (
-          <img
+          <Image
             src={post.profiles.avatar_url}
             alt={getAuthorName(post)}
             className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-[var(--color-action)]/30"
+            width={32}
+            height={32}
+            unoptimized
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center flex-shrink-0 ring-2 ring-[var(--color-action)]/30">
@@ -241,13 +245,16 @@ export function CirclePostCard({
                 photos.length === 1 ? 'w-full' : 'aspect-square'
               }`}
             >
-              <img
+              <Image
                 src={getPhotoUrl(photo.storage_key)}
                 alt=""
                 loading="lazy"
                 className={`w-full object-cover ${
                   photos.length === 1 ? 'max-h-[500px]' : 'h-full'
                 }`}
+                width={500}
+                height={500}
+                unoptimized
               />
             </div>
           ))}
@@ -319,10 +326,13 @@ export function CirclePostCard({
                 <div key={c.id} className="flex gap-[var(--space-tight)] group">
                   <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden mt-0.5 ring-1 ring-[var(--color-action)]/20">
                     {c.profiles?.avatar_url ? (
-                      <img
+                      <Image
                         src={c.profiles.avatar_url}
                         alt=""
                         className="w-full h-full object-cover"
+                        width={24}
+                        height={24}
+                        unoptimized
                       />
                     ) : (
                       <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">

@@ -15,6 +15,7 @@ import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
 import { track } from '@/lib/analytics';
 import { isValidEmail } from '@/types/auth';
+import Image from 'next/image';
 import type { Circle, CircleMember, CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
 export default function CircleDetailPage() {
@@ -298,10 +299,13 @@ export default function CircleDetailPage() {
                   title={member.profiles?.display_name || member.profiles?.email || 'Member'}
                 >
                   {member.profiles?.avatar_url ? (
-                    <img
+                    <Image
                       src={member.profiles.avatar_url}
                       alt=""
+                      width={32}
+                      height={32}
                       className="w-full h-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">
@@ -472,10 +476,13 @@ export default function CircleDetailPage() {
                   <div className="flex items-center gap-[var(--space-element)]">
                     <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
                       {member.profiles?.avatar_url ? (
-                        <img
+                        <Image
                           src={member.profiles.avatar_url}
                           alt=""
+                          width={36}
+                          height={36}
                           className="w-full h-full object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">

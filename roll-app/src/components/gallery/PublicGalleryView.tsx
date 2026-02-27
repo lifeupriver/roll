@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { X } from 'lucide-react';
 import { GalleryHeader } from './GalleryHeader';
 import type { PublicGallery } from '@/types/gallery';
@@ -39,15 +40,18 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
               onClick={() => setLightboxIndex(i)}
               className="block w-full mb-2 break-inside-avoid overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
             >
-              <img
+              <Image
                 src={photo.thumbnail_url}
                 alt={photo.caption || ''}
+                width={photo.width || 400}
+                height={photo.height || 300}
                 loading="lazy"
                 className="w-full"
                 style={{
                   aspectRatio:
                     photo.width && photo.height ? `${photo.width}/${photo.height}` : undefined,
                 }}
+                unoptimized
               />
             </button>
           ))}
@@ -67,14 +71,18 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
           >
             <X size={24} />
           </button>
-          <img
+          <Image
             src={
               gallery.photos[lightboxIndex]?.developed_url ||
-              gallery.photos[lightboxIndex]?.thumbnail_url
+              gallery.photos[lightboxIndex]?.thumbnail_url ||
+              ''
             }
             alt=""
+            width={gallery.photos[lightboxIndex]?.width || 1200}
+            height={gallery.photos[lightboxIndex]?.height || 800}
             className="max-w-[90vw] max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}
+            unoptimized
           />
           {gallery.photos[lightboxIndex]?.caption && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 text-sm max-w-lg text-center">

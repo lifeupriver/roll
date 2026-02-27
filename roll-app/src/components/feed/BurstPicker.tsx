@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
@@ -73,7 +74,14 @@ export function BurstPicker({ photos, onPick, onDismiss }: BurstPickerProps) {
                   : 'opacity-70 hover:opacity-100'
               }`}
             >
-              <img src={photo.thumbnail_url} alt="" className="w-full h-full object-cover" />
+              <Image
+                src={photo.thumbnail_url}
+                alt=""
+                className="w-full h-full object-cover"
+                width={112}
+                height={149}
+                unoptimized
+              />
               {(isSelected || isSuggested) && (
                 <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[var(--color-action)] flex items-center justify-center">
                   <Check size={12} className="text-white" />

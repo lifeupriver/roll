@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
 import { useToast } from '@/stores/toastStore';
+import Image from 'next/image';
 import type { Reel, ReelClip } from '@/types/reel';
 
 interface Photo {
@@ -266,10 +267,13 @@ export default function ReelDetailPage() {
             {/* Thumbnail */}
             <div className="relative w-20 aspect-video bg-[var(--color-surface-sunken)] rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0">
               {clip.photos?.thumbnail_url ? (
-                <img
+                <Image
                   src={clip.photos.thumbnail_url}
                   alt=""
+                  width={80}
+                  height={45}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

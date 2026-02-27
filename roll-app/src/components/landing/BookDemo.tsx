@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import {
   ChevronLeft,
   ChevronRight,
@@ -128,10 +129,11 @@ export function BookDemo() {
         {/* Book cover preview — with spine and shadow effect */}
         <div className="w-full aspect-[3/4] relative">
           <div className="w-full h-full rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] group-hover:shadow-[var(--shadow-overlay)] transition-shadow relative">
-            <img
+            <Image
               src={DEMO_PHOTOS[0]}
               alt="Book cover preview"
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -288,14 +290,14 @@ export function BookDemo() {
                     key={i}
                     type="button"
                     onClick={() => setCurrentSpread(i)}
-                    className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors ${
+                    className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors relative ${
                       i === currentSpread
                         ? 'border-[var(--color-action)]'
                         : 'border-transparent hover:border-[var(--color-border)]'
                     }`}
                   >
                     {photoUrl ? (
-                      <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                      <Image src={photoUrl} alt="" fill className="object-cover" />
                     ) : (
                       <div className="w-full h-full bg-[var(--color-surface-sunken)] flex items-center justify-center">
                         <BookOpen size={8} className="text-[var(--color-ink-tertiary)]" />
@@ -441,7 +443,7 @@ function BookPageRender({
     case 'book-cover':
       return (
         <div className="relative w-full aspect-[3/4] overflow-hidden">
-          <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+          <Image src={page.photos[0]} alt="" fill className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
           <div className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/30 to-transparent" />
           <div className="absolute bottom-0 inset-x-0 p-4 md:p-6">
@@ -478,7 +480,7 @@ function BookPageRender({
         <div className="relative w-full aspect-[3/4] overflow-hidden">
           {page.photos[0] ? (
             <>
-              <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+              <Image src={page.photos[0]} alt="" fill className="object-cover" />
               <div className="absolute inset-0 bg-black/40" />
             </>
           ) : (
@@ -504,7 +506,7 @@ function BookPageRender({
     case 'photo':
       return (
         <div className="relative w-full aspect-[3/4] overflow-hidden bg-[var(--color-surface-sunken)]">
-          <img src={page.photos[0]} alt="" className="w-full h-full object-cover" />
+          <Image src={page.photos[0]} alt="" fill className="object-cover" />
           {page.caption && (
             <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/50 to-transparent">
               <p
@@ -525,8 +527,8 @@ function BookPageRender({
       return (
         <div className="relative w-full aspect-[3/4] overflow-hidden bg-[var(--color-surface-sunken)] grid grid-rows-2 gap-0.5">
           {page.photos.map((url, i) => (
-            <div key={i} className="overflow-hidden">
-              <img src={url} alt="" className="w-full h-full object-cover" />
+            <div key={i} className="overflow-hidden relative">
+              <Image src={url} alt="" fill className="object-cover" />
             </div>
           ))}
           {page.caption && (

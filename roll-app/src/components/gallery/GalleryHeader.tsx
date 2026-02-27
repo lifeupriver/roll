@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface GalleryHeaderProps {
   businessName: string | null;
   logoUrl: string | null;
@@ -13,7 +15,7 @@ export function GalleryHeader({ businessName, logoUrl, accentColor }: GalleryHea
       style={{ borderColor: accentColor || '#e5e5e5' }}
     >
       {logoUrl && (
-        <img src={logoUrl} alt={businessName || ''} className="w-8 h-8 rounded-full object-cover" />
+        <Image src={logoUrl} alt={businessName || ''} width={32} height={32} className="w-8 h-8 rounded-full object-cover" unoptimized />
       )}
       <span className="font-semibold text-sm" style={{ color: accentColor || '#1a1a1a' }}>
         {businessName || 'Gallery'}

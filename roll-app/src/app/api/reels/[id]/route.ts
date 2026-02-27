@@ -84,7 +84,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const parsed = await parseBody(request, updateReelSchema);
     if (parsed.error) return parsed.error;
-    const { name, status, film_profile, audio_mood, default_clip_length_s, orientation, ambient_audio, transcribe_audio } = parsed.data;
+    const {
+      name,
+      status,
+      film_profile,
+      audio_mood,
+      default_clip_length_s,
+      orientation,
+      ambient_audio,
+      transcribe_audio,
+    } = parsed.data;
 
     if (status) {
       const currentStatus = existingReel.status as ReelStatus;

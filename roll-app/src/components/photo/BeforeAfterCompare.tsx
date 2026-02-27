@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 
 interface BeforeAfterCompareProps {
   originalUrl: string;
@@ -55,14 +56,14 @@ export function BeforeAfterCompare({
       onPointerUp={handlePointerUp}
     >
       {/* Developed (full image underneath) */}
-      <img src={developedUrl} alt="Developed" className="w-full block" draggable={false} />
+      <Image src={developedUrl} alt="Developed" className="w-full block" draggable={false} width={800} height={600} unoptimized />
 
       {/* Original (clipped) */}
       <div
         className="absolute inset-0 overflow-hidden"
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
       >
-        <img src={originalUrl} alt="Original" className="w-full block" draggable={false} />
+        <Image src={originalUrl} alt="Original" className="w-full block" draggable={false} width={800} height={600} unoptimized />
       </div>
 
       {/* Divider line */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Image, Film, Play, Wand2, Printer } from 'lucide-react';
+import { Image as ImageIcon, Film, Play, Wand2, Printer } from 'lucide-react';
 import { ContentModePills } from '@/components/photo/ContentModePills';
 import { Badge } from '@/components/ui/Badge';
 import { Empty } from '@/components/ui/Empty';
@@ -12,6 +12,7 @@ import { FavoritesRollPrompt } from '@/components/roll/FavoritesRollPrompt';
 import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import Link from 'next/link';
 import type { Roll } from '@/types/roll';
+import Image from 'next/image';
 import type { Reel } from '@/types/reel';
 
 type GallerySection = 'rolls' | 'reels';
@@ -200,7 +201,7 @@ export default function GalleryPage() {
 
           {!isLoading && !error && rolls.length === 0 && (
             <Empty
-              icon={Image}
+              icon={ImageIcon}
               title="No rolls yet"
               description="Build your first roll by selecting photos from your feed."
               action={
@@ -235,11 +236,13 @@ export default function GalleryPage() {
                   >
                     <div className="relative w-32 h-[170px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
                       {rollCovers.get(currentRoll.id) ? (
-                        <img
-                          src={rollCovers.get(currentRoll.id)}
+                        <Image
+                          src={rollCovers.get(currentRoll.id)!}
                           alt=""
-                          className="absolute inset-0 w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                           loading="lazy"
+                          unoptimized
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -300,11 +303,13 @@ export default function GalleryPage() {
                   >
                     <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                       {rollCovers.get(roll.id) ? (
-                        <img
-                          src={rollCovers.get(roll.id)}
+                        <Image
+                          src={rollCovers.get(roll.id)!}
                           alt=""
-                          className="absolute inset-0 w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                           loading="lazy"
+                          unoptimized
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -435,11 +440,13 @@ export default function GalleryPage() {
                   >
                     <div className="relative w-32 h-[170px] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shrink-0">
                       {coverClip?.thumbnail_url ? (
-                        <img
+                        <Image
                           src={coverClip.thumbnail_url}
                           alt=""
-                          className="absolute inset-0 w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                           loading="lazy"
+                          unoptimized
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -450,7 +457,12 @@ export default function GalleryPage() {
                       {coverClip?.thumbnail_url && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                            <Play size={14} className="text-white ml-0.5" fill="white" fillOpacity={0.8} />
+                            <Play
+                              size={14}
+                              className="text-white ml-0.5"
+                              fill="white"
+                              fillOpacity={0.8}
+                            />
                           </div>
                         </div>
                       )}
@@ -523,11 +535,14 @@ export default function GalleryPage() {
                           {/* Thumbnail */}
                           <div className="relative w-full aspect-video rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] mb-[var(--space-tight)]">
                             {reel.poster_storage_key ? (
-                              <img
+                              <Image
                                 src={`/api/photos/serve?key=${encodeURIComponent(reel.poster_storage_key)}`}
                                 alt=""
+                                width={288}
+                                height={162}
                                 className="w-full h-full object-cover"
                                 loading="lazy"
+                                unoptimized
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">

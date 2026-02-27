@@ -9,8 +9,6 @@
  * only resolve when the app is wrapped in a Capacitor native shell.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /** Check if running inside a Capacitor native shell */
 export function isNativeApp(): boolean {
   if (typeof window === 'undefined') return false;
@@ -21,7 +19,7 @@ export function isNativeApp(): boolean {
 export function getPlatform(): 'ios' | 'android' | 'web' {
   if (!isNativeApp()) return 'web';
   const cap = (window as unknown as Record<string, unknown>).Capacitor as
-    | Record<string, any>
+    | Record<string, unknown>
     | undefined;
   const platform = typeof cap?.getPlatform === 'function' ? cap.getPlatform() : undefined;
   if (platform === 'ios' || platform === 'android') return platform;
@@ -32,7 +30,7 @@ export function getPlatform(): 'ios' | 'android' | 'web' {
  * Dynamically import a Capacitor plugin by name.
  * Returns null if the module is not installed (expected on web).
  */
-async function importCapacitorPlugin(name: string): Promise<any> {
+async function importCapacitorPlugin(name: string): Promise<Record<string, unknown> | null> {
   try {
     // Dynamic import for Capacitor plugins — only resolves in native shell
     return await import(/* webpackIgnore: true */ name);
@@ -48,8 +46,9 @@ export async function hapticFeedback(style: 'light' | 'medium' | 'heavy' = 'ligh
   try {
     const mod = await importCapacitorPlugin('@capacitor/haptics');
     if (!mod) return;
-    const { Haptics, ImpactStyle } = mod;
-    const styleMap: Record<string, any> = {
+    const Haptics = mod.Haptics as { impact: (opts: { style: unknown }) => Promise<void> };
+    const ImpactStyle = mod.ImpactStyle as Record<string, unknown>;
+    const styleMap: Record<string, unknown> = {
       light: ImpactStyle.Light,
       medium: ImpactStyle.Medium,
       heavy: ImpactStyle.Heavy,
@@ -99,7 +98,11 @@ export async function pickPhotosFromLibrary(): Promise<File[]> {
   try {
     const mod = await importCapacitorPlugin('@capacitor/camera');
     if (!mod) return [];
-    const { Camera } = mod;
+    const Camera = mod.Camera as {
+      pickImages: (opts: { quality: number; limit: number }) => Promise<{
+        photos: Array<{ webPath?: string }>;
+      }>;
+    };
     const result = await Camera.pickImages({ quality: 92, limit: 36 });
 
     const files: File[] = [];
@@ -124,7 +127,11 @@ export async function registerNativePush(): Promise<string | null> {
   try {
     const mod = await importCapacitorPlugin('@capacitor/push-notifications');
     if (!mod) return null;
-    const { PushNotifications } = mod;
+    const PushNotifications = mod.PushNotifications as {
+      requestPermissions: () => Promise<{ receive: string }>;
+      register: () => Promise<void>;
+      addListener: (event: string, callback: (data: { value: string }) => void) => void;
+    };
 
     const permission = await PushNotifications.requestPermissions();
     if (permission.receive !== 'granted') return null;
@@ -132,7 +139,7 @@ export async function registerNativePush(): Promise<string | null> {
     await PushNotifications.register();
 
     return new Promise<string | null>((resolve) => {
-      PushNotifications.addListener('registration', (token: any) => {
+      PushNotifications.addListener('registration', (token: { value: string }) => {
         resolve(token.value);
       });
 

@@ -4,13 +4,12 @@
 
 import type { MagazinePage, MagazineFont, MagazineTemplate } from '@/types/magazine';
 import type { BookPage } from '@/types/book';
-import type { PhotoMetrics, VisualWeightResult, PhotoSetAnalysis } from './photo-analysis';
 import {
+  type PhotoMetrics,
+  type VisualWeightResult,
+  type PhotoSetAnalysis,
   calculateVisualWeight,
   analyzePhotoSet,
-  classifyAspectRatio,
-  getOrientation,
-  groupByCompatibility,
   areAspectRatiosCompatible,
 } from './photo-analysis';
 import {
@@ -21,13 +20,10 @@ import {
   createLayoutHistory,
   recordLayout,
   isLayoutStale,
-  isOrientationHarmonious,
-  evaluateSpreadBalance,
-  scoreSceneAdjacency,
+  type PageDensity,
 } from './composition';
-import type { PageDensity, RhythmBeat } from './composition';
-import { getCaptionStyle, isPullQuoteWorthy, getFontPairing } from './typography';
-import { selectSmartLayout, type SmartLayoutId } from '@/lib/layout/page-templates';
+import { isPullQuoteWorthy } from './typography';
+import { selectSmartLayout } from '@/lib/layout/page-templates';
 
 // ─── Design Options ───────────────────────────────────────────────────────────
 
@@ -57,7 +53,9 @@ function enrichPhoto(photo: PhotoMetrics & { photo_id: string; taken_at?: string
   };
 }
 
-function enrichPhotos(photos: (PhotoMetrics & { photo_id: string; taken_at?: string })[]): EnrichedPhoto[] {
+function enrichPhotos(
+  photos: (PhotoMetrics & { photo_id: string; taken_at?: string })[]
+): EnrichedPhoto[] {
   return photos.map(enrichPhoto);
 }
 
@@ -180,7 +178,10 @@ function designPhotoSequence(
   // but preserve chronological order for the story flow
   const byWeight = [...photos].sort((a, b) => b.weight.score - a.weight.score);
   const heroPhotos = new Set(
-    byWeight.filter(p => p.weight.isHeroCandidate).slice(0, Math.ceil(photos.length / 4)).map(p => p.photo_id)
+    byWeight
+      .filter((p) => p.weight.isHeroCandidate)
+      .slice(0, Math.ceil(photos.length / 4))
+      .map((p) => p.photo_id)
   );
 
   // Process photos in chronological order
@@ -194,15 +195,15 @@ function designPhotoSequence(
 
   while (i < chronological.length) {
     const photo = chronological[i];
-    const remaining = chronological.length - i;
+    const _remaining = chronological.length - i;
     const storyPhase = getStoryPhase(pageInSection, totalEstimatedPages);
     const phaseMaxDensity = getPhaseMaxDensity(storyPhase);
     const rhythmBeat = getRhythmBeat(pageInSection, totalEstimatedPages);
     const rhythmDensity = rhythmToDensity(rhythmBeat);
 
     // Use the more restrictive of phase and rhythm density
-    const targetDensity = options.densityPreference ??
-      restrictDensity(rhythmDensity, phaseMaxDensity);
+    const targetDensity =
+      options.densityPreference ?? restrictDensity(rhythmDensity, phaseMaxDensity);
 
     // ── RULE 1: Hero photos get full-page treatment ──
     if (heroPhotos.has(photo.photo_id)) {
@@ -234,7 +235,11 @@ function designPhotoSequence(
     }
 
     // ── RULE 3: Photos with pull-quote-worthy captions ──
-    if (photo.caption && isPullQuoteWorthy(photo.caption) && !isLayoutStale(layoutHistory, 'pullquote')) {
+    if (
+      photo.caption &&
+      isPullQuoteWorthy(photo.caption) &&
+      !isLayoutStale(layoutHistory, 'pullquote')
+    ) {
       pages.push(createPhotoPage('pullquote', [photo]));
       recordLayout(layoutHistory, 'pullquote');
       i++;
@@ -248,8 +253,8 @@ function designPhotoSequence(
 
     const layout = selectSmartLayout(
       group.length,
-      group.map(p => p.weight.orientation),
-      group.map(p => p.weight.aspectClass),
+      group.map((p) => p.weight.orientation),
+      group.map((p) => p.weight.aspectClass),
       layoutHistory.recentLayouts
     );
 
@@ -272,7 +277,10 @@ function designPhotoSequence(
 
 // ─── Helper: Select Hero Layout ───────────────────────────────────────────────
 
-function selectHeroLayout(photo: EnrichedPhoto, history: ReturnType<typeof createLayoutHistory>): string {
+function selectHeroLayout(
+  photo: EnrichedPhoto,
+  history: ReturnType<typeof createLayoutHistory>
+): string {
   const { aspectClass, orientation } = photo.weight;
 
   // Panoramic → cinematic
@@ -311,7 +319,11 @@ function findCompatibleGroup(
     if (candidate.weight.isHeroCandidate) continue;
 
     // Must be orientation-compatible
-    if (candidate.weight.orientation !== baseOrientation && baseOrientation !== 'square' && candidate.weight.orientation !== 'square') {
+    if (
+      candidate.weight.orientation !== baseOrientation &&
+      baseOrientation !== 'square' &&
+      candidate.weight.orientation !== 'square'
+    ) {
       continue;
     }
 
@@ -356,10 +368,14 @@ function createBreathingPage(photo: EnrichedPhoto): MagazinePage {
 
 function getMaxPhotosForDensity(density: PageDensity): number {
   switch (density) {
-    case 'minimal': return 1;
-    case 'light': return 2;
-    case 'moderate': return 3;
-    case 'rich': return 4;
+    case 'minimal':
+      return 1;
+    case 'light':
+      return 2;
+    case 'moderate':
+      return 3;
+    case 'rich':
+      return 4;
   }
 }
 
@@ -473,7 +489,7 @@ export function smartAssembleBook(
   title: string,
   coverPhotoId: string | null,
   magazines: MagazineForSmartAssembly[],
-  options: DesignOptions = {}
+  _options: DesignOptions = {}
 ): { pages: BookPage[]; totalPages: number } {
   const pages: BookPage[] = [];
 
@@ -623,8 +639,17 @@ export function smartAssembleBookFromSections(
 
 // ─── Smart Blog Layout ────────────────────────────────────────────────────────
 
-export type BlogBlockType = 'hero' | 'photo-single' | 'photo-pair' | 'photo-triptych' |
-  'photo-grid' | 'panoramic' | 'pullquote' | 'text' | 'video' | 'video-pair';
+export type BlogBlockType =
+  | 'hero'
+  | 'photo-single'
+  | 'photo-pair'
+  | 'photo-triptych'
+  | 'photo-grid'
+  | 'panoramic'
+  | 'pullquote'
+  | 'text'
+  | 'video'
+  | 'video-pair';
 
 export interface BlogBlock {
   type: BlogBlockType;
@@ -663,27 +688,25 @@ interface BlogMediaItem {
  * - More generous vertical whitespace between blocks
  * - Photos always shown at natural aspect ratio (no crop)
  */
-export function smartDesignBlog(
-  items: BlogMediaItem[],
-  story?: string | null
-): BlogBlock[] {
+export function smartDesignBlog(items: BlogMediaItem[], story?: string | null): BlogBlock[] {
   if (items.length === 0 && !story) return [];
 
   const blocks: BlogBlock[] = [];
-  const photos = items.filter(i => i.type === 'photo');
-  const videos = items.filter(i => i.type === 'video');
+  const photos = items.filter((i) => i.type === 'photo');
+  const videos = items.filter((i) => i.type === 'video');
 
   // Enrich photos for analysis
-  const enrichedPhotos = photos.map(p => ({
+  const enrichedPhotos = photos.map((p) => ({
     ...p,
     photo_id: p.id,
     weight: calculateVisualWeight(p),
   }));
 
   // Find the best hero photo (or video)
-  const heroPhoto = enrichedPhotos.length > 0
-    ? [...enrichedPhotos].sort((a, b) => b.weight.score - a.weight.score)[0]
-    : null;
+  const heroPhoto =
+    enrichedPhotos.length > 0
+      ? [...enrichedPhotos].sort((a, b) => b.weight.score - a.weight.score)[0]
+      : null;
 
   // ── Hero block (first, most impactful image) ──
   if (heroPhoto) {
@@ -708,7 +731,7 @@ export function smartDesignBlog(
   }
 
   // ── Interleave remaining photos and videos ──
-  const remainingPhotos = enrichedPhotos.filter(p => p.photo_id !== heroPhoto?.photo_id);
+  const remainingPhotos = enrichedPhotos.filter((p) => p.photo_id !== heroPhoto?.photo_id);
   let photoIdx = 0;
   let videoIdx = 0;
 
@@ -722,7 +745,7 @@ export function smartDesignBlog(
       photoIdx += batch.length;
 
       // Pull quote from a captioned photo
-      const captionedPhoto = batch.find(p => p.caption && isPullQuoteWorthy(p.caption));
+      const captionedPhoto = batch.find((p) => p.caption && isPullQuoteWorthy(p.caption));
       if (captionedPhoto) {
         blocks.push({
           type: 'pullquote',
@@ -791,9 +814,7 @@ function selectPhotoBatch(
   return [first];
 }
 
-function createBlogPhotoBlock(
-  photos: (EnrichedPhoto & { photo_id: string })[]
-): BlogBlock {
+function createBlogPhotoBlock(photos: (EnrichedPhoto & { photo_id: string })[]): BlogBlock {
   if (photos.length === 1) {
     const photo = photos[0];
     const type: BlogBlockType =
@@ -810,7 +831,7 @@ function createBlogPhotoBlock(
   if (photos.length === 2) {
     return {
       type: 'photo-pair',
-      photoIds: photos.map(p => p.photo_id),
+      photoIds: photos.map((p) => p.photo_id),
       videoIds: [],
       preserveAspectRatio: true,
     };
@@ -819,7 +840,7 @@ function createBlogPhotoBlock(
   if (photos.length === 3) {
     return {
       type: 'photo-triptych',
-      photoIds: photos.map(p => p.photo_id),
+      photoIds: photos.map((p) => p.photo_id),
       videoIds: [],
       preserveAspectRatio: true,
     };
@@ -827,7 +848,7 @@ function createBlogPhotoBlock(
 
   return {
     type: 'photo-grid',
-    photoIds: photos.map(p => p.photo_id),
+    photoIds: photos.map((p) => p.photo_id),
     videoIds: [],
     preserveAspectRatio: true,
   };
@@ -837,22 +858,69 @@ function createBlogPhotoBlock(
 // Each template defines a repeating block-type pattern that determines
 // the visual cadence of the essay.
 
-type EssayTemplateId = 'documentary' | 'travel' | 'portrait' | 'editorial' | 'minimal' | 'narrative';
+type EssayTemplateId =
+  | 'documentary'
+  | 'travel'
+  | 'portrait'
+  | 'editorial'
+  | 'minimal'
+  | 'narrative';
 
 const ESSAY_RHYTHMS: Record<EssayTemplateId, BlogBlockType[]> = {
-  documentary: ['hero', 'text', 'photo-pair', 'pullquote', 'photo-single', 'photo-triptych', 'text'],
-  travel: ['hero', 'panoramic', 'photo-pair', 'text', 'photo-triptych', 'photo-single', 'pullquote'],
-  portrait: ['hero', 'photo-single', 'pullquote', 'photo-single', 'photo-pair', 'text', 'photo-single'],
+  documentary: [
+    'hero',
+    'text',
+    'photo-pair',
+    'pullquote',
+    'photo-single',
+    'photo-triptych',
+    'text',
+  ],
+  travel: [
+    'hero',
+    'panoramic',
+    'photo-pair',
+    'text',
+    'photo-triptych',
+    'photo-single',
+    'pullquote',
+  ],
+  portrait: [
+    'hero',
+    'photo-single',
+    'pullquote',
+    'photo-single',
+    'photo-pair',
+    'text',
+    'photo-single',
+  ],
   editorial: ['hero', 'photo-grid', 'text', 'photo-triptych', 'hero', 'photo-pair', 'pullquote'],
-  minimal: ['hero', 'photo-single', 'photo-single', 'text', 'photo-single', 'photo-single', 'pullquote'],
-  narrative: ['hero', 'text', 'photo-single', 'text', 'photo-pair', 'pullquote', 'photo-single', 'text'],
+  minimal: [
+    'hero',
+    'photo-single',
+    'photo-single',
+    'text',
+    'photo-single',
+    'photo-single',
+    'pullquote',
+  ],
+  narrative: [
+    'hero',
+    'text',
+    'photo-single',
+    'text',
+    'photo-pair',
+    'pullquote',
+    'photo-single',
+    'text',
+  ],
 };
 
 // Story pacing phases — controls density across the essay
 const ESSAY_PACING = {
-  opening: { density: 'sparse', textWeight: 0.3 },   // 0-20%: sparse, let hero breathe
-  rising: { density: 'moderate', textWeight: 0.2 },   // 20-50%: build momentum
-  climax: { density: 'rich', textWeight: 0.1 },       // 50-80%: dense, impactful
+  opening: { density: 'sparse', textWeight: 0.3 }, // 0-20%: sparse, let hero breathe
+  rising: { density: 'moderate', textWeight: 0.2 }, // 20-50%: build momentum
+  climax: { density: 'rich', textWeight: 0.1 }, // 50-80%: dense, impactful
   resolution: { density: 'sparse', textWeight: 0.3 }, // 80-100%: wind down gently
 } as const;
 
@@ -876,12 +944,12 @@ export function smartDesignBlogWithTemplate(
   if (items.length === 0 && !story) return [];
 
   const blocks: BlogBlock[] = [];
-  const photos = items.filter(i => i.type === 'photo');
-  const videos = items.filter(i => i.type === 'video');
+  const photos = items.filter((i) => i.type === 'photo');
+  const videos = items.filter((i) => i.type === 'video');
   const rhythm = ESSAY_RHYTHMS[template] || ESSAY_RHYTHMS.documentary;
 
   // Enrich photos for analysis
-  const enrichedPhotos = photos.map(p => ({
+  const enrichedPhotos = photos.map((p) => ({
     ...p,
     photo_id: p.id,
     weight: calculateVisualWeight(p),
@@ -891,14 +959,12 @@ export function smartDesignBlogWithTemplate(
   const sortedByWeight = [...enrichedPhotos].sort((a, b) => b.weight.score - a.weight.score);
 
   // Split story into paragraphs for interleaving
-  const storyParagraphs = story
-    ? story.split(/\n\n+/).filter(p => p.trim().length > 0)
-    : [];
+  const storyParagraphs = story ? story.split(/\n\n+/).filter((p) => p.trim().length > 0) : [];
 
   // Extract pull quotes from captions
   const pullQuotes = enrichedPhotos
-    .filter(p => p.caption && isPullQuoteWorthy(p.caption!))
-    .map(p => p.caption!);
+    .filter((p) => p.caption && isPullQuoteWorthy(p.caption!))
+    .map((p) => p.caption!);
 
   // ── Build blocks following the rhythm pattern ──
   let photoIdx = 0;
@@ -911,9 +977,13 @@ export function smartDesignBlogWithTemplate(
   const totalContent = photos.length + videos.length + storyParagraphs.length;
   let contentConsumed = 0;
 
-  const maxIterations = (enrichedPhotos.length + videos.length + storyParagraphs.length + rhythm.length) * 3;
+  const maxIterations =
+    (enrichedPhotos.length + videos.length + storyParagraphs.length + rhythm.length) * 3;
   let iterations = 0;
-  while ((photoIdx < enrichedPhotos.length || videoIdx < videos.length) && iterations < maxIterations) {
+  while (
+    (photoIdx < enrichedPhotos.length || videoIdx < videos.length) &&
+    iterations < maxIterations
+  ) {
     iterations++;
     const progress = totalContent > 0 ? contentConsumed / totalContent : 0;
     const phase = getEssayPhase(progress);
@@ -922,8 +992,14 @@ export function smartDesignBlogWithTemplate(
     rhythmIdx++;
 
     // When photos are exhausted but videos remain, treat photo beats as video
-    if (photoIdx >= enrichedPhotos.length && videoIdx < videos.length &&
-        currentBeat !== 'text' && currentBeat !== 'pullquote' && currentBeat !== 'video' && currentBeat !== 'video-pair') {
+    if (
+      photoIdx >= enrichedPhotos.length &&
+      videoIdx < videos.length &&
+      currentBeat !== 'text' &&
+      currentBeat !== 'pullquote' &&
+      currentBeat !== 'video' &&
+      currentBeat !== 'video-pair'
+    ) {
       currentBeat = 'video';
     }
 
@@ -940,7 +1016,7 @@ export function smartDesignBlogWithTemplate(
             preserveAspectRatio: true,
           });
           // Mark it as used
-          const heroIdx = enrichedPhotos.findIndex(p => p.photo_id === heroPhoto.photo_id);
+          const heroIdx = enrichedPhotos.findIndex((p) => p.photo_id === heroPhoto.photo_id);
           if (heroIdx !== -1 && heroIdx >= photoIdx) {
             // Swap it out of the remaining pool
             enrichedPhotos.splice(heroIdx, 1);
@@ -1049,8 +1125,11 @@ export function smartDesignBlogWithTemplate(
           }
           photoIdx += count;
           const type: BlogBlockType =
-            batch.length === 3 ? 'photo-triptych' :
-            batch.length === 2 ? 'photo-pair' : 'photo-single';
+            batch.length === 3
+              ? 'photo-triptych'
+              : batch.length === 2
+                ? 'photo-pair'
+                : 'photo-single';
           blocks.push({
             type,
             photoIds: batch,
@@ -1071,9 +1150,13 @@ export function smartDesignBlogWithTemplate(
           }
           photoIdx += count;
           const type: BlogBlockType =
-            batch.length >= 4 ? 'photo-grid' :
-            batch.length === 3 ? 'photo-triptych' :
-            batch.length === 2 ? 'photo-pair' : 'photo-single';
+            batch.length >= 4
+              ? 'photo-grid'
+              : batch.length === 3
+                ? 'photo-triptych'
+                : batch.length === 2
+                  ? 'photo-pair'
+                  : 'photo-single';
           blocks.push({
             type,
             photoIds: batch,
@@ -1092,9 +1175,10 @@ export function smartDesignBlogWithTemplate(
             type: 'video',
             photoIds: [],
             videoIds: [videos[videoIdx].id],
-            aspectRatio: videos[videoIdx].width && videos[videoIdx].height
-              ? videos[videoIdx].width / videos[videoIdx].height
-              : 16 / 9,
+            aspectRatio:
+              videos[videoIdx].width && videos[videoIdx].height
+                ? videos[videoIdx].width / videos[videoIdx].height
+                : 16 / 9,
             preserveAspectRatio: true,
           });
           videoIdx++;
@@ -1108,7 +1192,11 @@ export function smartDesignBlogWithTemplate(
     }
 
     // Interleave remaining story paragraphs in sparse phases
-    if (pacing.textWeight > 0.2 && storyIdx < storyParagraphs.length && Math.random() < pacing.textWeight) {
+    if (
+      pacing.textWeight > 0.2 &&
+      storyIdx < storyParagraphs.length &&
+      Math.random() < pacing.textWeight
+    ) {
       blocks.push({
         type: 'text',
         photoIds: [],
@@ -1159,7 +1247,7 @@ export function selectBestCoverPhoto(
 ): string | null {
   if (photos.length === 0) return null;
 
-  const scored = photos.map(p => {
+  const scored = photos.map((p) => {
     const weight = calculateVisualWeight(p);
     let coverScore = weight.score;
 
@@ -1190,9 +1278,7 @@ interface DateCluster<T> {
 }
 
 function clusterByDate<T extends { taken_at?: string }>(photos: T[]): DateCluster<T>[] {
-  const sorted = [...photos].sort((a, b) =>
-    (a.taken_at ?? '').localeCompare(b.taken_at ?? '')
-  );
+  const sorted = [...photos].sort((a, b) => (a.taken_at ?? '').localeCompare(b.taken_at ?? ''));
 
   const clusters: DateCluster<T>[] = [];
   let currentDate = '';

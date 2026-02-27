@@ -50,7 +50,12 @@ export async function POST(request: NextRequest) {
     // Resolve photo IDs from different sources
     let resolvedPhotoIds: string[] = photoIds || [];
 
-    if (resolvedPhotoIds.length === 0 && roll_ids && Array.isArray(roll_ids) && roll_ids.length > 0) {
+    if (
+      resolvedPhotoIds.length === 0 &&
+      roll_ids &&
+      Array.isArray(roll_ids) &&
+      roll_ids.length > 0
+    ) {
       // Fetch photos from the specified rolls
       const { data: rollPhotos } = await supabase
         .from('roll_photos')
@@ -58,17 +63,26 @@ export async function POST(request: NextRequest) {
         .in('roll_id', roll_ids)
         .order('position', { ascending: true });
 
-      resolvedPhotoIds = [...new Set<string>((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
+      resolvedPhotoIds = [
+        ...new Set<string>((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id)),
+      ];
     }
 
-    if (resolvedPhotoIds.length === 0 && magazine_ids && Array.isArray(magazine_ids) && magazine_ids.length > 0) {
+    if (
+      resolvedPhotoIds.length === 0 &&
+      magazine_ids &&
+      Array.isArray(magazine_ids) &&
+      magazine_ids.length > 0
+    ) {
       // Fetch photos from the specified magazines' source rolls
       const { data: mags } = await supabase
         .from('magazines')
         .select('roll_ids')
         .in('id', magazine_ids);
 
-      const allRollIds = (mags || []).flatMap((m: { roll_ids: string[] | null }) => m.roll_ids || []);
+      const allRollIds = (mags || []).flatMap(
+        (m: { roll_ids: string[] | null }) => m.roll_ids || []
+      );
       if (allRollIds.length > 0) {
         const { data: rollPhotos } = await supabase
           .from('roll_photos')
@@ -76,7 +90,9 @@ export async function POST(request: NextRequest) {
           .in('roll_id', allRollIds)
           .order('position', { ascending: true });
 
-        resolvedPhotoIds = [...new Set<string>((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id))];
+        resolvedPhotoIds = [
+          ...new Set<string>((rollPhotos || []).map((rp: { photo_id: string }) => rp.photo_id)),
+        ];
       }
     }
 

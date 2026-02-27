@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Layers, Check, ChevronLeft } from 'lucide-react';
 import type { PhotoStack as PhotoStackType } from '@/types/photo';
 
@@ -128,11 +129,14 @@ export function PhotoStack({
                   transitionDelay: `${i * PHOTO_STAGGER_MS}ms`,
                 }}
               >
-                <img
+                <Image
                   src={photo.thumbnail_url}
                   alt=""
                   loading="lazy"
                   className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                  width={300}
+                  height={400}
+                  unoptimized
                 />
                 {/* Selection overlay */}
                 {checked && (
@@ -173,12 +177,15 @@ export function PhotoStack({
       }}
     >
       {/* Main (top) photo */}
-      <img
+      <Image
         src={stack.topPhoto.thumbnail_url}
         alt=""
         loading="lazy"
         onClick={handleTopClick}
         className="w-full aspect-[3/4] object-cover cursor-pointer"
+        width={300}
+        height={400}
+        unoptimized
       />
 
       {/* Selection overlay */}

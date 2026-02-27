@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Grid3X3, Film, Users, User, Menu, X, Palette, Moon, Sun } from 'lucide-react';
@@ -178,10 +179,13 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div className="flex items-center justify-between mb-[var(--space-element)]">
                 <div className="flex items-center gap-[var(--space-element)]">
                   {user?.avatar_url ? (
-                    <img
+                    <Image
                       src={user.avatar_url}
                       alt=""
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full object-cover shrink-0"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0">

@@ -27,6 +27,7 @@ import { MagazineCover } from '@/components/magazine/MagazineCover';
 import { CreateBookModal } from '@/components/book/CreateBookModal';
 import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import { useToast } from '@/stores/toastStore';
+import Image from 'next/image';
 import type { Magazine } from '@/types/magazine';
 import type { BlogPost } from '@/types/blog';
 
@@ -140,7 +141,11 @@ export default function DesignsPage() {
         }
         if (postsRes.ok) {
           const json = await postsRes.json();
-          setPosts((json.data ?? []).filter((p: BlogPost) => p.status === 'published' || p.status === 'draft'));
+          setPosts(
+            (json.data ?? []).filter(
+              (p: BlogPost) => p.status === 'published' || p.status === 'draft'
+            )
+          );
         }
       } catch {
         toast('Failed to load designs', 'error');
@@ -149,7 +154,7 @@ export default function DesignsPage() {
       }
     }
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleBookCreated = useCallback(
@@ -295,10 +300,13 @@ export default function DesignsPage() {
                   className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] group transition-transform hover:scale-[1.02] text-left"
                 >
                   {book.cover_url ? (
-                    <img
+                    <Image
                       src={book.cover_url}
                       alt={book.name}
+                      width={300}
+                      height={400}
                       className="w-full h-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">
@@ -347,7 +355,12 @@ export default function DesignsPage() {
                   role="button"
                   tabIndex={0}
                   onClick={() => router.push(`/projects/posts/${post.id}`)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.push(`/projects/posts/${post.id}`); } }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push(`/projects/posts/${post.id}`);
+                    }
+                  }}
                   className="flex items-center gap-[var(--space-element)] p-[var(--space-element)] rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-border-focus)] transition-colors text-left w-full cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
@@ -381,7 +394,9 @@ export default function DesignsPage() {
                       href={`/blog/${post.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={(e) => { e.stopPropagation(); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                      }}
                       className="min-w-[44px] min-h-[44px] flex items-center justify-center text-[var(--color-ink-tertiary)] hover:text-[var(--color-action)] transition-colors"
                       title="View public post"
                     >
@@ -517,7 +532,9 @@ export default function DesignsPage() {
                 </div>
                 {designSettings.autoMagazineEvery > 0 && (
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)] mt-[var(--space-tight)]">
-                    A magazine will be created automatically every {designSettings.autoMagazineEvery} roll{designSettings.autoMagazineEvery !== 1 ? 's' : ''}.
+                    A magazine will be created automatically every{' '}
+                    {designSettings.autoMagazineEvery} roll
+                    {designSettings.autoMagazineEvery !== 1 ? 's' : ''}.
                   </p>
                 )}
               </div>
@@ -590,7 +607,11 @@ export default function DesignsPage() {
                         {ws}
                       </span>
                       <span className="text-[length:var(--text-caption)]">
-                        {ws === 'compact' ? '— More photos per page' : ws === 'balanced' ? '— Default spacing' : '— Breathable layouts'}
+                        {ws === 'compact'
+                          ? '— More photos per page'
+                          : ws === 'balanced'
+                            ? '— Default spacing'
+                            : '— Breathable layouts'}
                       </span>
                     </button>
                   ))}
@@ -643,7 +664,11 @@ export default function DesignsPage() {
                         {style}
                       </span>
                       <span className="text-[length:var(--text-caption)]">
-                        {style === 'photo' ? '— Full-bleed cover photo' : style === 'minimal' ? '— Clean with small image' : '— Text-focused design'}
+                        {style === 'photo'
+                          ? '— Full-bleed cover photo'
+                          : style === 'minimal'
+                            ? '— Clean with small image'
+                            : '— Text-focused design'}
                       </span>
                     </button>
                   ))}

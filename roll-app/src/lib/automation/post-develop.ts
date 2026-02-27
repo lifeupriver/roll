@@ -16,9 +16,7 @@ interface AutomationResult {
   errors: string[];
 }
 
-export async function runPostDevelopAutomations(
-  ctx: AutomationContext
-): Promise<AutomationResult> {
+export async function runPostDevelopAutomations(ctx: AutomationContext): Promise<AutomationResult> {
   const settings = loadAutomationSettings();
   const result: AutomationResult = { automationsRun: [], errors: [] };
 
@@ -52,10 +50,7 @@ export async function runPostDevelopAutomations(
 
 // ─── Auto-Design Magazine ────────────────────────────────────────────────────
 
-async function autoDesignMagazine(
-  ctx: AutomationContext,
-  result: AutomationResult
-): Promise<void> {
+async function autoDesignMagazine(ctx: AutomationContext, result: AutomationResult): Promise<void> {
   try {
     ctx.onStatus('Designing magazine...');
 

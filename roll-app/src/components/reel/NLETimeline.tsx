@@ -1,13 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useMemo } from 'react';
-import {
-  GripVertical,
-  Volume2,
-  VolumeX,
-  Scissors,
-  X,
-} from 'lucide-react';
+import Image from 'next/image';
+import { GripVertical, Volume2, VolumeX, Scissors, X } from 'lucide-react';
 import { formatDuration } from './ClipDurationBadge';
 import type { ReelClip, TransitionType } from '@/types/reel';
 import type { Photo } from '@/types/photo';
@@ -66,23 +61,31 @@ export function NLETimeline({
   // Calculate proportional widths for each clip
   const effectiveDuration = totalDurationMs > 0 ? totalDurationMs : 1;
   const clipWidths = useMemo(() => {
-    return clips.map((c) => Math.max(
-      (c.trimmed_duration_ms / effectiveDuration) * 100,
-      2 // Minimum 2% width
-    ));
+    return clips.map((c) =>
+      Math.max(
+        (c.trimmed_duration_ms / effectiveDuration) * 100,
+        2 // Minimum 2% width
+      )
+    );
   }, [clips, effectiveDuration]);
 
   // Drag handlers
-  const handleDragStart = useCallback((index: number) => {
-    if (readOnly) return;
-    setDragIndex(index);
-  }, [readOnly]);
+  const handleDragStart = useCallback(
+    (index: number) => {
+      if (readOnly) return;
+      setDragIndex(index);
+    },
+    [readOnly]
+  );
 
-  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
-    if (readOnly) return;
-    e.preventDefault();
-    setOverIndex(index);
-  }, [readOnly]);
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, index: number) => {
+      if (readOnly) return;
+      e.preventDefault();
+      setOverIndex(index);
+    },
+    [readOnly]
+  );
 
   const handleDrop = useCallback(
     (index: number) => {
@@ -177,11 +180,7 @@ export function NLETimeline({
               >
                 {/* Thumbnail background */}
                 {thumbnailUrl ? (
-                  <img
-                    src={thumbnailUrl}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
+                  <Image src={thumbnailUrl} alt="" fill className="object-cover" unoptimized />
                 ) : (
                   <div className="absolute inset-0 bg-[var(--color-surface-raised)]" />
                 )}
@@ -202,9 +201,7 @@ export function NLETimeline({
                     if (!readOnly) onAudioToggle(clip.id, !audioOn);
                   }}
                   className={`absolute top-1 right-1 p-0.5 rounded-sm transition-colors ${
-                    audioOn
-                      ? 'text-white/80 hover:text-white'
-                      : 'text-red-400 hover:text-red-300'
+                    audioOn ? 'text-white/80 hover:text-white' : 'text-red-400 hover:text-red-300'
                   }`}
                   title={audioOn ? 'Mute this clip' : 'Unmute this clip'}
                 >
@@ -221,7 +218,10 @@ export function NLETimeline({
                   <div className="absolute bottom-1 right-1 flex items-center gap-0.5">
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); onEditTrim(clip.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditTrim(clip.id);
+                      }}
                       className="p-0.5 bg-black/50 rounded-sm text-white/80 hover:text-white backdrop-blur-sm"
                       title="Trim clip"
                     >
@@ -229,7 +229,10 @@ export function NLETimeline({
                     </button>
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); onRemove(clip.photo_id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(clip.photo_id);
+                      }}
                       className="p-0.5 bg-black/50 rounded-sm text-white/80 hover:text-red-400 backdrop-blur-sm"
                       title="Remove clip"
                     >
@@ -273,7 +276,9 @@ export function NLETimeline({
               style={{ flexBasis: `${clipWidths[index]}%` }}
             >
               <p className="text-[9px] text-[var(--color-ink-tertiary)] truncate font-[family-name:var(--font-mono)] tabular-nums">
-                {trimmed ? `${formatDuration(clip.trim_start_ms)}–${formatDuration(clip.trim_end_ms ?? clip.trimmed_duration_ms + clip.trim_start_ms)}` : ''}
+                {trimmed
+                  ? `${formatDuration(clip.trim_start_ms)}–${formatDuration(clip.trim_end_ms ?? clip.trimmed_duration_ms + clip.trim_start_ms)}`
+                  : ''}
               </p>
             </div>
           );

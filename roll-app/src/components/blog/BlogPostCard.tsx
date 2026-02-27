@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface BlogPostCardProps {
   title: string;
   slug: string;
@@ -37,11 +39,14 @@ export function BlogPostCard({
     >
       {coverPhoto && (
         <div className="aspect-[3/2] overflow-hidden bg-[var(--color-surface-sunken)]">
-          <img
+          <Image
             src={coverPhoto.thumbnail_url || coverPhoto.developed_url}
             alt={title}
+            width={coverPhoto.width || 500}
+            height={coverPhoto.height || 500}
             className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
             loading="lazy"
+            unoptimized
           />
         </div>
       )}

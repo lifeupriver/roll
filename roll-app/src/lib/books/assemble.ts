@@ -34,14 +34,6 @@ export function assembleBook(
   return smartAssembleBook(title, coverPhotoId, magazines);
 }
 
-function formatDateRange(start: string | null, end: string | null): string {
-  if (!start && !end) return '';
-  const fmt = (d: string) =>
-    new Date(d).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  if (start && end) return `${fmt(start)} — ${fmt(end)}`;
-  return start ? fmt(start) : fmt(end!);
-}
-
 /**
  * Calculate book price based on format and page count.
  */

@@ -25,9 +25,17 @@ import { Spinner } from '@/components/ui/Spinner';
 import { formatDuration } from '@/components/reel/ClipDurationBadge';
 import { useReelStore } from '@/stores/reelStore';
 import { useToast } from '@/stores/toastStore';
-import { REEL_ORIENTATIONS, type Reel, type ReelClip, type ReelOrientation, type TransitionType } from '@/types/reel';
+import {
+  REEL_ORIENTATIONS,
+  type Reel,
+  type ReelClip,
+  type ReelOrientation,
+  type TransitionType,
+} from '@/types/reel';
+import type { Photo } from '@/types/photo';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
+import Image from 'next/image';
 
 const CLIP_DURATION_OPTIONS = [2, 3, 5, 8, 10];
 
@@ -125,7 +133,7 @@ export default function ReelDetailPage() {
       }
     }
     checkFavorite();
-  }, [reelId, currentReel?.status]);
+  }, [reelId, currentReel?.status, currentReel]);
 
   // Reel name editing
   const handleStartEditing = useCallback(() => {
@@ -306,9 +314,11 @@ export default function ReelDetailPage() {
       // Update local state
       const { setReelClips: setClips } = useReelStore.getState();
       setClips(
-        useReelStore.getState().reelClips.map((c) =>
-          c.id === clipId ? { ...c, audio_enabled: enabled } : c
-        ) as ReelClip[]
+        useReelStore
+          .getState()
+          .reelClips.map((c) =>
+            c.id === clipId ? { ...c, audio_enabled: enabled } : c
+          ) as ReelClip[]
       );
       // Persist
       try {
@@ -319,11 +329,15 @@ export default function ReelDetailPage() {
         });
       } catch {
         // Revert on error using fresh state
-        useReelStore.getState().setReelClips(
-          useReelStore.getState().reelClips.map((c) =>
-            c.id === clipId ? { ...c, audio_enabled: !enabled } : c
-          ) as ReelClip[]
-        );
+        useReelStore
+          .getState()
+          .setReelClips(
+            useReelStore
+              .getState()
+              .reelClips.map((c) =>
+                c.id === clipId ? { ...c, audio_enabled: !enabled } : c
+              ) as ReelClip[]
+          );
       }
     },
     [reelId]
@@ -332,13 +346,19 @@ export default function ReelDetailPage() {
   const handleTransitionChange = useCallback(
     async (clipId: string, transition: TransitionType) => {
       // Capture previous value before update
-      const prevTransition = useReelStore.getState().reelClips.find((c) => c.id === clipId)?.transition_type;
+      const prevTransition = useReelStore
+        .getState()
+        .reelClips.find((c) => c.id === clipId)?.transition_type;
       // Update local state
-      useReelStore.getState().setReelClips(
-        useReelStore.getState().reelClips.map((c) =>
-          c.id === clipId ? { ...c, transition_type: transition } : c
-        ) as ReelClip[]
-      );
+      useReelStore
+        .getState()
+        .setReelClips(
+          useReelStore
+            .getState()
+            .reelClips.map((c) =>
+              c.id === clipId ? { ...c, transition_type: transition } : c
+            ) as ReelClip[]
+        );
       // Persist
       try {
         await fetch(`/api/reels/${reelId}/clips/${clipId}`, {
@@ -349,11 +369,15 @@ export default function ReelDetailPage() {
       } catch {
         // Revert on error using fresh state
         if (prevTransition) {
-          useReelStore.getState().setReelClips(
-            useReelStore.getState().reelClips.map((c) =>
-              c.id === clipId ? { ...c, transition_type: prevTransition } : c
-            ) as ReelClip[]
-          );
+          useReelStore
+            .getState()
+            .setReelClips(
+              useReelStore
+                .getState()
+                .reelClips.map((c) =>
+                  c.id === clipId ? { ...c, transition_type: prevTransition } : c
+                ) as ReelClip[]
+            );
         }
       }
     },
@@ -382,7 +406,11 @@ export default function ReelDetailPage() {
       updateReelStatus(currentReel.id, { status: 'developed' });
       track({
         event: 'reel_developed',
-        properties: { reelId: currentReel.id, filmProfile, audioMood: ambientAudio ? 'original' : 'silent_film' },
+        properties: {
+          reelId: currentReel.id,
+          filmProfile,
+          audioMood: ambientAudio ? 'original' : 'silent_film',
+        },
       });
 
       // Initialize config screen
@@ -402,7 +430,7 @@ export default function ReelDetailPage() {
     } finally {
       setDeveloping(false);
     }
-  }, [currentReel, filmProfile, ambientAudio, orientation, updateReelStatus, reelClips]);
+  }, [currentReel, filmProfile, ambientAudio, updateReelStatus, reelClips]);
 
   const handleSaveConfig = useCallback(async () => {
     if (!currentReel) return;
@@ -490,9 +518,7 @@ export default function ReelDetailPage() {
   }));
 
   // Clip being trimmed
-  const trimmingClip = trimmingClipId
-    ? reelClips.find((c) => c.id === trimmingClipId)
-    : null;
+  const trimmingClip = trimmingClipId ? reelClips.find((c) => c.id === trimmingClipId) : null;
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
@@ -570,10 +596,12 @@ export default function ReelDetailPage() {
           >
             {/* Poster image if available */}
             {currentReel.poster_storage_key && (
-              <img
+              <Image
                 src={`/api/photos/serve?key=${encodeURIComponent(currentReel.poster_storage_key)}`}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             )}
             {/* Play overlay */}
@@ -635,7 +663,7 @@ export default function ReelDetailPage() {
 
           {editorMode === 'timeline' ? (
             <NLETimeline
-              clips={reelClips as (ReelClip & { photos?: any; audio_enabled?: boolean })[]}
+              clips={reelClips as (ReelClip & { photos?: Photo; audio_enabled?: boolean })[]}
               totalDurationMs={currentReel.current_duration_ms}
               onReorder={handleReorder}
               onRemove={handleRemoveClip}
@@ -646,7 +674,7 @@ export default function ReelDetailPage() {
             />
           ) : (
             <ReelStoryboard
-              clips={reelClips as (ReelClip & { photos?: any })[]}
+              clips={reelClips as (ReelClip & { photos?: Photo })[]}
               onReorder={handleReorder}
               onRemove={handleRemoveClip}
               onEditTrim={handleEditTrim}
@@ -675,12 +703,28 @@ export default function ReelDetailPage() {
                 }`}
               >
                 {opt.id === 'horizontal' ? (
-                  <Monitor size={28} className={orientation === opt.id ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-secondary)]'} />
+                  <Monitor
+                    size={28}
+                    className={
+                      orientation === opt.id
+                        ? 'text-[var(--color-action)]'
+                        : 'text-[var(--color-ink-secondary)]'
+                    }
+                  />
                 ) : (
-                  <Smartphone size={28} className={orientation === opt.id ? 'text-[var(--color-action)]' : 'text-[var(--color-ink-secondary)]'} />
+                  <Smartphone
+                    size={28}
+                    className={
+                      orientation === opt.id
+                        ? 'text-[var(--color-action)]'
+                        : 'text-[var(--color-ink-secondary)]'
+                    }
+                  />
                 )}
                 <div className="text-center">
-                  <p className={`text-[length:var(--text-label)] font-medium ${orientation === opt.id ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}>
+                  <p
+                    className={`text-[length:var(--text-label)] font-medium ${orientation === opt.id ? 'text-[var(--color-action)]' : 'text-[var(--color-ink)]'}`}
+                  >
                     {opt.label}
                   </p>
                   <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
@@ -840,11 +884,16 @@ export default function ReelDetailPage() {
       {trimmingClip && (
         <div className="fixed inset-x-0 bottom-0 z-40">
           <TrimControls
-            durationMs={trimmingClip.trimmed_duration_ms + trimmingClip.trim_start_ms + (trimmingClip.trim_end_ms ? 0 : 0)}
+            durationMs={
+              trimmingClip.trimmed_duration_ms +
+              trimmingClip.trim_start_ms +
+              (trimmingClip.trim_end_ms ? 0 : 0)
+            }
             initialStartMs={trimmingClip.trim_start_ms}
             initialEndMs={trimmingClip.trim_end_ms}
             thumbnailUrl={
-              (trimmingClip as ReelClip & { photos?: { thumbnail_url?: string } }).photos?.thumbnail_url || ''
+              (trimmingClip as ReelClip & { photos?: { thumbnail_url?: string } }).photos
+                ?.thumbnail_url || ''
             }
             onConfirm={handleTrimConfirm}
             onCancel={() => setTrimmingClipId(null)}
@@ -934,13 +983,16 @@ export default function ReelDetailPage() {
                       <div className="relative shrink-0 w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
                         {(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos
                           ?.thumbnail_url ? (
-                          <img
+                          <Image
                             src={
                               (clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos!
-                                .thumbnail_url
+                                .thumbnail_url!
                             }
                             alt=""
+                            width={48}
+                            height={48}
                             className="w-full h-full object-cover"
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

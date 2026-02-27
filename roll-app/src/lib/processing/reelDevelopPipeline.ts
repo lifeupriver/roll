@@ -13,10 +13,11 @@ import type { FilmProfileId } from '@/types/roll';
 
 // ─── Orientation Constants ───────────────────────────────────────────────────
 
-const ORIENTATION_SPECS: Record<ReelOrientation, { width: number; height: number; scale: string }> = {
-  horizontal: { width: 1920, height: 1080, scale: '1920:1080' },
-  vertical: { width: 1080, height: 1920, scale: '1080:1920' },
-};
+const ORIENTATION_SPECS: Record<ReelOrientation, { width: number; height: number; scale: string }> =
+  {
+    horizontal: { width: 1920, height: 1080, scale: '1920:1080' },
+    vertical: { width: 1080, height: 1920, scale: '1080:1920' },
+  };
 
 /**
  * Build FFmpeg filter string for per-clip processing.

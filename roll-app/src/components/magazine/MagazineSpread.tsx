@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import type { MagazinePage } from '@/types/magazine';
 import { getGridCSS, getLayoutConfig } from '@/lib/layout/page-templates';
 
@@ -118,11 +119,14 @@ function SpreadPage({
         {/* Photo half */}
         <div className="flex-1 flex items-center justify-center p-[8%]">
           {url ? (
-            <img
+            <Image
               src={url}
               alt=""
+              width={dims?.width || 400}
+              height={dims?.height || 600}
               className="max-w-full max-h-full object-contain"
               style={dims ? { aspectRatio: `${dims.width}/${dims.height}` } : undefined}
+              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-[var(--color-surface-sunken)]" />
@@ -175,14 +179,17 @@ function SpreadPage({
               }}
             >
               {url ? (
-                <img
+                <Image
                   src={url}
                   alt=""
+                  width={dims?.width || 400}
+                  height={dims?.height || 600}
                   className={`${objectFit === 'contain' ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'}`}
                   style={dims && objectFit === 'contain'
                     ? { aspectRatio: `${dims.width}/${dims.height}` }
                     : undefined
                   }
+                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full bg-[var(--color-surface-sunken)]" />

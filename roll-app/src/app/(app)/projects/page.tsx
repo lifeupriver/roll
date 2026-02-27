@@ -21,6 +21,7 @@ import { ContentModePills } from '@/components/photo/ContentModePills';
 import { GridSizeSelector } from '@/components/ui/GridSizeSelector';
 import { CreateBookModal } from '@/components/book/CreateBookModal';
 import { NudgeBanner } from '@/components/shared/NudgeBanner';
+import Image from 'next/image';
 import { useToast } from '@/stores/toastStore';
 type ProjectSection = 'albums' | 'reels';
 
@@ -343,11 +344,13 @@ function ProjectsContent() {
                     {/* Book cover card */}
                     <div className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)] shadow-[var(--shadow-raised)] group-hover:shadow-[var(--shadow-floating)] transition-shadow duration-200">
                       {album.cover_url ? (
-                        <img
+                        <Image
                           src={album.cover_url}
                           alt=""
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                           loading="lazy"
+                          unoptimized
                         />
                       ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-[var(--space-tight)] bg-[var(--color-surface-sunken)]">
@@ -469,11 +472,14 @@ function ProjectsContent() {
                 >
                   <div className="relative aspect-video bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden mb-[var(--space-tight)]">
                     {reel.poster_url ? (
-                      <img
+                      <Image
                         src={reel.poster_url}
                         alt=""
+                        width={400}
+                        height={225}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        unoptimized
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">

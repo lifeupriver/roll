@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useRollStore } from '@/stores/rollStore';
-import type { RollPhoto } from '@/types/roll';
+import type { Roll, RollPhoto } from '@/types/roll';
 
 function makeRollPhoto(
   overrides: Partial<RollPhoto> & { photo_id: string; position: number }
@@ -108,7 +108,7 @@ describe('rollStore', () => {
     it('clears all roll state', () => {
       useRollStore.getState().checkPhoto('p1');
       useRollStore.getState().setFilmProfile('warmth');
-      useRollStore.getState().setRoll({ id: 'r1' } as any);
+      useRollStore.getState().setRoll({ id: 'r1' } as Roll);
       useRollStore.getState().resetRoll();
 
       const state = useRollStore.getState();
@@ -124,22 +124,22 @@ describe('rollStore', () => {
     it('updates matching roll in rolls array', () => {
       useRollStore
         .getState()
-        .setRolls([{ id: 'r1', status: 'building' } as any, { id: 'r2', status: 'ready' } as any]);
+        .setRolls([{ id: 'r1', status: 'building' } as Roll, { id: 'r2', status: 'ready' } as Roll]);
 
-      useRollStore.getState().updateRollStatus('r1', { status: 'ready' } as any);
+      useRollStore.getState().updateRollStatus('r1', { status: 'ready' });
       const r1 = useRollStore.getState().rolls.find((r) => r.id === 'r1');
       expect(r1?.status).toBe('ready');
     });
 
     it('updates currentRoll if it matches', () => {
-      useRollStore.getState().setRoll({ id: 'r1', status: 'building' } as any);
-      useRollStore.getState().updateRollStatus('r1', { status: 'developed' } as any);
+      useRollStore.getState().setRoll({ id: 'r1', status: 'building' } as Roll);
+      useRollStore.getState().updateRollStatus('r1', { status: 'developed' });
       expect(useRollStore.getState().currentRoll?.status).toBe('developed');
     });
 
     it('does not update currentRoll if it does not match', () => {
-      useRollStore.getState().setRoll({ id: 'r1', status: 'building' } as any);
-      useRollStore.getState().updateRollStatus('r2', { status: 'developed' } as any);
+      useRollStore.getState().setRoll({ id: 'r1', status: 'building' } as Roll);
+      useRollStore.getState().updateRollStatus('r2', { status: 'developed' });
       expect(useRollStore.getState().currentRoll?.status).toBe('building');
     });
   });

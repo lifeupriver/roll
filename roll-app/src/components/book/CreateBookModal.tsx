@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import {
   BookOpen,
   ChevronRight,
@@ -473,11 +474,13 @@ export function CreateBookModal({
                     >
                       <div className="w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0">
                         {roll.cover_url ? (
-                          <img
+                          <Image
                             src={roll.cover_url}
                             alt=""
+                            width={48}
+                            height={48}
                             className="w-full h-full object-cover"
-                            loading="lazy"
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
@@ -611,10 +614,13 @@ export function CreateBookModal({
                         />
                         <div className="w-10 h-10 rounded-[var(--radius-sharp)] overflow-hidden flex-shrink-0 bg-[var(--color-surface-sunken)]">
                           {roll.cover_url ? (
-                            <img
+                            <Image
                               src={roll.cover_url}
                               alt=""
+                              width={40}
+                              height={40}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

@@ -13,42 +13,48 @@ const ESSAY_TEMPLATES: {
   {
     id: 'documentary',
     name: 'Documentary',
-    description: 'Story-driven with large hero images, text interludes, and pull quotes. Best for narrative photo essays.',
+    description:
+      'Story-driven with large hero images, text interludes, and pull quotes. Best for narrative photo essays.',
     icon: Camera,
     rhythm: 'hero → text → pair → quote → grid',
   },
   {
     id: 'travel',
     name: 'Travel Journal',
-    description: 'Immersive wide photos, panoramic views, and location-grouped sequences. Perfect for trips and adventures.',
+    description:
+      'Immersive wide photos, panoramic views, and location-grouped sequences. Perfect for trips and adventures.',
     icon: MapPin,
     rhythm: 'panoramic → pair → text → triptych → hero',
   },
   {
     id: 'portrait',
     name: 'Portrait Series',
-    description: 'Generous spacing around individual portraits with intimate captioning. Ideal for people photography.',
+    description:
+      'Generous spacing around individual portraits with intimate captioning. Ideal for people photography.',
     icon: UserRound,
     rhythm: 'hero → single → quote → single → pair',
   },
   {
     id: 'editorial',
     name: 'Editorial',
-    description: 'Magazine-style layouts with bold pacing, dramatic heroes, and varied grid structures. Maximum visual impact.',
+    description:
+      'Magazine-style layouts with bold pacing, dramatic heroes, and varied grid structures. Maximum visual impact.',
     icon: Newspaper,
     rhythm: 'hero → grid → text → triptych → hero',
   },
   {
     id: 'minimal',
     name: 'Minimal',
-    description: 'Clean single-column flow with generous whitespace. Lets photos breathe. One image at a time.',
+    description:
+      'Clean single-column flow with generous whitespace. Lets photos breathe. One image at a time.',
     icon: Minus,
     rhythm: 'single → single → text → single → single',
   },
   {
     id: 'narrative',
     name: 'Narrative',
-    description: 'Text-heavy with photos woven into the story. Best when you have a longer story to tell alongside your images.',
+    description:
+      'Text-heavy with photos woven into the story. Best when you have a longer story to tell alongside your images.',
     icon: BookOpen,
     rhythm: 'hero → text → single → text → pair',
   },

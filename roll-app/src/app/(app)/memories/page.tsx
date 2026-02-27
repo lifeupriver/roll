@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Clock, Calendar } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
+import Image from 'next/image';
 import type { Memory } from '@/app/api/memories/route';
 
 export default function MemoriesPage() {
@@ -89,11 +90,14 @@ export default function MemoriesPage() {
                       key={memory.id}
                       className="relative rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]"
                     >
-                      <img
+                      <Image
                         src={memory.thumbnailUrl}
                         alt={`Memory from ${memory.label}`}
+                        width={300}
+                        height={400}
                         loading="lazy"
                         className="w-full aspect-[3/4] object-cover"
+                        unoptimized
                       />
                     </div>
                   ))}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Check } from 'lucide-react';
 
 interface RollForSelection {
@@ -98,11 +99,13 @@ export function RollSelector({ selectedRollIds, onSelectionChange, maxRolls = 4 
               {/* Thumbnail */}
               <div className="w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] shrink-0">
                 {roll.thumbnail_url && (
-                  <img
+                  <Image
                     src={roll.thumbnail_url}
                     alt=""
+                    width={48}
+                    height={48}
                     className="w-full h-full object-cover"
-                    loading="lazy"
+                    unoptimized
                   />
                 )}
               </div>

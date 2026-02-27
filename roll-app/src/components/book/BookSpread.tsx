@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { BookOpen, ChevronUp, ChevronDown, Trash2, Maximize2 } from 'lucide-react';
 import { CaptionEditor } from './CaptionEditor';
 import type { BookPage } from '@/types/book';
@@ -135,10 +136,12 @@ function SpreadPage({
     return (
       <div className="relative flex-1 aspect-[3/4] bg-[var(--color-surface-raised)] overflow-hidden">
         {page.coverPhotoId && page.thumbnailUrl ? (
-          <img
+          <Image
             src={page.thumbnailUrl}
             alt={page.title ?? 'Cover'}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]" />
@@ -259,15 +262,18 @@ function SpreadPage({
       {/* Photo — use contain to preserve aspect ratio */}
       {page.thumbnailUrl ? (
         <div className="w-full h-full flex items-center justify-center p-[5%]">
-          <img
+          <Image
             src={page.thumbnailUrl}
             alt={`Page ${pageIndex + 1}`}
+            width={page.width || 600}
+            height={page.height || 800}
             className="max-w-full max-h-full object-contain"
             style={
               page.width && page.height
                 ? { aspectRatio: `${page.width}/${page.height}` }
                 : undefined
             }
+            unoptimized
           />
         </div>
       ) : (

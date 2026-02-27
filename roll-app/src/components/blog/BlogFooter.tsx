@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { User } from 'lucide-react';
 
 interface BlogFooterProps {
@@ -21,10 +22,13 @@ export function BlogFooter({
     <footer className="border-t border-[var(--color-border)] pt-[var(--space-section)]">
       <div className="flex items-start gap-[var(--space-component)]">
         {avatarUrl ? (
-          <img
+          <Image
             src={avatarUrl}
             alt={displayName}
+            width={48}
+            height={48}
             className="w-12 h-12 rounded-full object-cover shrink-0"
+            unoptimized
           />
         ) : (
           <div className="w-12 h-12 rounded-full bg-[var(--color-surface-sunken)] flex items-center justify-center shrink-0">

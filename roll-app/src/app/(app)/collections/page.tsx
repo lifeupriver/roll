@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Layers, MapPin, Users, Sun, Camera } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
+import Image from 'next/image';
 import type { SmartCollection } from '@/app/api/collections/route';
 
 const typeIcons: Record<string, typeof Layers> = {
@@ -100,11 +101,14 @@ export default function CollectionsPage() {
                   className="relative rounded-[var(--radius-card)] overflow-hidden bg-[var(--color-surface-raised)] shadow-[var(--shadow-raised)] group cursor-pointer hover:shadow-[var(--shadow-floating)] transition-shadow duration-150"
                 >
                   <div className="aspect-[4/3] relative">
-                    <img
+                    <Image
                       src={collection.coverThumbnailUrl}
                       alt={collection.title}
+                      width={400}
+                      height={300}
                       loading="lazy"
                       className="w-full h-full object-cover"
+                      unoptimized
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-[var(--space-element)]">
