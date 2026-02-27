@@ -49,6 +49,7 @@ import {
   type AutomationSettings,
 } from '@/lib/automation/settings';
 import { FILM_PROFILE_CONFIGS } from '@/lib/processing/filmProfiles';
+import { FILM_PROFILES } from '@/types/roll';
 import type { PrintOrder } from '@/types/print';
 import type { ReferralStats } from '@/types/referral';
 
@@ -84,8 +85,20 @@ export default function AccountPage() {
   const [automation, setAutomation] = useState<AutomationSettings>(loadAutomationSettings);
   const [circles, setCircles] = useState<{ id: string; name: string }[]>([]);
 
+  const isFree = user?.tier === 'free';
+  const freeProfileIds = new Set(FILM_PROFILES.filter((p) => p.tier === 'free').map((p) => p.id));
+
   const updateAutomation = (updates: Partial<AutomationSettings>) => {
-    setAutomation(saveAutomationSettings(updates));
+    const sanitized = { ...updates };
+    if (isFree) {
+      if (sanitized.defaultProcessMode && sanitized.defaultProcessMode !== 'color') {
+        sanitized.defaultProcessMode = 'color';
+      }
+      if (sanitized.defaultFilmProfile && !freeProfileIds.has(sanitized.defaultFilmProfile)) {
+        sanitized.defaultFilmProfile = 'warmth';
+      }
+    }
+    setAutomation(saveAutomationSettings(sanitized));
   };
 
   // Fetch circles for auto-post dropdown
@@ -532,7 +545,7 @@ export default function AccountPage() {
           <div className="flex items-center justify-between">
             <span className="text-[length:var(--text-label)] text-[var(--color-ink)]">Default mode</span>
             <div className="flex items-center gap-[var(--space-tight)]">
-              {(['color', 'bw'] as const).map((mode) => (
+              {(['color', 'bw'] as const).filter((m) => !isFree || m === 'color').map((mode) => (
                 <button
                   key={mode}
                   type="button"
@@ -559,6 +572,7 @@ export default function AccountPage() {
             <div className="flex items-center gap-[var(--space-tight)] flex-wrap justify-end">
               {Object.values(FILM_PROFILE_CONFIGS)
                 .filter((p) => p.type === automation.defaultProcessMode)
+                .filter((p) => !isFree || freeProfileIds.has(p.id))
                 .map((profile) => (
                   <button
                     key={profile.id}
