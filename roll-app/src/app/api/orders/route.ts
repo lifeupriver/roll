@@ -134,13 +134,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert print order items
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const orderItems = rollPhotos.map((rp: any) => ({
-      order_id: order.id,
-      photo_id: rp.photo_id,
-      processed_storage_key: rp.processed_storage_key,
-      position: rp.position,
-    }));
+    const orderItems = rollPhotos.map(
+      (rp: { photo_id: string; processed_storage_key: string; position: number }) => ({
+        order_id: order.id,
+        photo_id: rp.photo_id,
+        processed_storage_key: rp.processed_storage_key,
+        position: rp.position,
+      })
+    );
 
     const { error: itemsError } = await supabase.from('print_order_items').insert(orderItems);
 

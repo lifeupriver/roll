@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { GripVertical, X, Scissors } from 'lucide-react';
 import { formatDuration } from './ClipDurationBadge';
 import type { ReelClip } from '@/types/reel';
@@ -18,7 +19,13 @@ interface ReelStoryboardProps {
   readOnly?: boolean;
 }
 
-export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim, readOnly = false }: ReelStoryboardProps) {
+export function ReelStoryboard({
+  clips,
+  onReorder,
+  onRemove,
+  onEditTrim,
+  readOnly = false,
+}: ReelStoryboardProps) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
 
@@ -54,7 +61,8 @@ export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim, readOnl
           No clips yet
         </p>
         <p className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)] font-[family-name:var(--font-body)]">
-          Go to the Videos tab to select clips for your reel. Drag to reorder, use the scissors to trim, or tap X to remove.
+          Go to the Videos tab to select clips for your reel. Drag to reorder, use the scissors to
+          trim, or tap X to remove.
         </p>
       </div>
     );
@@ -102,7 +110,14 @@ export function ReelStoryboard({ clips, onReorder, onRemove, onEditTrim, readOnl
             {/* Thumbnail */}
             <div className="relative shrink-0 w-[120px] h-[68px] rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
               {thumbnailUrl && (
-                <img src={thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                <Image
+                  src={thumbnailUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  width={120}
+                  height={68}
+                  unoptimized
+                />
               )}
               {/* Duration overlay */}
               <span className="absolute bottom-1 left-1 px-1 py-0.5 bg-[oklch(0_0_0/0.6)] rounded-[2px] font-[family-name:var(--font-mono)] text-[10px] text-white tabular-nums">

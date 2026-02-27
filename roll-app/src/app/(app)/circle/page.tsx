@@ -31,6 +31,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { CirclePostCard } from '@/components/circle/CirclePostCard';
 import { useToast } from '@/stores/toastStore';
 import { useUserStore } from '@/stores/userStore';
+import Image from 'next/image';
 import type { Circle, CirclePost, CircleComment, ReactionType } from '@/types/circle';
 
 // ---------------------------------------------------------------------------
@@ -482,10 +483,13 @@ export default function CirclePage() {
                 <BackButton onClick={() => setSelectedPost(null)} />
                 <div className="flex items-center gap-[var(--space-element)] flex-1 min-w-0">
                   {selectedPost.profiles?.avatar_url ? (
-                    <img
+                    <Image
                       src={selectedPost.profiles.avatar_url}
                       alt=""
+                      width={32}
+                      height={32}
                       className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-[var(--color-action)]/30"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-[var(--color-action-subtle)] flex items-center justify-center shrink-0 ring-2 ring-[var(--color-action)]/30">
@@ -510,10 +514,13 @@ export default function CirclePage() {
                 {/* Image */}
                 {currentPhoto && (
                   <div className="relative bg-[var(--color-surface-sunken)]">
-                    <img
+                    <Image
                       src={`/api/photos/serve?key=${encodeURIComponent(currentPhoto.storage_key)}`}
                       alt=""
+                      width={800}
+                      height={600}
                       className="w-full max-h-[60vh] object-contain"
+                      unoptimized
                     />
                     {photos.length > 1 && selectedPhotoIndex > 0 && (
                       <button
@@ -585,10 +592,13 @@ export default function CirclePage() {
                       <div key={c.id} className="flex gap-[var(--space-tight)] group">
                         <div className="w-7 h-7 rounded-full flex-shrink-0 overflow-hidden mt-0.5 ring-1 ring-[var(--color-action)]/20">
                           {c.profiles?.avatar_url ? (
-                            <img
+                            <Image
                               src={c.profiles.avatar_url}
                               alt=""
+                              width={28}
+                              height={28}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-full h-full bg-[var(--color-action-subtle)] flex items-center justify-center">

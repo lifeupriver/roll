@@ -1,8 +1,6 @@
 import type { PushPayload } from '@/types/push';
 import { captureError } from '@/lib/sentry';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 /**
  * VAPID public key for push subscriptions.
  * Generate a keypair with: npx web-push generate-vapid-keys
@@ -29,7 +27,13 @@ export async function sendPushNotification(
 
   try {
     // Dynamic import to avoid bundler static resolution
-    let webpush: any;
+    let webpush: {
+      setVapidDetails: (subject: string, publicKey: string, privateKey: string) => void;
+      sendNotification: (
+        subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
+        payload: string
+      ) => Promise<void>;
+    };
     try {
       // @ts-expect-error — web-push is an optional dependency
       webpush = await import(/* webpackIgnore: true */ 'web-push');

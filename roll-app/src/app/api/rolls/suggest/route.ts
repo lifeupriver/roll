@@ -53,13 +53,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter out already-used photos
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const candidates = photos.filter((p: any) => !usedIds.has(p.id));
+    const candidates = photos.filter((p) => !usedIds.has(p.id));
 
     // Score each photo
     const now = Date.now();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const scored = candidates.map((photo: any) => {
+    const scored = candidates.map((photo) => {
       let score = 0;
 
       // Aesthetic score (0-1) — strongest signal (weight: 40%)
@@ -84,8 +82,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort by score descending
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    scored.sort((a: any, b: any) => b.score - a.score);
+    scored.sort((a, b) => b.score - a.score);
 
     // Apply diversity: penalize consecutive similar scenes
     const selected: typeof scored = [];

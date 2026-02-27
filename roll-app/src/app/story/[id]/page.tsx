@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 
 function getServiceSupabase() {
@@ -109,9 +110,11 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       {/* Photo */}
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="rounded-xl overflow-hidden shadow-lg bg-white">
-          <img
+          <Image
             src={story.photo.developed_url || story.photo.thumbnail_url}
             alt={story.caption || 'Photo'}
+            width={story.photo.width || 800}
+            height={story.photo.height || 600}
             className="w-full"
             style={{
               aspectRatio:
@@ -119,6 +122,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
                   ? `${story.photo.width}/${story.photo.height}`
                   : undefined,
             }}
+            unoptimized
           />
         </div>
 

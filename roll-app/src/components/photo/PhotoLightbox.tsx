@@ -260,6 +260,27 @@ export function PhotoLightbox({
     setVideoProgress(fraction);
   }, []);
 
+  // Format location
+  const locationInfo = (() => {
+    if (currentPhoto.latitude !== null && currentPhoto.longitude !== null) {
+      const lat = currentPhoto.latitude;
+      const lng = currentPhoto.longitude;
+      const latDir = lat >= 0 ? 'N' : 'S';
+      const lngDir = lng >= 0 ? 'E' : 'W';
+      return `${Math.abs(lat).toFixed(4)}\u00B0${latDir}, ${Math.abs(lng).toFixed(4)}\u00B0${lngDir}`;
+    }
+    return null;
+  })();
+
+  // Format date
+  const formattedDate = currentPhoto.date_taken
+    ? new Date(currentPhoto.date_taken).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
   // Share
   const handleShare = useCallback(async () => {
     const shareData: ShareData = {
@@ -285,27 +306,6 @@ export function PhotoLightbox({
       }
     }
   }, [currentPhoto, formattedDate]);
-
-  // Format location
-  const locationInfo = (() => {
-    if (currentPhoto.latitude !== null && currentPhoto.longitude !== null) {
-      const lat = currentPhoto.latitude;
-      const lng = currentPhoto.longitude;
-      const latDir = lat >= 0 ? 'N' : 'S';
-      const lngDir = lng >= 0 ? 'E' : 'W';
-      return `${Math.abs(lat).toFixed(4)}\u00B0${latDir}, ${Math.abs(lng).toFixed(4)}\u00B0${lngDir}`;
-    }
-    return null;
-  })();
-
-  // Format date
-  const formattedDate = currentPhoto.date_taken
-    ? new Date(currentPhoto.date_taken).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null;
 
   // Shared element transition: compute style for the hero image
   const hasSharedTransition = initialSourceRect.current && currentIndex === initialIndex;

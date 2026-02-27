@@ -20,6 +20,7 @@ import { BookSpread } from '@/components/book/BookSpread';
 import { CaptionEditor } from '@/components/book/CaptionEditor';
 import { useToast } from '@/stores/toastStore';
 import type { BookPage, BookViewMode, BookLayout } from '@/types/book';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface PhotoData {
@@ -494,11 +495,14 @@ function BookDetailContent() {
                   }}
                   className="relative aspect-[3/4] rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)] group"
                 >
-                  <img
+                  <Image
                     src={page.thumbnailUrl}
                     alt=""
+                    width={300}
+                    height={400}
                     className="w-full h-full object-cover"
                     loading="lazy"
+                    unoptimized
                   />
                   <span className="absolute bottom-0 inset-x-0 bg-black/40 text-white text-[9px] text-center font-[family-name:var(--font-mono)] py-0.5">
                     {i + 1}
@@ -666,10 +670,13 @@ function BookDetailContent() {
                 >
                   {currentPages[0] && (
                     <>
-                      <img
+                      <Image
                         src={currentPages[0].thumbnailUrl ?? ''}
                         alt={`Page ${currentSpread + 1}`}
+                        width={400}
+                        height={533}
                         className="w-full h-full object-cover"
+                        unoptimized
                       />
                       <span className="absolute bottom-2 left-1/2 -translate-x-1/2 font-[family-name:var(--font-mono)] text-[10px] text-white/70 bg-black/30 px-2 py-0.5 rounded-[var(--radius-pill)]">
                         {currentSpread + 1}
@@ -737,7 +744,14 @@ function BookDetailContent() {
                       : 'opacity-40 hover:opacity-70'
                   }`}
                 >
-                  <img src={page.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                  <Image
+                    src={page.thumbnailUrl}
+                    alt=""
+                    width={40}
+                    height={56}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                  />
                   <span className="absolute bottom-0 inset-x-0 bg-black/50 text-white text-[8px] text-center font-[family-name:var(--font-mono)]">
                     {i + 1}
                   </span>
@@ -779,10 +793,13 @@ function BookDetailContent() {
                 className="flex flex-col items-center gap-[var(--space-component)] max-w-3xl w-full px-4"
                 onClick={(e) => e.stopPropagation()}
               >
-                <img
+                <Image
                   src={page.thumbnailUrl}
                   alt=""
+                  width={600}
+                  height={800}
                   className="max-h-[70vh] w-auto rounded-[var(--radius-card)] shadow-2xl"
+                  unoptimized
                 />
                 {page.caption && (
                   <p className="text-white/80 text-[length:var(--text-body)] text-center max-w-md font-[family-name:var(--font-body)] italic">

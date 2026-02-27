@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { MagazineCover } from '@/components/magazine/MagazineCover';
 import { SpreadPageView, type DemoPage } from '@/components/magazine/SpreadPageView';
 import { useToast } from '@/stores/toastStore';
+import Image from 'next/image';
 import type { Magazine } from '@/types/magazine';
 
 // Demo photos for the pre-built magazine
@@ -39,17 +40,52 @@ const DEMO_PHOTOS = [
 ];
 
 const DEMO_PAGES: DemoPage[] = [
-  { layout: 'cover', photos: [DEMO_PHOTOS[0]], title: 'February 2026', caption: 'A Monthly Magazine' },
-  { layout: 'section_divider', photos: [], title: 'Early February', caption: 'The first week of the month' },
-  { layout: 'full_bleed', photos: [DEMO_PHOTOS[1]], caption: 'Morning light through the kitchen window' },
+  {
+    layout: 'cover',
+    photos: [DEMO_PHOTOS[0]],
+    title: 'February 2026',
+    caption: 'A Monthly Magazine',
+  },
+  {
+    layout: 'section_divider',
+    photos: [],
+    title: 'Early February',
+    caption: 'The first week of the month',
+  },
+  {
+    layout: 'full_bleed',
+    photos: [DEMO_PHOTOS[1]],
+    caption: 'Morning light through the kitchen window',
+  },
   { layout: 'two_up_vertical', photos: [DEMO_PHOTOS[2], DEMO_PHOTOS[3]] },
-  { layout: 'four_up_grid', photos: [DEMO_PHOTOS[4], DEMO_PHOTOS[5], DEMO_PHOTOS[6], DEMO_PHOTOS[7]], caption: 'Weekend adventures' },
+  {
+    layout: 'four_up_grid',
+    photos: [DEMO_PHOTOS[4], DEMO_PHOTOS[5], DEMO_PHOTOS[6], DEMO_PHOTOS[7]],
+    caption: 'Weekend adventures',
+  },
   { layout: 'full_bleed', photos: [DEMO_PHOTOS[8]], caption: 'The golden hour walk' },
-  { layout: 'section_divider', photos: [], title: 'Mid February', caption: "Valentine's week and beyond" },
+  {
+    layout: 'section_divider',
+    photos: [],
+    title: 'Mid February',
+    caption: "Valentine's week and beyond",
+  },
   { layout: 'two_up_horizontal', photos: [DEMO_PHOTOS[9], DEMO_PHOTOS[10]] },
-  { layout: 'three_up_top_heavy', photos: [DEMO_PHOTOS[11], DEMO_PHOTOS[12], DEMO_PHOTOS[13]], caption: 'Exploring the neighborhood' },
-  { layout: 'caption_heavy', photos: [DEMO_PHOTOS[14]], caption: 'She picked these flowers from the garden and insisted on carrying them all the way home. Three blocks, no help.' },
-  { layout: 'four_up_grid', photos: [DEMO_PHOTOS[15], DEMO_PHOTOS[16], DEMO_PHOTOS[17], DEMO_PHOTOS[18]] },
+  {
+    layout: 'three_up_top_heavy',
+    photos: [DEMO_PHOTOS[11], DEMO_PHOTOS[12], DEMO_PHOTOS[13]],
+    caption: 'Exploring the neighborhood',
+  },
+  {
+    layout: 'caption_heavy',
+    photos: [DEMO_PHOTOS[14]],
+    caption:
+      'She picked these flowers from the garden and insisted on carrying them all the way home. Three blocks, no help.',
+  },
+  {
+    layout: 'four_up_grid',
+    photos: [DEMO_PHOTOS[15], DEMO_PHOTOS[16], DEMO_PHOTOS[17], DEMO_PHOTOS[18]],
+  },
   { layout: 'full_bleed', photos: [DEMO_PHOTOS[19]], caption: 'Until next month' },
 ];
 
@@ -102,19 +138,34 @@ function MagazineViewer({ pages, onClose }: { pages: DemoPage[]; onClose: () => 
           <div className="flex items-center gap-2">
             {mode === 'read' ? (
               <>
-                <button type="button" onClick={() => setMode('edit')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-label)] text-[var(--color-ink-secondary)] bg-[var(--color-surface)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setMode('edit')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-label)] text-[var(--color-ink-secondary)] bg-[var(--color-surface)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors"
+                >
                   <Pencil size={14} /> Edit
                 </button>
-                <button type="button" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-label)] text-white bg-[var(--color-action)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-action-hover)] transition-colors">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-label)] text-white bg-[var(--color-action)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-action-hover)] transition-colors"
+                >
                   <ShoppingCart size={14} /> Order Print
                 </button>
               </>
             ) : (
-              <button type="button" onClick={() => setMode('read')} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-label)] text-[var(--color-ink-secondary)] bg-[var(--color-surface)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors">
+              <button
+                type="button"
+                onClick={() => setMode('read')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[length:var(--text-label)] text-[var(--color-ink-secondary)] bg-[var(--color-surface)] rounded-[var(--radius-sharp)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] transition-colors"
+              >
                 <Eye size={14} /> Preview
               </button>
             )}
-            <button type="button" onClick={onClose} className="p-2 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-sunken)] transition-colors ml-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 text-[var(--color-ink-tertiary)] hover:text-[var(--color-ink)] rounded-[var(--radius-sharp)] hover:bg-[var(--color-surface-sunken)] transition-colors ml-2"
+            >
               <X size={18} />
             </button>
           </div>
@@ -163,11 +214,20 @@ function MagazineViewer({ pages, onClose }: { pages: DemoPage[]; onClose: () => 
                   type="button"
                   onClick={() => setSpreadIndex(i)}
                   className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors ${
-                    i === spreadIndex ? 'border-[var(--color-action)]' : 'border-transparent hover:border-[var(--color-border)]'
+                    i === spreadIndex
+                      ? 'border-[var(--color-action)]'
+                      : 'border-transparent hover:border-[var(--color-border)]'
                   }`}
                 >
                   {photoUrl ? (
-                    <img src={photoUrl} alt="" className="w-full h-full object-cover" />
+                    <Image
+                      src={photoUrl}
+                      alt=""
+                      width={56}
+                      height={40}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
                   ) : (
                     <div className="w-full h-full bg-[var(--color-surface-sunken)] flex items-center justify-center">
                       <Type size={8} className="text-[var(--color-ink-tertiary)]" />
@@ -180,9 +240,15 @@ function MagazineViewer({ pages, onClose }: { pages: DemoPage[]; onClose: () => 
 
           {/* Price info */}
           <div className="flex items-center gap-2 pt-2 border-t border-[var(--color-border)] w-full max-w-2xl justify-center">
-            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">Estimated price:</span>
-            <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-body)] text-[var(--color-ink)]">$14.99</span>
-            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">+ shipping · Free for Roll+</span>
+            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-secondary)]">
+              Estimated price:
+            </span>
+            <span className="font-[family-name:var(--font-mono)] font-bold text-[length:var(--text-body)] text-[var(--color-ink)]">
+              $14.99
+            </span>
+            <span className="text-[length:var(--text-caption)] text-[var(--color-ink-tertiary)]">
+              + shipping · Free for Roll+
+            </span>
           </div>
         </div>
       </div>
@@ -261,9 +327,7 @@ export default function MagazinesPage() {
       </div>
 
       {/* Magazine viewer modal */}
-      {viewerOpen && (
-        <MagazineViewer pages={DEMO_PAGES} onClose={() => setViewerOpen(false)} />
-      )}
+      {viewerOpen && <MagazineViewer pages={DEMO_PAGES} onClose={() => setViewerOpen(false)} />}
     </div>
   );
 }

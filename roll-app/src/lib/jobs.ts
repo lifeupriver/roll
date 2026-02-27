@@ -49,8 +49,7 @@ export interface Job {
   completed_at: string | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type JobProcessor = (job: Job, supabase: SupabaseClient<any>) => Promise<void>;
+type JobProcessor = (job: Job, supabase: SupabaseClient) => Promise<void>;
 
 const processors = new Map<string, JobProcessor>();
 

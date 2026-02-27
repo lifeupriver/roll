@@ -10,6 +10,7 @@ import { Wand2, Cloud, Zap, Sun, Moon } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { track } from '@/lib/analytics';
 import type { Roll } from '@/types/roll';
+import Image from 'next/image';
 import type { Photo } from '@/types/photo';
 
 interface RollPhotoWithPhoto {
@@ -147,11 +148,14 @@ function DevelopPageContent() {
       {samplePhotos.length > 0 && (
         <div className="grid grid-cols-2 gap-1 rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-floating)]">
           {samplePhotos.map((rp) => (
-            <img
+            <Image
               key={rp.id}
               src={rp.photos.thumbnail_url}
               alt=""
+              width={400}
+              height={300}
               className="w-full aspect-[4/3] object-cover"
+              unoptimized
             />
           ))}
         </div>
@@ -176,11 +180,14 @@ function DevelopPageContent() {
             {/* Preview thumbnails with color tint */}
             <div className="grid grid-cols-2 gap-0.5 w-full rounded-[var(--radius-sharp)] overflow-hidden">
               {samplePhotos.slice(0, 4).map((rp) => (
-                <img
+                <Image
                   key={`color-${rp.id}`}
                   src={rp.photos.thumbnail_url}
                   alt=""
+                  width={200}
+                  height={200}
                   className="w-full aspect-square object-cover"
+                  unoptimized
                 />
               ))}
             </div>
@@ -222,12 +229,15 @@ function DevelopPageContent() {
             {/* Preview thumbnails with grayscale filter */}
             <div className="grid grid-cols-2 gap-0.5 w-full rounded-[var(--radius-sharp)] overflow-hidden">
               {samplePhotos.slice(0, 4).map((rp) => (
-                <img
+                <Image
                   key={`bw-${rp.id}`}
                   src={rp.photos.thumbnail_url}
                   alt=""
+                  width={200}
+                  height={200}
                   className="w-full aspect-square object-cover grayscale contrast-110"
                   style={{ filter: 'grayscale(100%) contrast(1.1)' }}
+                  unoptimized
                 />
               ))}
             </div>

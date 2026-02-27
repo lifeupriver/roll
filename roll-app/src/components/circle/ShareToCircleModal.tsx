@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Check, Play } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -196,11 +197,13 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
                         onClick={() => toggleSelection(fav.photo_id)}
                         className="relative aspect-square overflow-hidden bg-[var(--color-surface-sunken)] group"
                       >
-                        <img
+                        <Image
                           src={thumbnailUrl}
                           alt=""
                           loading="lazy"
                           className="w-full h-full object-cover"
+                          fill
+                          unoptimized
                         />
                         {/* Selection overlay */}
                         <div
@@ -268,7 +271,14 @@ export function ShareToCircleModal({ isOpen, onClose, circleId }: ShareToCircleM
                       {/* Poster thumbnail */}
                       <div className="relative shrink-0 w-16 h-10 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
                         {posterUrl && (
-                          <img src={posterUrl} alt="" className="w-full h-full object-cover" />
+                          <Image
+                            src={posterUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            width={64}
+                            height={40}
+                            unoptimized
+                          />
                         )}
                         <div className="absolute inset-0 flex items-center justify-center">
                           <Play

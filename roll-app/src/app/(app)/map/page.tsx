@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { MapPin, ZoomIn, ZoomOut } from 'lucide-react';
 import { Spinner } from '@/components/ui/Spinner';
 import { Empty } from '@/components/ui/Empty';
+import Image from 'next/image';
 import type { MapPhoto } from '@/app/api/photos/map/route';
 
 /**
@@ -292,10 +293,13 @@ export default function MapPage() {
         {/* Selected photo preview */}
         {selectedPhoto && (
           <div className="absolute bottom-[var(--space-element)] left-[var(--space-element)] z-20 flex items-center gap-[var(--space-element)] bg-[var(--color-surface-raised)] rounded-[var(--radius-card)] shadow-[var(--shadow-floating)] p-[var(--space-tight)] max-w-[280px]">
-            <img
+            <Image
               src={selectedPhoto.thumbnailUrl}
               alt="Selected photo"
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-[var(--radius-sharp)] object-cover shrink-0"
+              unoptimized
             />
             <div className="flex flex-col gap-0.5 min-w-0">
               <p className="text-[length:var(--text-caption)] text-[var(--color-ink)] font-[family-name:var(--font-body)] font-medium truncate">
@@ -336,11 +340,14 @@ export default function MapPage() {
                 : 'border-transparent',
             ].join(' ')}
           >
-            <img
+            <Image
               src={photo.thumbnailUrl}
               alt="Map photo"
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
               loading="lazy"
+              unoptimized
             />
           </button>
         ))}

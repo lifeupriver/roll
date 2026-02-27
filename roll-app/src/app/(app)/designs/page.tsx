@@ -11,6 +11,7 @@ import { MagazineCover } from '@/components/magazine/MagazineCover';
 import { CreateBookModal } from '@/components/book/CreateBookModal';
 import { NudgeBanner } from '@/components/shared/NudgeBanner';
 import { useToast } from '@/stores/toastStore';
+import Image from 'next/image';
 import type { Magazine } from '@/types/magazine';
 
 type DesignSection = 'magazines' | 'books';
@@ -68,7 +69,7 @@ export default function DesignsPage() {
       }
     }
     fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleBookCreated = useCallback(
@@ -185,10 +186,13 @@ export default function DesignsPage() {
                   className="relative aspect-[3/4] bg-[var(--color-surface-sunken)] rounded-[var(--radius-card)] overflow-hidden shadow-[var(--shadow-card)] group transition-transform hover:scale-[1.02] text-left"
                 >
                   {book.cover_url ? (
-                    <img
+                    <Image
                       src={book.cover_url}
                       alt={book.name}
+                      width={300}
+                      height={400}
                       className="w-full h-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--color-surface-raised)] to-[var(--color-surface-sunken)]">

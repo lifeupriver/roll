@@ -2,16 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import {
-  Play,
-  Heart,
-  Share2,
-  Wand2,
-  Film,
-  Volume2,
-  VolumeX,
-  FileText,
-} from 'lucide-react';
+import { Play, Heart, Share2, Wand2, Film, Volume2, VolumeX, FileText } from 'lucide-react';
 import { BackButton } from '@/components/ui/BackButton';
 import { ReelStoryboard } from '@/components/reel/ReelStoryboard';
 import { TrimControls } from '@/components/reel/TrimControls';
@@ -26,6 +17,7 @@ import type { Reel, ReelClip } from '@/types/reel';
 import type { Photo } from '@/types/photo';
 import { FILM_PROFILES, type FilmProfileId } from '@/types/roll';
 import { track } from '@/lib/analytics';
+import Image from 'next/image';
 
 const CLIP_DURATION_OPTIONS = [2, 3, 5, 8, 10];
 
@@ -297,7 +289,11 @@ export default function ReelDetailPage() {
       updateReelStatus(currentReel.id, { status: 'developed' });
       track({
         event: 'reel_developed',
-        properties: { reelId: currentReel.id, filmProfile, audioMood: ambientAudio ? 'original' : 'silent_film' },
+        properties: {
+          reelId: currentReel.id,
+          filmProfile,
+          audioMood: ambientAudio ? 'original' : 'silent_film',
+        },
       });
 
       // Initialize config screen
@@ -405,9 +401,7 @@ export default function ReelDetailPage() {
   }));
 
   // Clip being trimmed
-  const trimmingClip = trimmingClipId
-    ? reelClips.find((c) => c.id === trimmingClipId)
-    : null;
+  const trimmingClip = trimmingClipId ? reelClips.find((c) => c.id === trimmingClipId) : null;
 
   return (
     <div className="flex flex-col gap-[var(--space-section)] pb-8">
@@ -485,10 +479,12 @@ export default function ReelDetailPage() {
           >
             {/* Poster image if available */}
             {currentReel.poster_storage_key && (
-              <img
+              <Image
                 src={`/api/photos/serve?key=${encodeURIComponent(currentReel.poster_storage_key)}`}
                 alt=""
-                className="absolute inset-0 w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             )}
             {/* Play overlay */}
@@ -678,11 +674,16 @@ export default function ReelDetailPage() {
       {trimmingClip && (
         <div className="fixed inset-x-0 bottom-0 z-40">
           <TrimControls
-            durationMs={trimmingClip.trimmed_duration_ms + trimmingClip.trim_start_ms + (trimmingClip.trim_end_ms ? 0 : 0)}
+            durationMs={
+              trimmingClip.trimmed_duration_ms +
+              trimmingClip.trim_start_ms +
+              (trimmingClip.trim_end_ms ? 0 : 0)
+            }
             initialStartMs={trimmingClip.trim_start_ms}
             initialEndMs={trimmingClip.trim_end_ms}
             thumbnailUrl={
-              (trimmingClip as ReelClip & { photos?: { thumbnail_url?: string } }).photos?.thumbnail_url || ''
+              (trimmingClip as ReelClip & { photos?: { thumbnail_url?: string } }).photos
+                ?.thumbnail_url || ''
             }
             onConfirm={handleTrimConfirm}
             onCancel={() => setTrimmingClipId(null)}
@@ -772,13 +773,16 @@ export default function ReelDetailPage() {
                       <div className="relative shrink-0 w-12 h-12 rounded-[var(--radius-sharp)] overflow-hidden bg-[var(--color-surface-sunken)]">
                         {(clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos
                           ?.thumbnail_url ? (
-                          <img
+                          <Image
                             src={
                               (clip as ReelClip & { photos?: { thumbnail_url?: string } }).photos!
-                                .thumbnail_url
+                                .thumbnail_url!
                             }
                             alt=""
+                            width={48}
+                            height={48}
                             className="w-full h-full object-cover"
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

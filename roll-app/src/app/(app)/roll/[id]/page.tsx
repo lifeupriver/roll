@@ -33,6 +33,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/stores/toastStore';
 import type { Roll, RollPhoto } from '@/types/roll';
 import type { Circle } from '@/types/circle';
+import Image from 'next/image';
 import Link from 'next/link';
 
 interface Photo {
@@ -607,11 +608,14 @@ export default function RollDetailPage() {
             >
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
-                  <img
+                  <Image
                     src={rp.photos.thumbnail_url}
                     alt=""
+                    width={300}
+                    height={400}
                     loading="lazy"
                     className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                    unoptimized
                   />
                 </div>
               ))}
@@ -646,11 +650,14 @@ export default function RollDetailPage() {
             >
               {photos.map((rp) => (
                 <div key={rp.id} className="relative">
-                  <img
+                  <Image
                     src={rp.photos.thumbnail_url}
                     alt=""
+                    width={300}
+                    height={400}
                     loading="lazy"
                     className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)]"
+                    unoptimized
                   />
                 </div>
               ))}
@@ -840,11 +847,14 @@ export default function RollDetailPage() {
               className="relative overflow-hidden group cursor-pointer"
               onClick={() => setLightboxIndex(index)}
             >
-              <img
+              <Image
                 src={rp.processed_storage_key || rp.photos.thumbnail_url}
                 alt=""
+                width={300}
+                height={400}
                 loading="lazy"
                 className="w-full aspect-[3/4] object-cover bg-[var(--color-surface-sunken)] pointer-events-none"
+                unoptimized
               />
               {/* Heart overlay */}
               <div className="absolute -top-1 -right-1" onClick={(e) => e.stopPropagation()}>
@@ -1120,11 +1130,14 @@ export default function RollDetailPage() {
               className="relative group overflow-hidden bg-[var(--color-surface-sunken)] cursor-pointer"
               onClick={() => setLightboxIndex(index)}
             >
-              <img
+              <Image
                 src={rp.photos.thumbnail_url}
                 alt={`Position ${rp.position}`}
+                width={300}
+                height={400}
                 loading="lazy"
                 className="w-full aspect-[3/4] object-cover pointer-events-none"
+                unoptimized
               />
 
               {/* Position badge */}

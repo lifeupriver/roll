@@ -71,14 +71,18 @@ export function PublicGalleryView({ gallery }: PublicGalleryViewProps) {
           >
             <X size={24} />
           </button>
-          <img
+          <Image
             src={
               gallery.photos[lightboxIndex]?.developed_url ||
-              gallery.photos[lightboxIndex]?.thumbnail_url
+              gallery.photos[lightboxIndex]?.thumbnail_url ||
+              ''
             }
             alt=""
+            width={gallery.photos[lightboxIndex]?.width || 1200}
+            height={gallery.photos[lightboxIndex]?.height || 800}
             className="max-w-[90vw] max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}
+            unoptimized
           />
           {gallery.photos[lightboxIndex]?.caption && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 text-sm max-w-lg text-center">
